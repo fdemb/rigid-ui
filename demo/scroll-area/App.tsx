@@ -1,11 +1,4 @@
-import {
-  ScrollAreaRoot,
-  ScrollAreaViewport,
-  ScrollAreaScrollbar,
-  ScrollAreaThumb,
-  ScrollAreaContent,
-  ScrollAreaCorner,
-} from "../../src/scroll-area/index";
+import { ScrollArea } from "../../src/scroll-area/index";
 import styles from "./App.module.css";
 
 export default function App() {
@@ -13,9 +6,9 @@ export default function App() {
     <div style={{ padding: "40px", "font-family": "system-ui, sans-serif" }}>
       <h2>Vertical Scroll</h2>
 
-      <ScrollAreaRoot class={styles.ScrollArea}>
-        <ScrollAreaViewport class={styles.Viewport}>
-          <ScrollAreaContent class={styles.Content}>
+      <ScrollArea.Root class={styles.ScrollArea}>
+        <ScrollArea.Viewport class={styles.Viewport}>
+          <ScrollArea.Content class={styles.Content}>
             <p class={styles.Paragraph}>
               Vernacular architecture is building done outside any academic tradition, and without
               professional guidance. It is not a particular architectural movement or style, but
@@ -35,33 +28,33 @@ export default function App() {
               effort to be more energy conscious with contemporary design and construction—part of a
               broader interest in sustainable design.
             </p>
-          </ScrollAreaContent>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar class={styles.Scrollbar}>
-          <ScrollAreaThumb class={styles.Thumb} />
-        </ScrollAreaScrollbar>
-      </ScrollAreaRoot>
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar class={styles.Scrollbar}>
+          <ScrollArea.Thumb class={styles.Thumb} />
+        </ScrollArea.Scrollbar>
+      </ScrollArea.Root>
 
       <h2 style={{ "margin-top": "40px" }}>Both Axes</h2>
 
-      <ScrollAreaRoot class={styles.ScrollAreaBoth}>
-        <ScrollAreaViewport class={styles.Viewport}>
-          <ScrollAreaContent class={styles.ContentBoth}>
+      <ScrollArea.Root class={styles.ScrollAreaBoth}>
+        <ScrollArea.Viewport class={styles.Viewport}>
+          <ScrollArea.Content class={styles.ContentBoth}>
             <ul class={styles.Grid}>
               {Array.from({ length: 100 }, (_, i) => (
                 <li class={styles.Item}>{i + 1}</li>
               ))}
             </ul>
-          </ScrollAreaContent>
-        </ScrollAreaViewport>
-        <ScrollAreaScrollbar class={styles.Scrollbar}>
-          <ScrollAreaThumb class={styles.Thumb} />
-        </ScrollAreaScrollbar>
-        <ScrollAreaScrollbar class={styles.Scrollbar} orientation="horizontal">
-          <ScrollAreaThumb class={styles.Thumb} />
-        </ScrollAreaScrollbar>
-        <ScrollAreaCorner />
-      </ScrollAreaRoot>
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar class={styles.Scrollbar}>
+          <ScrollArea.Thumb class={styles.Thumb} />
+        </ScrollArea.Scrollbar>
+        <ScrollArea.Scrollbar class={styles.Scrollbar} orientation="horizontal">
+          <ScrollArea.Thumb class={styles.Thumb} />
+        </ScrollArea.Scrollbar>
+        <ScrollArea.Corner />
+      </ScrollArea.Root>
     </div>
   );
 }

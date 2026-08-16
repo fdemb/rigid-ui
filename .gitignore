@@ -6,3 +6,4 @@ dist-ssr
 *.local
 .env
 *.tgz
+pnpm-debug.log*
