@@ -1,4 +1,5 @@
-import { createEffect, onCleanup, Show, splitProps, type JSX, type ParentProps } from "solid-js";
+import { createEffect, omit, Show, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaScrollbarContext } from "./ScrollAreaScrollbarContext";
 import { getOffset } from "../../utils/getOffset";
@@ -12,16 +13,10 @@ export interface ScrollAreaScrollbarProps extends ParentProps<JSX.HTMLAttributes
 }
 
 export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
-  const [local, others] = splitProps(props, [
-    "children",
-    "orientation",
-    "keepMounted",
-    "ref",
-    "style",
-  ]);
+  const others = omit(props, "children", "orientation", "keepMounted", "ref", "style");
 
-  const orientation = () => local.orientation ?? "vertical";
-  const keepMounted = () => local.keepMounted ?? false;
+  const orientation = () => props.orientation ?? "vertical";
+  const keepMounted = () => props.keepMounted ?? false;
 
   const ctx = useScrollAreaRootContext();
 
@@ -29,40 +24,42 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
   const direction: "ltr" | "rtl" = "ltr";
 
   // Wheel handler on scrollbar
-  createEffect(() => {
-    const orient = orientation();
-    const scrollbarEl = orient === "vertical" ? ctx.scrollbarYRef : ctx.scrollbarXRef;
-    const viewportEl = ctx.viewportRef;
+  createEffect(
+    () => orientation(),
+    (orient) => {
+      const scrollbarEl = orient === "vertical" ? ctx.scrollbarYRef : ctx.scrollbarXRef;
+      const viewportEl = ctx.viewportRef;
 
-    if (!scrollbarEl) return;
+      if (!scrollbarEl) return;
 
-    function handleWheel(event: WheelEvent) {
-      if (!viewportEl || !scrollbarEl || event.ctrlKey) return;
+      function handleWheel(event: WheelEvent) {
+        if (!viewportEl || !scrollbarEl || event.ctrlKey) return;
 
-      event.preventDefault();
+        event.preventDefault();
 
-      if (orient === "vertical") {
-        if (viewportEl.scrollTop === 0 && event.deltaY < 0) return;
-        if (
-          viewportEl.scrollTop === viewportEl.scrollHeight - viewportEl.clientHeight &&
-          event.deltaY > 0
-        )
-          return;
-        viewportEl.scrollTop += event.deltaY;
-      } else {
-        if (viewportEl.scrollLeft === 0 && event.deltaX < 0) return;
-        if (
-          viewportEl.scrollLeft === viewportEl.scrollWidth - viewportEl.clientWidth &&
-          event.deltaX > 0
-        )
-          return;
-        viewportEl.scrollLeft += event.deltaX;
+        if (orient === "vertical") {
+          if (viewportEl.scrollTop === 0 && event.deltaY < 0) return;
+          if (
+            viewportEl.scrollTop === viewportEl.scrollHeight - viewportEl.clientHeight &&
+            event.deltaY > 0
+          )
+            return;
+          viewportEl.scrollTop += event.deltaY;
+        } else {
+          if (viewportEl.scrollLeft === 0 && event.deltaX < 0) return;
+          if (
+            viewportEl.scrollLeft === viewportEl.scrollWidth - viewportEl.clientWidth &&
+            event.deltaX > 0
+          )
+            return;
+          viewportEl.scrollLeft += event.deltaX;
+        }
       }
-    }
 
-    scrollbarEl.addEventListener("wheel", handleWheel, { passive: false });
-    onCleanup(() => scrollbarEl.removeEventListener("wheel", handleWheel));
-  });
+      scrollbarEl.addEventListener("wheel", handleWheel, { passive: false });
+      return () => scrollbarEl.removeEventListener("wheel", handleWheel);
+    },
+  );
 
   function handleScrollbarPointerDown(event: PointerEvent) {
     if (event.button !== 0) return;
@@ -144,15 +141,15 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
         [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth]: `${ctx.thumbSize().width}px`,
       });
     }
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
 
   return (
     <Show when={shouldRender()}>
-      <ScrollAreaScrollbarContext.Provider value={{ orientation: orientation() }}>
+      <ScrollAreaScrollbarContext value={{ orientation: orientation() }}>
         <div
           ref={(el) => {
             if (orientation() === "vertical") {
@@ -160,7 +157,7 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
             } else {
               ctx.scrollbarXRef = el;
             }
-            if (typeof local.ref === "function") local.ref(el);
+            if (typeof props.ref === "function") props.ref(el);
           }}
           data-orientation={orientation()}
           data-hovering={ctx.hovering() ? "" : undefined}
@@ -170,9 +167,9 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
           style={mergedStyle()}
           {...others}
         >
-          {local.children}
+          {props.children}
         </div>
-      </ScrollAreaScrollbarContext.Provider>
+      </ScrollAreaScrollbarContext>
     </Show>
   );
 }

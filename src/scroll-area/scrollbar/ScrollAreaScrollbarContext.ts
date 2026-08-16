@@ -7,11 +7,11 @@ export interface ScrollAreaScrollbarContextValue {
 export const ScrollAreaScrollbarContext = createContext<ScrollAreaScrollbarContextValue>();
 
 export function useScrollAreaScrollbarContext(): ScrollAreaScrollbarContextValue {
-  const context = useContext(ScrollAreaScrollbarContext);
-  if (context === undefined) {
+  try {
+    return useContext(ScrollAreaScrollbarContext);
+  } catch {
     throw new Error(
       "rigid-ui: ScrollAreaScrollbarContext is missing. ScrollAreaScrollbar parts must be placed within <ScrollArea.Scrollbar>.",
     );
   }
-  return context;
 }

@@ -7,11 +7,11 @@ export interface ScrollAreaViewportContextValue {
 export const ScrollAreaViewportContext = createContext<ScrollAreaViewportContextValue>();
 
 export function useScrollAreaViewportContext(): ScrollAreaViewportContextValue {
-  const context = useContext(ScrollAreaViewportContext);
-  if (context === undefined) {
+  try {
+    return useContext(ScrollAreaViewportContext);
+  } catch {
     throw new Error(
       "rigid-ui: ScrollAreaViewportContext missing. ScrollAreaViewport parts must be placed within <ScrollArea.Viewport>.",
     );
   }
-  return context;
 }

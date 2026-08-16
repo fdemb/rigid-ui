@@ -36,16 +36,18 @@
     "format": "vp fmt ."
   },
   "devDependencies": {
+    "@dom-expressions/compiler": "0.50.0-next.40",
+    "@solidjs/vite-plugin": "3.0.0-next.28",
+    "@solidjs/web": "2.0.0-rc.0",
     "@types/node": "^26.2.0",
-    "rolldown-plugin-solid": "^0.2.1",
-    "solid-js": "^1.9.14",
+    "solid-js": "2.0.0-rc.0",
     "typescript": "^5.9.3",
     "vite": "catalog:",
-    "vite-plugin-solid": "^2.11.14",
     "vite-plus": "catalog:"
   },
   "peerDependencies": {
-    "solid-js": "^1.9.14"
+    "@solidjs/web": "^2.0.0-rc.0",
+    "solid-js": "^2.0.0-rc.0"
   },
   "packageManager": "pnpm@11.22.0"
 }

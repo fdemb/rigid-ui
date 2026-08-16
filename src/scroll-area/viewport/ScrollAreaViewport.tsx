@@ -1,4 +1,5 @@
-import { createEffect, onMount, onCleanup, splitProps, type JSX, type ParentProps } from "solid-js";
+import { createEffect, omit, onSettled, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { isWebKit } from "../../utils/detectBrowser";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
@@ -45,17 +46,13 @@ export interface ScrollAreaViewportProps extends ParentProps<JSX.HTMLAttributes<
 }
 
 export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
-  const [local, others] = splitProps(props, ["children", "ref", "class", "style"]);
+  const others = omit(props, "children", "ref", "class", "style");
 
   const ctx = useScrollAreaRootContext();
 
   let programmaticScroll = true;
   const scrollEndTimeout = new Timeout();
   const waitForAnimationsTimeout = new Timeout();
-  onCleanup(() => {
-    scrollEndTimeout.clear();
-    waitForAnimationsTimeout.clear();
-  });
 
   // Direction hardcoded to 'ltr' for now
   const direction: "ltr" | "rtl" = "ltr";
@@ -218,9 +215,14 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
     });
   }
 
-  onMount(() => {
+  onSettled(() => {
     const viewportEl = ctx.viewportRef;
-    if (!viewportEl) return;
+    if (!viewportEl) {
+      return () => {
+        scrollEndTimeout.clear();
+        waitForAnimationsTimeout.clear();
+      };
+    }
 
     removeCSSVariableInheritance();
 
@@ -241,12 +243,11 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
       }
       computeThumbPosition();
     });
-    onCleanup(cleanupVisible);
 
-    // ResizeObserver on viewport
+    let ro: ResizeObserver | undefined;
     if (typeof ResizeObserver !== "undefined") {
       let roInitialized = false;
-      const ro = new ResizeObserver(() => {
+      ro = new ResizeObserver(() => {
         if (!roInitialized) {
           roInitialized = true;
           return;
@@ -263,17 +264,23 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
           .then(computeThumbPosition)
           .catch(() => {});
       });
-
-      onCleanup(() => ro.disconnect());
     }
+
+    return () => {
+      cleanupVisible();
+      ro?.disconnect();
+      scrollEndTimeout.clear();
+      waitForAnimationsTimeout.clear();
+    };
   });
 
   // Re-compute when hiddenState changes
-  createEffect(() => {
-    // Track the signal
-    ctx.hiddenState();
-    queueMicrotask(computeThumbPosition);
-  });
+  createEffect(
+    () => ctx.hiddenState(),
+    () => {
+      queueMicrotask(computeThumbPosition);
+    },
+  );
 
   function handleUserInteraction() {
     programmaticScroll = false;
@@ -281,32 +288,27 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
 
   const hs = () => ctx.hiddenState();
 
-  const mergedClass = () => {
-    const base = styleDisableScrollbar.className;
-    return local.class ? `${base} ${local.class}` : base;
-  };
-
   const mergedStyle = () => {
     const base: JSX.CSSProperties = {
       overflow: "scroll",
       height: "100%",
     };
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
 
   return (
-    <ScrollAreaViewportContext.Provider value={{ computeThumbPosition }}>
+    <ScrollAreaViewportContext value={{ computeThumbPosition }}>
       <div
         ref={(el) => {
           ctx.viewportRef = el;
-          if (typeof local.ref === "function") local.ref(el);
+          if (typeof props.ref === "function") props.ref(el);
         }}
         role="presentation"
-        tabIndex={!hs().x || !hs().y ? 0 : undefined}
-        class={mergedClass()}
+        tabindex={!hs().x || !hs().y ? 0 : undefined}
+        class={[styleDisableScrollbar.className, props.class]}
         onScroll={() => {
           const viewportEl = ctx.viewportRef;
           if (!viewportEl) return;
@@ -339,8 +341,8 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
         data-overflow-y-end={ctx.overflowEdges().yEnd ? "" : undefined}
         {...others}
       >
-        {local.children}
+        {props.children}
       </div>
-    </ScrollAreaViewportContext.Provider>
+    </ScrollAreaViewportContext>
   );
 }

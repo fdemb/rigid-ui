@@ -1,4 +1,5 @@
-import { Show, splitProps, type JSX, type ParentProps } from "solid-js";
+import { omit, Show, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 
 export interface ScrollAreaCornerProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
@@ -6,7 +7,7 @@ export interface ScrollAreaCornerProps extends ParentProps<JSX.HTMLAttributes<HT
 }
 
 export function ScrollAreaCorner(props: ScrollAreaCornerProps) {
-  const [local, others] = splitProps(props, ["children", "ref", "style"]);
+  const others = omit(props, "children", "ref", "style");
 
   const ctx = useScrollAreaRootContext();
 
@@ -18,8 +19,8 @@ export function ScrollAreaCorner(props: ScrollAreaCornerProps) {
       width: `${ctx.cornerSize().width}px`,
       height: `${ctx.cornerSize().height}px`,
     };
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
@@ -29,12 +30,12 @@ export function ScrollAreaCorner(props: ScrollAreaCornerProps) {
       <div
         ref={(el) => {
           ctx.cornerRef = el;
-          if (typeof local.ref === "function") local.ref(el);
+          if (typeof props.ref === "function") props.ref(el);
         }}
         style={mergedStyle()}
         {...others}
       >
-        {local.children}
+        {props.children}
       </div>
     </Show>
   );

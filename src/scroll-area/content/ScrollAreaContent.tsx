@@ -1,4 +1,5 @@
-import { onMount, onCleanup, splitProps, type JSX, type ParentProps } from "solid-js";
+import { omit, onSettled, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 
@@ -7,14 +8,14 @@ export interface ScrollAreaContentProps extends ParentProps<JSX.HTMLAttributes<H
 }
 
 export function ScrollAreaContent(props: ScrollAreaContentProps) {
-  const [local, others] = splitProps(props, ["children", "ref", "style"]);
+  const others = omit(props, "children", "ref", "style");
 
   const { computeThumbPosition } = useScrollAreaViewportContext();
   const ctx = useScrollAreaRootContext();
 
   let contentRef: HTMLDivElement | undefined;
 
-  onMount(() => {
+  onSettled(() => {
     if (typeof ResizeObserver === "undefined" || !contentRef) return;
 
     let hasInitialized = false;
@@ -27,13 +28,13 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
     });
 
     ro.observe(contentRef);
-    onCleanup(() => ro.disconnect());
+    return () => ro.disconnect();
   });
 
   const mergedStyle = () => {
     const base: JSX.CSSProperties = { "min-width": "fit-content" };
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
@@ -42,7 +43,7 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
     <div
       ref={(el) => {
         contentRef = el;
-        if (typeof local.ref === "function") local.ref(el);
+        if (typeof props.ref === "function") props.ref(el);
       }}
       role="presentation"
       style={mergedStyle()}
@@ -55,7 +56,7 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
       data-overflow-y-end={ctx.overflowEdges().yEnd ? "" : undefined}
       {...others}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }

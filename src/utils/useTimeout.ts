@@ -1,4 +1,4 @@
-import { onCleanup } from "solid-js";
+import { onSettled } from "solid-js";
 
 export class Timeout {
   private id: ReturnType<typeof setTimeout> | null = null;
@@ -21,6 +21,6 @@ export class Timeout {
 
 export function useTimeout(): Timeout {
   const timeout = new Timeout();
-  onCleanup(() => timeout.clear());
+  onSettled(() => () => timeout.clear());
   return timeout;
 }

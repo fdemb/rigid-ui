@@ -1,4 +1,5 @@
-import { createSignal, splitProps, type JSX, type ParentProps } from "solid-js";
+import { createSignal, omit, untrack, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import {
   ScrollAreaRootContext,
   type Coords,
@@ -50,9 +51,11 @@ function normalizeOverflowEdgeThreshold(
 }
 
 export function ScrollAreaRoot(props: ScrollAreaRootProps) {
-  const [local, others] = splitProps(props, ["children", "overflowEdgeThreshold", "ref", "style"]);
+  const others = omit(props, "children", "overflowEdgeThreshold", "ref", "style");
 
-  const overflowEdgeThreshold = normalizeOverflowEdgeThreshold(local.overflowEdgeThreshold);
+  const overflowEdgeThreshold = untrack(() =>
+    normalizeOverflowEdgeThreshold(props.overflowEdgeThreshold),
+  );
 
   const scrollYTimeout = useTimeout();
   const scrollXTimeout = useTimeout();
@@ -245,18 +248,18 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
       [ScrollAreaRootCssVars.scrollAreaCornerHeight]: `${cornerSize().height}px`,
       [ScrollAreaRootCssVars.scrollAreaCornerWidth]: `${cornerSize().width}px`,
     };
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
 
   return (
-    <ScrollAreaRootContext.Provider value={contextValue}>
+    <ScrollAreaRootContext value={contextValue}>
       <div
         ref={(el) => {
           rootRef = el;
-          if (typeof local.ref === "function") local.ref(el);
+          if (typeof props.ref === "function") props.ref(el);
         }}
         role="presentation"
         onPointerEnter={handlePointerEnterOrMove}
@@ -272,8 +275,8 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
         data-overflow-y-end={overflowEdges().yEnd ? "" : undefined}
         {...others}
       >
-        {local.children}
+        {props.children}
       </div>
-    </ScrollAreaRootContext.Provider>
+    </ScrollAreaRootContext>
   );
 }

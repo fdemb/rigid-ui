@@ -1,6 +1,40 @@
-import solid from "rolldown-plugin-solid";
+import { transform } from "@dom-expressions/compiler";
+import solidPlugin from "@solidjs/vite-plugin";
 import { defineConfig, lazyPlugins } from "vite-plus";
-import solidPlugin from "vite-plugin-solid";
+
+const SOLID_BUILT_INS = [
+  "For",
+  "Show",
+  "Switch",
+  "Match",
+  "Loading",
+  "Reveal",
+  "Portal",
+  "Repeat",
+  "Dynamic",
+  "Errored",
+];
+
+function solidNative() {
+  return {
+    name: "solid-native",
+    transform: {
+      filter: { id: /\.[jt]sx$/ },
+      handler(code: string, id: string) {
+        const result = transform(code, {
+          filename: id,
+          moduleName: "@solidjs/web",
+          generate: "dom",
+          builtIns: SOLID_BUILT_INS,
+          contextToCustomElements: true,
+          wrapConditionals: true,
+          sourceMap: true,
+        });
+        return { code: result.code, map: result.map };
+      },
+    },
+  };
+}
 
 export default defineConfig({
   pack: {
@@ -12,7 +46,7 @@ export default defineConfig({
     dts: true,
     clean: true,
     treeshake: true,
-    plugins: [solid()],
+    plugins: [solidNative()],
   },
   fmt: {},
   lint: {

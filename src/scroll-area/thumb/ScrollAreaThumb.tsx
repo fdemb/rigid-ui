@@ -1,4 +1,5 @@
-import { splitProps, type JSX, type ParentProps } from "solid-js";
+import { omit, type ParentProps } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { useScrollAreaScrollbarContext } from "../scrollbar/ScrollAreaScrollbarContext";
 import { ScrollAreaScrollbarCssVars } from "../scrollbar/ScrollAreaScrollbarCssVars";
@@ -8,7 +9,7 @@ export interface ScrollAreaThumbProps extends ParentProps<JSX.HTMLAttributes<HTM
 }
 
 export function ScrollAreaThumb(props: ScrollAreaThumbProps) {
-  const [local, others] = splitProps(props, ["children", "ref", "style"]);
+  const others = omit(props, "children", "ref", "style");
 
   const ctx = useScrollAreaRootContext();
   const scrollbarCtx = useScrollAreaScrollbarContext();
@@ -18,8 +19,8 @@ export function ScrollAreaThumb(props: ScrollAreaThumbProps) {
       scrollbarCtx.orientation === "vertical"
         ? { height: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbHeight})` }
         : { width: `var(${ScrollAreaScrollbarCssVars.scrollAreaThumbWidth})` };
-    if (typeof local.style === "object" && local.style) {
-      return { ...base, ...local.style };
+    if (typeof props.style === "object" && props.style) {
+      return { ...base, ...props.style };
     }
     return base;
   };
@@ -32,7 +33,7 @@ export function ScrollAreaThumb(props: ScrollAreaThumbProps) {
         } else {
           ctx.thumbXRef = el;
         }
-        if (typeof local.ref === "function") local.ref(el);
+        if (typeof props.ref === "function") props.ref(el);
       }}
       data-orientation={scrollbarCtx.orientation}
       onPointerDown={(e) => ctx.handlePointerDown(e)}
@@ -49,7 +50,7 @@ export function ScrollAreaThumb(props: ScrollAreaThumbProps) {
       style={mergedStyle()}
       {...others}
     >
-      {local.children}
+      {props.children}
     </div>
   );
 }
