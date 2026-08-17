@@ -1,4 +1,4 @@
-import { omit, Show } from "solid-js";
+import { createEffect, omit, Show } from "solid-js";
 import { Portal } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { PopoverPortalContext } from "./PopoverPortalContext";
@@ -23,6 +23,11 @@ export function PopoverPortal(props: PopoverPortalProps) {
     if (value && "current" in value) return value.current;
     return value;
   };
+
+  createEffect(
+    () => context!.portalElement(),
+    (element) => (element ? context!.registerPortalWithAncestors(element) : undefined),
+  );
 
   return (
     <Show when={context!.mounted() || props.keepMounted}>

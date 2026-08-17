@@ -4,8 +4,7 @@ import type { PopoverAlign, PopoverSide } from "../types";
 export interface PopoverPositionerContextValue {
   side: Accessor<PopoverSide>;
   align: Accessor<PopoverAlign>;
-  anchorName: Accessor<string | undefined>;
-  arrowPadding: Accessor<number>;
+  arrowOffset: Accessor<{ x: number; y: number }>;
 }
 
 export const PopoverPositionerContext = createContext<PopoverPositionerContextValue | null>(null);

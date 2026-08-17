@@ -34,6 +34,9 @@ export interface PopoverRootContextValue<Payload = unknown> {
   portalElement: Accessor<HTMLDivElement | undefined>;
   positionerElement: Accessor<HTMLDivElement | undefined>;
   closePartCount: Accessor<number>;
+  containsTarget(target: Node | null): boolean;
+  registerDescendantPortal(element: HTMLElement, open: Accessor<boolean>): () => void;
+  registerPortalWithAncestors(element: HTMLElement): () => void;
   registerTrigger(trigger: RegisteredPopoverTrigger<Payload>): () => void;
   registerTitle(id: string): () => void;
   registerDescription(id: string): () => void;

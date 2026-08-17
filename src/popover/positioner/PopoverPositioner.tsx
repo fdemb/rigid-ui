@@ -8,7 +8,6 @@ import {
   mergeStyles,
   type PopoverAlign,
   type PopoverAnchor,
-  type PopoverCollisionAvoidance,
   type PopoverNativeProps,
   type PopoverOffset,
   type PopoverOffsetData,
@@ -19,7 +18,7 @@ import {
   type PopoverPositionerContextValue,
 } from "./PopoverPositionerContext";
 
-export type PopoverCollisionBoundary = "clipping-ancestors" | Element | Element[] | null;
+// Native CSS anchor positioning cannot expose fallback placement to component state.
 export type PopoverCollisionPadding =
   | number
   | Partial<{ top: number; right: number; bottom: number; left: number }>;
@@ -39,12 +38,18 @@ export interface PopoverPositionerProps extends PopoverNativeProps<HTMLDivElemen
   sideOffset?: PopoverOffset;
   align?: PopoverAlign;
   alignOffset?: PopoverOffset;
-  collisionBoundary?: PopoverCollisionBoundary;
   collisionPadding?: PopoverCollisionPadding;
   sticky?: boolean;
-  arrowPadding?: number;
-  disableAnchorTracking?: boolean;
-  collisionAvoidance?: PopoverCollisionAvoidance;
+}
+
+function positionArea(side: PopoverSide, align: PopoverAlign, direction: "ltr" | "rtl") {
+  const horizontalSide = side === "left" || side === "right" || side.startsWith("inline");
+  if (align === "center") return `${side} span-all`;
+  if (horizontalSide) {
+    return align === "start" ? `${side} span-block-end` : `${side} span-block-start`;
+  }
+  const alignToRight = (align === "start") === (direction === "ltr");
+  return alignToRight ? `${side} span-right` : `${side} span-left`;
 }
 
 function oppositeSide(side: PopoverSide): PopoverSide {
@@ -61,46 +66,13 @@ function oppositeAlign(align: PopoverAlign): PopoverAlign {
   return "center";
 }
 
-function perpendicularSides(
-  side: PopoverSide,
-  fallback: "start" | "end",
-): [PopoverSide, PopoverSide] {
-  const horizontal = side === "left" || side === "right" || side.startsWith("inline");
-  if (horizontal) return fallback === "start" ? ["top", "bottom"] : ["bottom", "top"];
-  return fallback === "start" ? ["inline-start", "inline-end"] : ["inline-end", "inline-start"];
-}
-
-function positionArea(side: PopoverSide, align: PopoverAlign, direction: "ltr" | "rtl") {
-  const horizontalSide = side === "left" || side === "right" || side.startsWith("inline");
-  if (align === "center") return `${side} span-all`;
-  if (horizontalSide) {
-    return align === "start" ? `${side} span-block-end` : `${side} span-block-start`;
-  }
-  const alignToRight = (align === "start") === (direction === "ltr");
-  return alignToRight ? `${side} span-right` : `${side} span-left`;
-}
-
-function fallbackAreas(
-  side: PopoverSide,
-  align: PopoverAlign,
-  avoidance: PopoverCollisionAvoidance,
-  direction: "ltr" | "rtl",
-) {
-  const areas: string[] = [];
-  const shouldFlipSide = avoidance.side !== "none" && avoidance.side !== "shift";
-  const shouldFlipAlign =
-    align !== "center" && avoidance.align !== "none" && avoidance.align !== "shift";
-  if (shouldFlipSide) areas.push(positionArea(oppositeSide(side), align, direction));
-  if (shouldFlipAlign) areas.push(positionArea(side, oppositeAlign(align), direction));
-  if (shouldFlipSide && shouldFlipAlign) {
+function fallbackAreas(side: PopoverSide, align: PopoverAlign, direction: "ltr" | "rtl") {
+  const areas = [positionArea(oppositeSide(side), align, direction)];
+  if (align !== "center") {
+    areas.push(positionArea(side, oppositeAlign(align), direction));
     areas.push(positionArea(oppositeSide(side), oppositeAlign(align), direction));
   }
-  if (avoidance.fallbackAxisSide && avoidance.fallbackAxisSide !== "none") {
-    for (const fallbackSide of perpendicularSides(side, avoidance.fallbackAxisSide)) {
-      areas.push(positionArea(fallbackSide, align, direction));
-    }
-  }
-  return areas.join(", ") || "none";
+  return areas.join(", ");
 }
 
 function resolveAnchor(anchor: PopoverAnchor | undefined) {
@@ -134,15 +106,22 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
   const anchorElement = () => resolveAnchor(props.anchor) ?? context!.activeTrigger()?.element();
   const anchorName = () =>
     props.anchor !== undefined ? externalAnchorName : context!.activeTrigger()?.anchorName;
-  const arrowPadding = () => props.arrowPadding ?? 5;
+  const [element, setElement] = createSignal<HTMLDivElement>();
+  const [measurementRevision, setMeasurementRevision] = createSignal(0);
+  const arrowOffset = () => {
+    measurementRevision();
+    const anchorRect = anchorElement()?.getBoundingClientRect();
+    const positionerRect = element()?.getBoundingClientRect();
+    return {
+      x: (anchorRect?.left ?? 0) + (anchorRect?.width ?? 0) / 2 - (positionerRect?.left ?? 0),
+      y: (anchorRect?.top ?? 0) + (anchorRect?.height ?? 0) / 2 - (positionerRect?.top ?? 0),
+    };
+  };
   const positionerContext: PopoverPositionerContextValue = {
     side,
     align,
-    anchorName,
-    arrowPadding,
+    arrowOffset,
   };
-  const [element, setElement] = createSignal<HTMLDivElement>();
-  const [measurementRevision, setMeasurementRevision] = createSignal(0);
   const others = omit(
     props,
     "ref",
@@ -153,12 +132,8 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     "sideOffset",
     "align",
     "alignOffset",
-    "collisionBoundary",
     "collisionPadding",
     "sticky",
-    "arrowPadding",
-    "disableAnchorTracking",
-    "collisionAvoidance",
     "style",
     "onPointerEnter",
     "onPointerLeave",
@@ -192,11 +167,21 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
   createEffect(
     () => [anchorElement(), element()] as const,
     ([anchor, positioner]) => {
-      if (!anchor || !positioner || typeof ResizeObserver === "undefined") return;
-      const observer = new ResizeObserver(() => setMeasurementRevision((value) => value + 1));
-      observer.observe(anchor);
-      observer.observe(positioner);
-      return () => observer.disconnect();
+      if (!anchor || !positioner) return;
+      const update = () => setMeasurementRevision((value) => value + 1);
+      const observer =
+        typeof ResizeObserver === "undefined" ? undefined : new ResizeObserver(update);
+      observer?.observe(anchor);
+      const frame = requestAnimationFrame(update);
+      observer?.observe(positioner);
+      window.addEventListener("resize", update);
+      window.addEventListener("scroll", update, true);
+      return () => {
+        cancelAnimationFrame(frame);
+        observer?.disconnect();
+        window.removeEventListener("resize", update);
+        window.removeEventListener("scroll", update, true);
+      };
     },
   );
 
@@ -245,17 +230,8 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
       position: props.positionMethod ?? "absolute",
       "position-anchor": anchorName(),
       "position-area": positionArea(currentSide, currentAlign, direction),
-      "position-try-fallbacks": fallbackAreas(
-        currentSide,
-        currentAlign,
-        {
-          side: "flip",
-          align: "flip",
-          fallbackAxisSide: "none",
-          ...props.collisionAvoidance,
-        },
-        direction,
-      ),
+      // CSS exposes no reliable resolved-area API; public state remains the requested placement.
+      "position-try-fallbacks": fallbackAreas(currentSide, currentAlign, direction),
       "position-visibility": props.sticky ? "always" : "anchors-visible",
       "justify-self": horizontalSide ? undefined : inlineAlignment,
       "align-self": horizontalSide

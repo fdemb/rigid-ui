@@ -26,17 +26,17 @@ export function PopoverArrow(props: PopoverArrowProps) {
   function arrowStyle(): JSX.CSSProperties | string {
     const side = positioner!.side();
     const horizontalSide = side === "left" || side === "right" || side.startsWith("inline");
+    const offset = positioner!.arrowOffset();
     const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
       position: "absolute",
-      "position-anchor": positioner!.anchorName(),
-      top: side === "top" ? "100%" : horizontalSide ? "anchor(center)" : undefined,
+      top: side === "top" ? "100%" : horizontalSide ? `${offset.y}px` : undefined,
       bottom: side === "bottom" ? "100%" : undefined,
       left:
         side === "left" || side === "inline-start"
           ? "100%"
           : horizontalSide
             ? undefined
-            : "anchor(center)",
+            : `${offset.x}px`,
       right: side === "right" || side === "inline-end" ? "100%" : undefined,
       translate: horizontalSide ? `0 -50%` : `-50% 0`,
     };

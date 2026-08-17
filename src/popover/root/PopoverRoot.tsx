@@ -11,6 +11,7 @@ import {
   PopoverRootContext,
   type PopoverRootContextValue,
   type RegisteredPopoverTrigger,
+  usePopoverRootContext,
 } from "./PopoverRootContext";
 import type { PopoverHandle } from "../store/PopoverHandle";
 import type {
@@ -38,26 +39,57 @@ export interface PopoverRootProps<Payload = unknown> {
 
 export type PopoverRootState = Record<never, never>;
 
-function parseDurationList(value: string) {
-  return value.split(",").reduce((maximum, duration) => {
-    const item = duration.trim();
-    const milliseconds = item.endsWith("ms")
-      ? Number.parseFloat(item)
-      : Number.parseFloat(item) * 1000;
-    return Number.isFinite(milliseconds) ? Math.max(maximum, milliseconds) : maximum;
-  }, 0);
+const modalStack: Array<{ portal: () => HTMLElement | undefined }> = [];
+const isolatedElements = new Map<HTMLElement, { inert: boolean; ariaHidden: string | null }>();
+let originalBodyOverflow: string | undefined;
+
+function updateModalIsolation() {
+  for (const [element, state] of isolatedElements) {
+    element.inert = state.inert;
+    if (state.ariaHidden === null) element.removeAttribute("aria-hidden");
+    else element.setAttribute("aria-hidden", state.ariaHidden);
+  }
+  isolatedElements.clear();
+  const portal = modalStack[modalStack.length - 1]?.portal();
+  if (!portal) return;
+  const allowed = portal.closest("body > *");
+  for (const child of document.body.children) {
+    if (!(child instanceof HTMLElement) || child === allowed) continue;
+    isolatedElements.set(child, {
+      inert: child.inert,
+      ariaHidden: child.getAttribute("aria-hidden"),
+    });
+    child.inert = true;
+    child.setAttribute("aria-hidden", "true");
+  }
 }
 
-function getTransitionDuration(element: HTMLElement | undefined) {
-  if (!element || typeof getComputedStyle === "undefined") return 0;
-  const style = getComputedStyle(element);
-  return Math.max(
-    parseDurationList(style.transitionDuration) + parseDurationList(style.transitionDelay),
-    parseDurationList(style.animationDuration) + parseDurationList(style.animationDelay),
-  );
+function addModal(portal: () => HTMLElement | undefined) {
+  const entry = { portal };
+  if (modalStack.length === 0) {
+    originalBodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+  }
+  modalStack.push(entry);
+  updateModalIsolation();
+  return () => {
+    const index = modalStack.indexOf(entry);
+    if (index !== -1) modalStack.splice(index, 1);
+    updateModalIsolation();
+    if (modalStack.length === 0) {
+      document.body.style.overflow = originalBodyOverflow ?? "";
+      originalBodyOverflow = undefined;
+    }
+  };
+}
+
+function animationTime(animation: Animation) {
+  const timing = animation.effect?.getComputedTiming();
+  return typeof timing?.endTime === "number" ? timing.endTime : 0;
 }
 
 export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>) {
+  const parentContext = usePopoverRootContext(true);
   const rootId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
   const popupId = `rigid-popover-${rootId}`;
   const initialOpen = untrack(() => props.open ?? props.defaultOpen ?? false);
@@ -82,6 +114,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
   const [side, setSide] = createSignal<PopoverSide>("bottom");
   const [align, setAlign] = createSignal<PopoverAlign>("center");
 
+  const descendantPortals = new Set<{ element: HTMLElement; open: () => boolean }>();
   const triggers = new Map<string, RegisteredPopoverTrigger<Payload>>();
   const [triggerRevision, setTriggerRevision] = createSignal(0);
   const open = () => (props.open === undefined ? uncontrolledOpen() : props.open);
@@ -95,44 +128,63 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
   const payload = () => activeTrigger()?.payload();
   const modal = () => props.modal ?? false;
 
-  let closeTimer: ReturnType<typeof setTimeout> | undefined;
   let hoverCloseTimer: ReturnType<typeof setTimeout> | undefined;
+  let completionTimer: ReturnType<typeof setTimeout> | undefined;
   let transitionFrame: number | undefined;
+  let transitionGeneration = 0;
   let preventCurrentUnmount = false;
   let lastOpen = initialOpen;
 
   function cancelScheduledTransition() {
-    if (closeTimer !== undefined) clearTimeout(closeTimer);
+    transitionGeneration += 1;
+    if (completionTimer !== undefined) clearTimeout(completionTimer);
     if (transitionFrame !== undefined && typeof cancelAnimationFrame !== "undefined") {
       cancelAnimationFrame(transitionFrame);
     }
-    closeTimer = undefined;
+    completionTimer = undefined;
     transitionFrame = undefined;
   }
 
-  function finishTransition() {
-    cancelScheduledTransition();
+  function finishTransition(generation = transitionGeneration) {
+    if (generation !== transitionGeneration) return;
+    if (completionTimer !== undefined) clearTimeout(completionTimer);
+    completionTimer = undefined;
     const isOpen = open();
     setTransitionStatus(undefined);
     if (!isOpen && !preventCurrentUnmount) setMounted(false);
     props.onOpenChangeComplete?.(isOpen);
   }
 
-  function scheduleTransitionCompletion() {
+  function waitForAnimations(generation: number) {
+    const animations = [popupElement(), positionerElement()]
+      .flatMap((element) => element?.getAnimations?.() ?? [])
+      .filter((animation, index, all) => all.indexOf(animation) === index);
+    if (animations.length === 0) {
+      queueMicrotask(() => finishTransition(generation));
+      return;
+    }
+    const maximumTime = Math.max(...animations.map(animationTime), 0);
+    void Promise.allSettled(animations.map((animation) => animation.finished)).then(() =>
+      finishTransition(generation),
+    );
+    completionTimer = setTimeout(() => finishTransition(generation), maximumTime + 100);
+  }
+
+  function scheduleTransitionCompletion(isEntering: boolean) {
     cancelScheduledTransition();
-    const complete = () => {
-      const duration = Math.max(
-        getTransitionDuration(popupElement()),
-        getTransitionDuration(positionerElement()),
-      );
-      if (duration > 0) {
-        closeTimer = setTimeout(finishTransition, duration + 50);
-      } else {
-        queueMicrotask(finishTransition);
-      }
+    const generation = transitionGeneration;
+    const observe = () => {
+      transitionFrame = undefined;
+      waitForAnimations(generation);
     };
-    if (typeof requestAnimationFrame === "undefined") complete();
-    else transitionFrame = requestAnimationFrame(complete);
+    const begin = () => {
+      transitionFrame = undefined;
+      if (isEntering) setTransitionStatus(undefined);
+      if (typeof requestAnimationFrame === "undefined") observe();
+      else transitionFrame = requestAnimationFrame(observe);
+    };
+    if (typeof requestAnimationFrame === "undefined") begin();
+    else transitionFrame = requestAnimationFrame(begin);
   }
 
   function createEventDetails(
@@ -235,6 +287,36 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     }, delay);
   }
 
+  function containsTarget(target: Node | null) {
+    if (!target) return false;
+    if (activeTrigger()?.element()?.contains(target) || popupElement()?.contains(target))
+      return true;
+    for (const overlay of descendantPortals) {
+      if (overlay.element.contains(target)) return true;
+    }
+    return false;
+  }
+
+  function hasOpenDescendant() {
+    for (const overlay of descendantPortals) {
+      if (overlay.open()) return true;
+    }
+    return false;
+  }
+
+  function registerDescendantPortal(element: HTMLElement, descendantOpen: () => boolean) {
+    const overlay = { element, open: descendantOpen };
+    descendantPortals.add(overlay);
+    const unregisterParent = parentContext?.registerDescendantPortal(element, descendantOpen);
+    return () => {
+      descendantPortals.delete(overlay);
+      unregisterParent?.();
+    };
+  }
+
+  function registerPortalWithAncestors(element: HTMLElement) {
+    return parentContext?.registerDescendantPortal(element, open) ?? (() => {});
+  }
   const context: PopoverRootContextValue<Payload> = {
     open,
     mounted,
@@ -252,6 +334,9 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     portalElement,
     positionerElement,
     closePartCount,
+    containsTarget,
+    registerPortalWithAncestors,
+    registerDescendantPortal,
     registerTrigger,
     registerTitle,
     registerDescription,
@@ -289,7 +374,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
       } else if (isMounted) {
         setTransitionStatus("ending");
       }
-      scheduleTransitionCompletion();
+      scheduleTransitionCompletion(isOpen);
     },
   );
 
@@ -299,19 +384,20 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
       if (!isOpen) return;
       const handlePointerDown = (event: PointerEvent) => {
         const target = event.target as Node | null;
+        if (hasOpenDescendant()) return;
         if (!target) return;
-        const trigger = activeTrigger()?.element();
-        if (
-          trigger?.contains(target) ||
-          popupElement()?.contains(target) ||
-          portalElement()?.contains(target)
-        ) {
+        if (containsTarget(target)) {
           return;
+        }
+        if (modal() === true) {
+          event.preventDefault();
+          event.stopPropagation();
         }
         requestOpen(false, "outside-press", event);
       };
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key !== "Escape") return;
+        if (hasOpenDescendant()) return;
         event.preventDefault();
         requestOpen(false, "escape-key", event);
       };
@@ -325,14 +411,10 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
   );
 
   createEffect(
-    () => open() && modal() === true,
-    (lockScroll) => {
-      if (!lockScroll) return;
-      const previousOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = previousOverflow;
-      };
+    () => [open() && modal() === true, portalElement()] as const,
+    ([isModal, portal]) => {
+      if (!isModal || !portal) return;
+      return addModal(() => portal);
     },
   );
 
@@ -358,7 +440,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
       };
     },
   );
-  if (initialOpen) scheduleTransitionCompletion();
+  if (initialOpen) scheduleTransitionCompletion(true);
   onCleanup(() => {
     cancelHoverClose();
     cancelScheduledTransition();

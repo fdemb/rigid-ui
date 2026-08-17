@@ -99,8 +99,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
         queueMicrotask(() => {
           if (!popup.isConnected) return;
           const resolved = targetFromValue(state.initialFocus, state.method);
-          if (resolved === false || (resolved === undefined && state.initialFocus === false))
-            return;
+          if (typeof state.initialFocus === "function" && resolved === undefined) return;
+          if (resolved === false) return;
           if (resolved instanceof HTMLElement) {
             resolved.focus();
             return;
@@ -113,7 +113,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
       if (!state.isOpen && wasOpen && state.reason !== "trigger-hover") {
         queueMicrotask(() => {
           const resolved = targetFromValue(state.finalFocus, state.method);
-          if (resolved === false || (resolved === undefined && state.finalFocus === false)) return;
+          if (typeof state.finalFocus === "function" && resolved === undefined) return;
+          if (resolved === false) return;
           if (resolved instanceof HTMLElement) {
             resolved.focus();
             return;
@@ -165,18 +166,19 @@ export function PopoverPopup(props: PopoverPopupProps) {
     queueMicrotask(() => {
       if (!context!.open()) return;
       const active = document.activeElement;
-      if (element()?.contains(active) || context!.activeTrigger()?.element()?.contains(active)) {
+      if (context!.containsTarget(active)) {
         return;
       }
       context!.requestOpen(false, "focus-out", event);
     });
   }
 
-  function finishTransition(event: TransitionEvent | AnimationEvent) {
-    if (event.target !== event.currentTarget) return;
-    if (event instanceof TransitionEvent) callEventHandler(props.onTransitionEnd, event);
-    else callEventHandler(props.onAnimationEnd, event);
-    context!.finishTransition();
+  function handleTransitionEnd(event: TransitionEvent) {
+    if (event.target === event.currentTarget) callEventHandler(props.onTransitionEnd, event);
+  }
+
+  function handleAnimationEnd(event: AnimationEvent) {
+    if (event.target === event.currentTarget) callEventHandler(props.onAnimationEnd, event);
   }
 
   function popupStyle(): JSX.CSSProperties | string {
@@ -211,8 +213,8 @@ export function PopoverPopup(props: PopoverPopupProps) {
       style={popupStyle()}
       onKeyDown={handleKeyDown}
       onFocusOut={handleFocusOut}
-      onTransitionEnd={finishTransition}
-      onAnimationEnd={finishTransition}
+      onTransitionEnd={handleTransitionEnd}
+      onAnimationEnd={handleAnimationEnd}
     >
       {props.children}
     </div>
