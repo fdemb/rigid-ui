@@ -93,9 +93,31 @@ describe("Popover", () => {
       expect(screen.queryByText("Content")).toBeNull();
     });
 
-    it("gives a controlled open prop precedence over defaultOpen", () => {
-      render(() => <TestPopover defaultOpen />);
-      expect(screen.getByRole("dialog")).toBeVisible();
+    it("gives controlled open precedence over defaultOpen", () => {
+      const closed = render(() => (
+        <Popover.Root defaultOpen open={false}>
+          <Popover.Trigger>Closed trigger</Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner>
+              <Popover.Popup>Closed content</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      ));
+      expect(screen.queryByText("Closed content")).toBeNull();
+      closed.unmount();
+
+      render(() => (
+        <Popover.Root open>
+          <Popover.Trigger>Open trigger</Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner>
+              <Popover.Popup>Open content</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      ));
+      expect(screen.getByText("Open content")).toBeVisible();
     });
 
     it("does not open from a disabled trigger", () => {
@@ -143,6 +165,29 @@ describe("Popover", () => {
       fireEvent.click(trigger);
       await screen.findByRole("dialog");
       fireEvent.pointerDown(screen.getByTestId("outside"));
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    });
+
+    it("does not dismiss before inside or trigger clicks are handled", async () => {
+      render(() => <TestPopover />);
+      const trigger = screen.getByRole("button", { name: "Toggle" });
+      fireEvent.click(trigger);
+      const popup = await screen.findByRole("dialog");
+      const focusable = screen.getByRole("button", { name: "Focusable" });
+      await waitFor(() => expect(focusable).toHaveFocus());
+
+      fireEvent.focusOut(focusable, { relatedTarget: null });
+      fireEvent.pointerDown(popup);
+      fireEvent.click(popup);
+      await Promise.resolve();
+      expect(trigger).toHaveAttribute("aria-expanded", "true");
+      expect(popup).toBeVisible();
+
+      fireEvent.focusOut(focusable, { relatedTarget: trigger });
+      trigger.focus();
+      fireEvent.pointerDown(trigger);
+      fireEvent.click(trigger);
+      await waitFor(() => expect(trigger).toHaveAttribute("aria-expanded", "false"));
       await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     });
 
@@ -619,7 +664,9 @@ describe("Popover", () => {
         trigger.style.getPropertyValue("anchor-name"),
       );
       expect(positioner.style.getPropertyValue("position-area")).toContain("bottom");
-      expect(positioner.style.getPropertyValue("position-try-fallbacks")).toContain("top");
+      expect(positioner.style.getPropertyValue("position-try-fallbacks")).toMatch(
+        /^--rigid-popover-try-/,
+      );
       expect(
         positioner.getBoundingClientRect().top - trigger.getBoundingClientRect().bottom,
       ).toBeCloseTo(12, 0);
@@ -657,6 +704,98 @@ describe("Popover", () => {
         trigger.getBoundingClientRect().top,
       );
       expect(positioner).toHaveAttribute("data-side", "bottom");
+    });
+
+    it("preserves sideOffset when native fallback flips the side", async () => {
+      render(() => (
+        <Popover.Root defaultOpen>
+          <Popover.Trigger
+            style={{
+              position: "fixed",
+              left: "120px",
+              bottom: "4px",
+              width: "80px",
+              height: "30px",
+            }}
+          >
+            Toggle
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner
+              data-testid="positioner"
+              positionMethod="fixed"
+              side="bottom"
+              sideOffset={12}
+            >
+              <Popover.Popup style={{ width: "120px", height: "80px" }}>Content</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      ));
+      const trigger = screen.getByRole("button", { name: "Toggle" });
+      const positioner = screen.getByTestId("positioner");
+      await waitFor(() =>
+        expect(
+          trigger.getBoundingClientRect().top - positioner.getBoundingClientRect().bottom,
+        ).toBeCloseTo(12, 0),
+      );
+    });
+
+    it("reverses alignOffset when native fallback flips alignment", async () => {
+      render(() => (
+        <Popover.Root defaultOpen>
+          <Popover.Trigger
+            style={{
+              position: "fixed",
+              right: "20px",
+              top: "120px",
+              width: "80px",
+              height: "30px",
+            }}
+          >
+            Toggle
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner
+              data-testid="positioner"
+              positionMethod="fixed"
+              side="bottom"
+              align="start"
+              alignOffset={10}
+            >
+              <Popover.Popup style={{ width: "120px", height: "60px" }}>Content</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      ));
+      const trigger = screen.getByRole("button", { name: "Toggle" });
+      const positioner = screen.getByTestId("positioner");
+      await waitFor(() =>
+        expect(
+          trigger.getBoundingClientRect().right - positioner.getBoundingClientRect().right,
+        ).toBeCloseTo(10, 0),
+      );
+    });
+
+    it("applies availableSizePadding only to available-size variables", () => {
+      render(() => (
+        <Popover.Root defaultOpen>
+          <Popover.Trigger>Toggle</Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Positioner
+              data-testid="positioner"
+              availableSizePadding={{ top: 7, right: 11, bottom: 13, left: 17 }}
+            >
+              <Popover.Popup>Content</Popover.Popup>
+            </Popover.Positioner>
+          </Popover.Portal>
+        </Popover.Root>
+      ));
+      const positioner = screen.getByTestId("positioner");
+      expect(positioner).toHaveStyle({
+        "--available-width": "calc(100dvw - 28px)",
+        "--available-height": "calc(100dvh - 20px)",
+      });
     });
 
     it("uses a native external anchor and restores its styles on cleanup", async () => {

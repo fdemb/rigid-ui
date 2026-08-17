@@ -3,7 +3,7 @@ import styles from "./App.module.css";
 
 export default function App() {
   return (
-    <div style={{ "padding-inline": "40px", "font-family": "system-ui, sans-serif" }}>
+    <div style={{ "padding-inline": "40px" }}>
       <h2>Vertical Scroll</h2>
 
       <ScrollArea.Root class={styles.ScrollArea}>

@@ -163,12 +163,14 @@ export function PopoverPopup(props: PopoverPopupProps) {
   function handleFocusOut(event: FocusEvent) {
     callEventHandler(props.onFocusOut, event);
     if (event.defaultPrevented) return;
+    const nextTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+    // Pointer presses are handled by the root's document-level pointerdown listener.
+    // Browsers may temporarily report body as active when a non-focusable part is pressed,
+    // so treating a missing relatedTarget as an outside focus move closes and then reopens
+    // the popover when its trigger is clicked.
+    if (nextTarget === null) return;
     queueMicrotask(() => {
-      if (!context!.open()) return;
-      const active = document.activeElement;
-      if (context!.containsTarget(active)) {
-        return;
-      }
+      if (!context!.open() || context!.containsTarget(nextTarget)) return;
       context!.requestOpen(false, "focus-out", event);
     });
   }

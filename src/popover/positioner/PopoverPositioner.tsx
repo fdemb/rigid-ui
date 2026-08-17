@@ -18,8 +18,8 @@ import {
   type PopoverPositionerContextValue,
 } from "./PopoverPositionerContext";
 
-// Native CSS anchor positioning cannot expose fallback placement to component state.
-export type PopoverCollisionPadding =
+// Padding for the available-size CSS variables; it does not alter native collision detection.
+export type PopoverAvailableSizePadding =
   | number
   | Partial<{ top: number; right: number; bottom: number; left: number }>;
 
@@ -38,7 +38,7 @@ export interface PopoverPositionerProps extends PopoverNativeProps<HTMLDivElemen
   sideOffset?: PopoverOffset;
   align?: PopoverAlign;
   alignOffset?: PopoverOffset;
-  collisionPadding?: PopoverCollisionPadding;
+  availableSizePadding?: PopoverAvailableSizePadding;
   sticky?: boolean;
 }
 
@@ -66,13 +66,13 @@ function oppositeAlign(align: PopoverAlign): PopoverAlign {
   return "center";
 }
 
-function fallbackAreas(side: PopoverSide, align: PopoverAlign, direction: "ltr" | "rtl") {
-  const areas = [positionArea(oppositeSide(side), align, direction)];
+function fallbackPlacements(side: PopoverSide, align: PopoverAlign) {
+  const placements = [{ side: oppositeSide(side), align }];
   if (align !== "center") {
-    areas.push(positionArea(side, oppositeAlign(align), direction));
-    areas.push(positionArea(oppositeSide(side), oppositeAlign(align), direction));
+    placements.push({ side, align: oppositeAlign(align) });
+    placements.push({ side: oppositeSide(side), align: oppositeAlign(align) });
   }
-  return areas.join(", ");
+  return placements;
 }
 
 function resolveAnchor(anchor: PopoverAnchor | undefined) {
@@ -81,15 +81,15 @@ function resolveAnchor(anchor: PopoverAnchor | undefined) {
   return value;
 }
 
-function collisionPaddingValue(padding: PopoverCollisionPadding | undefined) {
-  if (typeof padding === "number") return Math.max(0, padding);
-  return Math.max(
-    0,
-    padding?.top ?? 5,
-    padding?.right ?? 5,
-    padding?.bottom ?? 5,
-    padding?.left ?? 5,
-  );
+function availableSizePaddingValue(padding: PopoverAvailableSizePadding | undefined) {
+  const fallback = typeof padding === "number" ? Math.max(0, padding) : undefined;
+  const sides = typeof padding === "object" ? padding : undefined;
+  return {
+    top: fallback ?? Math.max(0, sides?.top ?? 5),
+    right: fallback ?? Math.max(0, sides?.right ?? 5),
+    bottom: fallback ?? Math.max(0, sides?.bottom ?? 5),
+    left: fallback ?? Math.max(0, sides?.left ?? 5),
+  };
 }
 
 export function PopoverPositioner(props: PopoverPositionerProps) {
@@ -101,6 +101,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
 
   const generatedId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
   const externalAnchorName = `--rigid-popover-external-anchor-${generatedId}`;
+  const fallbackName = (index: number) => `--rigid-popover-try-${generatedId}-${index}`;
   const side = () => props.side ?? "bottom";
   const align = () => props.align ?? "center";
   const anchorElement = () => resolveAnchor(props.anchor) ?? context!.activeTrigger()?.element();
@@ -132,7 +133,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     "sideOffset",
     "align",
     "alignOffset",
-    "collisionPadding",
+    "availableSizePadding",
     "sticky",
     "style",
     "onPointerEnter",
@@ -201,23 +202,87 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     return typeof offset === "function" ? offset(offsetData()) : (offset ?? 0);
   }
 
-  function positionerStyle(): JSX.CSSProperties | string {
-    const currentSide = side();
-    const currentAlign = align();
+  function direction(): "ltr" | "rtl" {
+    return anchorElement() && getComputedStyle(anchorElement()!).direction === "rtl"
+      ? "rtl"
+      : "ltr";
+  }
+
+  function placementValues(currentSide: PopoverSide, currentAlign: PopoverAlign) {
     const sideOffset = resolveOffset(props.sideOffset);
     const alignOffset = resolveOffset(props.alignOffset);
-    const padding = collisionPaddingValue(props.collisionPadding);
-    const positionerRect = element()?.getBoundingClientRect();
-    const direction: "ltr" | "rtl" =
-      anchorElement() && getComputedStyle(anchorElement()!).direction === "rtl" ? "rtl" : "ltr";
+    const horizontalSide =
+      currentSide === "left" || currentSide === "right" || currentSide.startsWith("inline");
+    const margins = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    if (currentSide === "bottom") margins.top = sideOffset;
+    else if (currentSide === "top") margins.bottom = sideOffset;
+    else if (currentSide === "right" || currentSide === "inline-end") margins.left = sideOffset;
+    else margins.right = sideOffset;
+
+    if (horizontalSide) {
+      if (currentAlign === "start") margins.top += alignOffset;
+      else if (currentAlign === "end") margins.bottom += alignOffset;
+    } else if (currentAlign === "start") {
+      if (direction() === "ltr") margins.left += alignOffset;
+      else margins.right += alignOffset;
+    } else if (currentAlign === "end") {
+      if (direction() === "ltr") margins.right += alignOffset;
+      else margins.left += alignOffset;
+    }
+
     const inlineAlignment =
       currentAlign === "center"
         ? "anchor-center"
-        : (currentAlign === "start") === (direction === "ltr")
+        : (currentAlign === "start") === (direction() === "ltr")
           ? "start"
           : "end";
-    const horizontalSide =
-      currentSide === "left" || currentSide === "right" || currentSide.startsWith("inline");
+    return {
+      area: positionArea(currentSide, currentAlign, direction()),
+      justifySelf: horizontalSide ? "normal" : inlineAlignment,
+      alignSelf: horizontalSide
+        ? currentAlign === "center"
+          ? "anchor-center"
+          : currentAlign
+        : "normal",
+      marginTop: margins.top,
+      marginRight: margins.right,
+      marginBottom: margins.bottom,
+      marginLeft: margins.left,
+      translate:
+        currentAlign === "center"
+          ? horizontalSide
+            ? `0 ${alignOffset}px`
+            : `${alignOffset}px 0`
+          : "none",
+    };
+  }
+
+  function fallbackCss() {
+    if (typeof CSS === "undefined" || typeof CSS.supports !== "function") return "";
+    if (!CSS.supports("position-area: top")) return "";
+    return fallbackPlacements(side(), align())
+      .map(({ side: fallbackSide, align: fallbackAlign }, index) => {
+        const values = placementValues(fallbackSide, fallbackAlign);
+        return `@position-try ${fallbackName(index)} {
+          position-area: ${values.area};
+          justify-self: ${values.justifySelf};
+          align-self: ${values.alignSelf};
+          margin-top: ${values.marginTop}px;
+          margin-right: ${values.marginRight}px;
+          margin-bottom: ${values.marginBottom}px;
+          margin-left: ${values.marginLeft}px;
+          translate: ${values.translate};
+        }`;
+      })
+      .join("\n");
+  }
+
+  function positionerStyle(): JSX.CSSProperties | string {
+    const currentSide = side();
+    const values = placementValues(currentSide, align());
+    const padding = availableSizePaddingValue(props.availableSizePadding);
+    const positionerRect = element()?.getBoundingClientRect();
     const transformOriginBySide: Record<PopoverSide, string> = {
       top: "bottom center",
       bottom: "top center",
@@ -229,25 +294,21 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
       position: props.positionMethod ?? "absolute",
       "position-anchor": anchorName(),
-      "position-area": positionArea(currentSide, currentAlign, direction),
+      "position-area": values.area,
       // CSS exposes no reliable resolved-area API; public state remains the requested placement.
-      "position-try-fallbacks": fallbackAreas(currentSide, currentAlign, direction),
+      "position-try-fallbacks": fallbackPlacements(currentSide, align())
+        .map((_, index) => fallbackName(index))
+        .join(", "),
       "position-visibility": props.sticky ? "always" : "anchors-visible",
-      "justify-self": horizontalSide ? undefined : inlineAlignment,
-      "align-self": horizontalSide
-        ? currentAlign === "center"
-          ? "anchor-center"
-          : currentAlign
-        : undefined,
-      "margin-top": currentSide === "bottom" ? `${sideOffset}px` : undefined,
-      "margin-bottom": currentSide === "top" ? `${sideOffset}px` : undefined,
-      "margin-left":
-        currentSide === "right" || currentSide === "inline-end" ? `${sideOffset}px` : undefined,
-      "margin-right":
-        currentSide === "left" || currentSide === "inline-start" ? `${sideOffset}px` : undefined,
-      translate: horizontalSide ? `0 ${alignOffset}px` : `${alignOffset}px 0`,
-      "--available-width": `calc(100dvw - ${padding * 2}px)`,
-      "--available-height": `calc(100dvh - ${padding * 2}px)`,
+      "justify-self": values.justifySelf,
+      "align-self": values.alignSelf,
+      "margin-top": `${values.marginTop}px`,
+      "margin-right": `${values.marginRight}px`,
+      "margin-bottom": `${values.marginBottom}px`,
+      "margin-left": `${values.marginLeft}px`,
+      translate: values.translate,
+      "--available-width": `calc(100dvw - ${padding.left + padding.right}px)`,
+      "--available-height": `calc(100dvh - ${padding.top + padding.bottom}px)`,
       "--anchor-width": "anchor-size(width)",
       "--anchor-height": "anchor-size(height)",
       "--transform-origin": transformOriginBySide[currentSide],
@@ -272,6 +333,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
   return (
     <Show when={context!.mounted() || keepMounted}>
       <PopoverPositionerContext value={positionerContext}>
+        <style>{fallbackCss()}</style>
         <div
           {...others}
           ref={(node) => {

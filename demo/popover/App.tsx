@@ -26,7 +26,9 @@ export default function App() {
         </Popover.Root>
       </div>
 
-      <h2 class={styles.Heading} style={{"margin-top": "40px"}}>Open on hover</h2>
+      <h2 class={styles.Heading} style={{ "margin-top": "40px" }}>
+        Open on hover
+      </h2>
 
       <div class={styles.Row}>
         <Popover.Root>
