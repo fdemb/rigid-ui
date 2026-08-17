@@ -1,7 +1,7 @@
 import { transform } from "@dom-expressions/compiler";
 import solidPlugin from "@solidjs/vite-plugin";
 import { defineConfig, lazyPlugins } from "vite-plus";
-import { playwright } from "@vitest/browser-playwright";
+import { playwright } from "vite-plus/test/browser-playwright";
 
 const testEnvironment = process.env.VITEST_ENV ?? "jsdom";
 const browserMode = testEnvironment === "chromium";

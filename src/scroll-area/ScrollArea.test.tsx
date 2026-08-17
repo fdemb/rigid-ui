@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vite-plus/test";
 import { ScrollArea } from "./index";
 import { SCROLL_TIMEOUT } from "./constants";
 import { ScrollAreaFixture } from "../../test/ScrollAreaFixture";
@@ -160,7 +160,9 @@ describe("ScrollArea", () => {
     it("applies the configured overflow edge threshold", async () => {
       await render(() => <ScrollAreaFixture rootProps={{ overflowEdgeThreshold: 50 }} />);
       const viewport = screen.getByTestId("viewport");
-      await waitFor(() => expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-y"));
+      await waitFor(() =>
+        expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-y"),
+      );
 
       viewport.scrollTop = 40;
       fireEvent.scroll(viewport);
@@ -189,12 +191,16 @@ describe("ScrollArea", () => {
         </ScrollArea.Root>
       ));
 
-      await waitFor(() => expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-y"));
+      await waitFor(() =>
+        expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-y"),
+      );
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
       content!.style.width = "100px";
       content!.style.height = "100px";
 
-      await waitFor(() => expect(screen.getByTestId("root")).not.toHaveAttribute("data-has-overflow-y"));
+      await waitFor(() =>
+        expect(screen.getByTestId("root")).not.toHaveAttribute("data-has-overflow-y"),
+      );
     });
   });
 });

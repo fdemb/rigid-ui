@@ -1,4 +1,16 @@
-We're building a component library for Solid. We're targeting the latest 2.x RC version of Solid. The components are similar in vein to Radix UI (older, but still more popular) and Base UI (more modern, actively maintained, we're targeting this API surface more), but I'd want to use native browser features where possible, like CSS Anchor support instead of a JS library like Floating UI. Our goal is building  a de-facto standard unstyled component library for Solid 2. Our test coverage should be built on Base UI's - it has a great testing coverage we can learn from. See `reference/`.
+We're building a component library for Solid. We're targeting the latest 2.x RC version of Solid. The components are similar in vein to Radix UI (older, but still more popular) and Base UI (more modern, actively maintained, we're targeting this API surface more), but I'd want to use native browser features where possible, like CSS Anchor support instead of a JS library like Floating UI. Our goal is building a de-facto standard unstyled component library for Solid 2. Our test coverage should be built on Base UI's - it has a great testing coverage we can learn from. See `reference/`.
+
+## Base UI test migration checklist
+
+- [ ] Locate every Base UI test file for the component under `reference/base-ui/packages/react/src/`.
+- [ ] Inventory each behavioral contract and separate JSDOM-safe tests from tests requiring real browser layout.
+- [ ] Port applicable behavior to Solid with `@solidjs/testing-library`; do not reproduce React-only renderer, ref, or lifecycle semantics.
+- [ ] Reuse the shared test setup and fixtures instead of introducing component-specific render or cleanup utilities.
+- [ ] Preserve Base UI's observable assertions for DOM attributes, CSS variables, events, scrolling, sizing, direction, and unmount safety.
+- [ ] Run layout, overflow, ResizeObserver, and pointer-geometry coverage in Chromium rather than mocking browser measurements in JSDOM.
+- [ ] Treat failing migrated tests as implementation gaps; fix the component instead of weakening or skipping the contract.
+- [ ] Record intentionally inapplicable Base UI cases and the Solid or public-API difference that makes them inapplicable.
+- [ ] Run `pnpm test:run`, `pnpm test:chromium`, and `pnpm build` before considering the migration complete.
 
 <!--VITE PLUS START-->
 
