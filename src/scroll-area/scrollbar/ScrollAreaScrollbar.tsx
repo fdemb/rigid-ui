@@ -161,7 +161,9 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
           }}
           data-orientation={orientation()}
           data-hovering={ctx.hovering() ? "" : undefined}
-          data-scrolling={ctx.scrollingX() || ctx.scrollingY() ? "" : undefined}
+          data-scrolling={
+            (orientation() === "vertical" ? ctx.scrollingY() : ctx.scrollingX()) ? "" : undefined
+          }
           onPointerDown={handleScrollbarPointerDown}
           onPointerUp={(e) => ctx.handlePointerUp(e)}
           style={mergedStyle()}

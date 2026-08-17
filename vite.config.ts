@@ -1,6 +1,10 @@
 import { transform } from "@dom-expressions/compiler";
 import solidPlugin from "@solidjs/vite-plugin";
 import { defineConfig, lazyPlugins } from "vite-plus";
+import { playwright } from "@vitest/browser-playwright";
+
+const testEnvironment = process.env.VITEST_ENV ?? "jsdom";
+const browserMode = testEnvironment === "chromium";
 
 const SOLID_BUILT_INS = [
   "For",
@@ -55,8 +59,23 @@ export default defineConfig({
     options: { typeAware: true, typeCheck: true },
   },
   test: {
-    passWithNoTests: true,
-    environment: "node",
+    globals: true,
+    setupFiles: ["./test/setupVitest.ts"],
+    ...(browserMode ? {} : { environment: "jsdom" }),
+    environmentOptions: {
+      jsdom: {
+        pretendToBeVisual: true,
+        url: "http://localhost",
+      },
+    },
+    browser: browserMode
+      ? {
+          enabled: true,
+          provider: playwright(),
+          headless: true,
+          instances: [{ browser: "chromium" }],
+        }
+      : undefined,
     exclude: [
       "**/node_modules/**",
       "**/dist/**",

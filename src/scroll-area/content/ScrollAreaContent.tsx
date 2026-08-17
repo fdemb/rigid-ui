@@ -18,14 +18,7 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
   onSettled(() => {
     if (typeof ResizeObserver === "undefined" || !contentRef) return;
 
-    let hasInitialized = false;
-    const ro = new ResizeObserver(() => {
-      if (!hasInitialized) {
-        hasInitialized = true;
-        return;
-      }
-      computeThumbPosition();
-    });
+    const ro = new ResizeObserver(computeThumbPosition);
 
     ro.observe(contentRef);
     return () => ro.disconnect();

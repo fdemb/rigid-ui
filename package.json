@@ -33,17 +33,27 @@
     "dev": "vp dev",
     "build": "vp pack",
     "build:site": "vp build",
-    "format": "vp fmt ."
+    "format": "vp fmt .",
+    "test": "VITEST_ENV=jsdom vp test",
+    "test:run": "VITEST_ENV=jsdom vp test --run",
+    "test:chromium": "VITEST_ENV=chromium vp test --run"
   },
   "devDependencies": {
     "@dom-expressions/compiler": "0.50.0-next.40",
     "@solidjs/vite-plugin": "3.0.0-next.28",
     "@solidjs/web": "2.0.0-rc.0",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/user-event": "14.6.4",
     "@types/node": "^26.2.0",
+    "@vitest/browser-playwright": "4.1.10",
+    "jsdom": "27.4.0",
+    "playwright": "1.62.1",
     "solid-js": "2.0.0-rc.0",
     "typescript": "^5.9.3",
     "vite": "catalog:",
-    "vite-plus": "catalog:"
+    "vite-plus": "catalog:",
+    "vitest": "4.1.10"
   },
   "peerDependencies": {
     "@solidjs/web": "^2.0.0-rc.0",
