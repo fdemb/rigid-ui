@@ -27,6 +27,10 @@
     "./scroll-area": {
       "types": "./dist/scroll-area/index.d.ts",
       "import": "./dist/scroll-area/index.js"
+    },
+    "./popover": {
+      "types": "./dist/popover/index.d.ts",
+      "import": "./dist/popover/index.js"
     }
   },
   "scripts": {
