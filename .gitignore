@@ -7,3 +7,9 @@ dist-ssr
 .env
 *.tgz
 pnpm-debug.log*
+.vitest-attachments/
+**/__screenshots__/
+coverage/
+test-results/
+playwright-report/
+blob-report/

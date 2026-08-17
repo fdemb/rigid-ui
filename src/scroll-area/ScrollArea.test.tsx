@@ -11,7 +11,7 @@ describe("ScrollArea", () => {
       let rootRef: HTMLDivElement | undefined;
       let viewportRef: HTMLDivElement | undefined;
 
-      await render(() => (
+      render(() => (
         <ScrollArea.Root
           ref={(element) => (rootRef = element)}
           class="root-class"
@@ -39,7 +39,7 @@ describe("ScrollArea", () => {
     });
 
     it("defaults scrollbars to vertical and forwards orientation", async () => {
-      await render(() => (
+      render(() => (
         <ScrollArea.Root>
           <ScrollArea.Scrollbar keepMounted data-testid="vertical" />
           <ScrollArea.Scrollbar keepMounted orientation="horizontal" data-testid="horizontal" />
@@ -53,7 +53,7 @@ describe("ScrollArea", () => {
     it("forwards the scrollbar and thumb refs", async () => {
       let scrollbarRef: HTMLDivElement | undefined;
       let thumbRef: HTMLDivElement | undefined;
-      await render(() => (
+      render(() => (
         <ScrollArea.Root>
           <ScrollArea.Scrollbar ref={(element) => (scrollbarRef = element)} keepMounted>
             <ScrollArea.Thumb ref={(element) => (thumbRef = element)} data-testid="thumb" />
@@ -69,7 +69,7 @@ describe("ScrollArea", () => {
   describe.skipIf(!isJSDOM)("state in JSDOM", () => {
     it("marks the root and viewport while the user scrolls", async () => {
       vi.useFakeTimers();
-      await render(() => <ScrollAreaFixture keepMounted />);
+      render(() => <ScrollAreaFixture keepMounted />);
       const root = screen.getByTestId("root");
       const viewport = screen.getByTestId("viewport");
       Object.defineProperty(viewport, "scrollTop", {
@@ -91,7 +91,7 @@ describe("ScrollArea", () => {
     });
 
     it("marks only the scrollbar matching the scrolled axis", async () => {
-      await render(() => <ScrollAreaFixture keepMounted />);
+      render(() => <ScrollAreaFixture keepMounted />);
       const viewport = screen.getByTestId("viewport");
       Object.defineProperties(viewport, {
         scrollLeft: { configurable: true, value: 0, writable: true },
@@ -107,7 +107,7 @@ describe("ScrollArea", () => {
     });
 
     it("does not enter hover state for touch pointers", async () => {
-      await render(() => <ScrollAreaFixture keepMounted />);
+      render(() => <ScrollAreaFixture keepMounted />);
       const root = screen.getByTestId("root");
       fireEvent.pointerEnter(root, { pointerType: "touch" });
       await flushMicrotasks();
@@ -115,7 +115,7 @@ describe("ScrollArea", () => {
     });
 
     it("enters hover state for mouse pointers", async () => {
-      await render(() => <ScrollAreaFixture keepMounted />);
+      render(() => <ScrollAreaFixture keepMounted />);
       fireEvent.pointerEnter(screen.getByTestId("root"), { pointerType: "mouse" });
       await flushMicrotasks();
       expect(screen.getByTestId("scrollbar-y")).toHaveAttribute("data-hovering");
@@ -125,7 +125,7 @@ describe("ScrollArea", () => {
 
   describe.skipIf(isJSDOM)("layout in a browser", () => {
     it("detects overflow and sizes both thumbs", async () => {
-      await render(() => <ScrollAreaFixture />);
+      render(() => <ScrollAreaFixture />);
 
       await waitFor(() => {
         expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-x");
@@ -136,12 +136,14 @@ describe("ScrollArea", () => {
       const horizontal = screen.getByTestId("scrollbar-x");
       expect(vertical).toBeVisible();
       expect(horizontal).toBeVisible();
-      expect(screen.getByTestId("thumb-y").getBoundingClientRect().height).toBeGreaterThan(0);
-      expect(screen.getByTestId("thumb-x").getBoundingClientRect().width).toBeGreaterThan(0);
+      await waitFor(() => {
+        expect(screen.getByTestId("thumb-y").getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(screen.getByTestId("thumb-x").getBoundingClientRect().width).toBeGreaterThan(0);
+      });
     });
 
     it("moves thumbs and updates overflow edges when scrolled", async () => {
-      await render(() => <ScrollAreaFixture />);
+      render(() => <ScrollAreaFixture />);
       const viewport = screen.getByTestId("viewport");
       await waitFor(() => expect(screen.getByTestId("thumb-y")).toBeVisible());
 
@@ -158,7 +160,7 @@ describe("ScrollArea", () => {
     });
 
     it("applies the configured overflow edge threshold", async () => {
-      await render(() => <ScrollAreaFixture rootProps={{ overflowEdgeThreshold: 50 }} />);
+      render(() => <ScrollAreaFixture rootProps={{ overflowEdgeThreshold: 50 }} />);
       const viewport = screen.getByTestId("viewport");
       await waitFor(() =>
         expect(screen.getByTestId("root")).toHaveAttribute("data-has-overflow-y"),
@@ -177,7 +179,7 @@ describe("ScrollArea", () => {
 
     it("clears overflow state after content stops overflowing", async () => {
       let content: HTMLDivElement | undefined;
-      await render(() => (
+      render(() => (
         <ScrollArea.Root data-testid="root" style={{ width: "200px", height: "200px" }}>
           <ScrollArea.Viewport data-testid="viewport">
             <ScrollArea.Content

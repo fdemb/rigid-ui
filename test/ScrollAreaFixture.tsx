@@ -1,13 +1,10 @@
-import type { JSX } from "@solidjs/web";
-import { ScrollArea } from "../src/scroll-area";
+import { ScrollArea, type ScrollAreaRootProps } from "../src/scroll-area";
 
 interface ScrollAreaFixtureProps {
   contentHeight?: number;
   contentWidth?: number;
   keepMounted?: boolean;
-  rootProps?: JSX.HTMLAttributes<HTMLDivElement> & {
-    overflowEdgeThreshold?: number;
-  };
+  rootProps?: Omit<ScrollAreaRootProps, "children" | "ref">;
 }
 
 export function ScrollAreaFixture(props: ScrollAreaFixtureProps) {

@@ -14,5 +14,5 @@
     "declarationDir": "dist",
     "rootDir": "."
   },
-  "include": ["src/**/*", "demo/**/*"]
+  "include": ["src/**/*", "demo/**/*", "test/**/*"]
 }

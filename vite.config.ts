@@ -83,6 +83,9 @@ export default defineConfig({
       "**/.{idea,git,cache,output,temp}/**",
     ],
   },
+  optimizeDeps: {
+    include: ["vite-plus/test"],
+  },
   plugins: lazyPlugins(() => [solidPlugin()]),
   base: process.env.GITHUB_ACTIONS ? "/rigid-ui/" : "/",
   server: {
