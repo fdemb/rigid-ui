@@ -21,7 +21,9 @@ export default function App() {
 
       <div class={styles.Row}>
         <Popover.Root>
-          <Popover.Trigger class={styles.Button}>Notifications</Popover.Trigger>
+          <Popover.Trigger class={styles.Button}>
+            <span class={styles.Press}>Notifications</span>
+          </Popover.Trigger>
           <Popover.Portal>
             <Popover.Positioner sideOffset={8} align="start">
               <Popover.Popup class={styles.Popup}>
@@ -46,7 +48,7 @@ export default function App() {
       <div class={styles.Row}>
         <Popover.Root>
           <Popover.Trigger class={styles.Button} openOnHover>
-            Account
+            <span class={styles.Press}>Account</span>
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Positioner sideOffset={8}>
@@ -84,7 +86,7 @@ export default function App() {
               <For each={members}>
                 {(member) => (
                   <Popover.Trigger class={styles.Button} payload={member}>
-                    {member.name}
+                    <span class={styles.Press}>{member.name}</span>
                   </Popover.Trigger>
                 )}
               </For>
