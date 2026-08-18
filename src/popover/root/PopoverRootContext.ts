@@ -28,6 +28,11 @@ export interface PopoverRootContextValue<Payload = unknown> {
   modal: Accessor<boolean | "trap-focus">;
   openReason: Accessor<PopoverRootChangeEventReason>;
   openMethod: Accessor<PopoverInteractionType>;
+  /**
+   * Records how the next open was initiated. A click event does not carry a pointer type, so a
+   * trigger has to report what its preceding `pointerdown` saw.
+   */
+  setOpenMethod(method: PopoverInteractionType): void;
   /** Why transitions should be skipped for the current change, or `undefined` to allow them. */
   instantType: Accessor<PopoverInstantType>;
   setInstantType(value: PopoverInstantType): void;

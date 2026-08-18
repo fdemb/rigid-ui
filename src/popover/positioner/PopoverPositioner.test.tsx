@@ -696,6 +696,35 @@ describe("<Popover.Positioner />", () => {
   });
 
   describe.skipIf(isJSDOM)("instant transitions", () => {
+    it("does not animate in from the origin on the first positioning pass", async () => {
+      render(() => (
+        <>
+          <style>{`.moving-positioner { transition: transform 400ms linear; }`}</style>
+          <Popover.Root>
+            <Popover.Trigger
+              style={{ position: "fixed", left: "400px", top: "300px", ...triggerStyle }}
+            >
+              Trigger
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner data-testid="positioner" class="moving-positioner">
+                <Popover.Popup style={popupStyle}>Popup</Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        </>
+      ));
+
+      fireEvent.click(screen.getByRole("button", { name: "Trigger" }), { detail: 1 });
+      const positioner = await screen.findByTestId("positioner");
+      await waitForPositioned(positioner);
+
+      // The popup must appear at the anchor, not travel there from the top-left corner. With a
+      // 400ms transition an origin-animated popup is still nowhere near the trigger here.
+      expect(rect(positioner).x).toBeGreaterThan(300);
+      expect(rect(positioner).y).toBeGreaterThan(200);
+    });
+
     it("lets the popup animate across to a new trigger, then returns to instant", async () => {
       render(() => (
         <>

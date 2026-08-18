@@ -601,11 +601,13 @@ describe("Popover", () => {
           <Popover.Trigger handle={handle} id="detached" payload={42}>
             Detached
           </Popover.Trigger>
+          {/* `state.payload`, not `({ payload })`: the render prop receives a real props object,
+              so destructuring freezes the value like it would for any component. */}
           <Popover.Root handle={handle}>
-            {({ payload }) => (
+            {(state) => (
               <Popover.Portal>
                 <Popover.Positioner>
-                  <Popover.Popup>Payload: {payload}</Popover.Popup>
+                  <Popover.Popup>Payload: {state.payload}</Popover.Popup>
                 </Popover.Positioner>
               </Popover.Portal>
             )}

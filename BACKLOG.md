@@ -7,7 +7,7 @@ Gaps were found two ways: by auditing the implementation against
 `reference/base-ui/packages/react/src/`, and by diffing test names — Base UI's tests encode
 behavioral contracts, so a test of theirs we cannot write is usually a contract we do not honor.
 
-**Popover coverage: 56 tests across 2 files, against Base UI's 177 across 13.**
+**Popover coverage: 105 tests across 6 files, against Base UI's 177 across 13.**
 
 Each item cites the Base UI test that names the contract. When closing a gap, port that test and
 delete the entry.
@@ -15,7 +15,7 @@ delete the entry.
 Sections:
 
 - [Not implemented](#not-implemented) — behavior we do not have
-- [Implemented but untested](#implemented-but-untested) — the feature exists, the contract is unverified
+- [Fixed](#fixed) — defects found by ported tests and by using the demo
 - [Missing infrastructure](#missing-infrastructure)
 - [Intentionally inapplicable](#intentionally-inapplicable) — recorded so they are not re-audited
 - [Not yet audited](#not-yet-audited)
@@ -158,30 +158,66 @@ not separately.
 
 ---
 
-## Implemented but untested
+## Fixed
 
-The feature exists and appears to work; nothing pins the contract.
+Six defects found and fixed, kept as a record of what each method of looking actually caught.
 
-| Area                              | Ours                                       | Base UI tests                                                                                                                                                                                                                                  |
-| --------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actionsRef` (`unmount`, `close`) | `PopoverRoot.tsx:452`                      | 2, in `root/PopoverRoot.test.tsx`                                                                                                                                                                                                              |
-| `preventUnmountOnClose()`         | `PopoverRoot.tsx:236`                      | 4, incl. `does not leak from a canceled close into a synchronous second close`                                                                                                                                                                 |
-| `onOpenChangeComplete`            | implemented                                | 5; we have 1 (`clears starting style before completing the enter animation`)                                                                                                                                                                   |
-| Multiple triggers per Root        | `activeTrigger` + `registerTrigger`        | ~10 in `root/PopoverRoot.detached-triggers.test.tsx`; we have 1                                                                                                                                                                                |
-| Handle lifecycle                  | `store/PopoverHandle.ts`                   | `ignores imperative handle calls made before a root is attached` / `after the root is detached`; `warns when a handle stays attached to more than one mounted root`; `throws when called with an unregistered trigger id` (we throw, untested) |
-| Trigger style hooks               | `data-popup-open`, `data-pressed`          | 4 in `trigger/PopoverTrigger.test.tsx`                                                                                                                                                                                                         |
-| Touch trigger ownership           | early-returns on `pointerType === "touch"` | `keeps ownership on the tapped trigger when a sibling trigger is hovered`; `hands ownership to a hovered sibling trigger when opened by mouse`                                                                                                 |
-| `initialFocus` / `finalFocus`     | `PopoverPopup.tsx:86`                      | ~14 in `popup/PopoverPopup.test.tsx`; we have 2                                                                                                                                                                                                |
+Four came from porting Base UI's tests for previously-untested features (1–4). **Two came from
+clicking through the demo by hand (5–6), and neither was visible to a scripted driver** — both
+only manifest at human timing: a press held long enough to separate `pointerdown` from `click`,
+and a transition long enough to see. Worth remembering when deciding how much a green suite
+proves.
 
-Worth prioritising within this table: **multiple triggers**. The feature works, but these
-contracts are unverified and easy to regress —
+1. **Infinite loop when triggers live inside the payload render-prop.** `PopoverRoot` treated the
+   render prop as a reactive computation: it read `payload()` eagerly while building the subtree,
+   so every payload change rebuilt that subtree — and rebuilding re-registered the triggers, which
+   changed the payload again. Base UI's own multi-trigger test renders triggers inside the render
+   prop, so this hung the suite with an OOM.
 
-- `should reuse the popup and positioner DOM nodes when switching triggers`
-- `synchronizes ARIA attributes in controlled mode`
-- `keeps positioning correct when conditional triggers unmount and the tree remounts`
-- `returns focus to the active trigger when opening programmatically from body focus`
-- `returns focus to the previous element when the trigger unmounts while open`
-- `should not have inline scale style after switching triggers`
+   Fixed by giving the render prop the semantics it should always have had — it is a component,
+   so it is created with `createComponent` from `@solidjs/web` and receives a props object whose
+   `payload` is a getter. It is invoked once; reactivity reaches the consumer through property
+   access, exactly as with any other component's props. Pinned by
+   `invokes the payload render prop once, regardless of payload changes`.
+
+2. **`PopoverHandle.attach` could not detect a second root.** It read back the signal it had just
+   written, which Solid does not flush until later, so two roots mounting in the same tick both
+   saw `undefined` and neither warned. Attachment state now lives in a plain field.
+3. **Imperative handle calls still reached a detached root**, for the same reason. `open`,
+   `close`, and `isOpen` now go through the plain field.
+4. **`openMethod` was never `touch`.** It was derived from the click event, but pointer type only
+   exists on the preceding `pointerdown`. Triggers now pair the two and report the interaction
+   type, which also fixes `initialFocus`/`finalFocus` receiving the wrong type. On top of that,
+   hover is now disarmed while a popover is open from a touch press, so a stray mouse hover over a
+   sibling trigger cannot steal it — Base UI's `keeps ownership on the tapped trigger when a
+sibling trigger is hovered`.
+
+5. **Pressing a sibling trigger closed the popover, then reopened it.** `containsTarget` only
+   recognised the _active_ trigger, so the capture-phase `pointerdown` dismissal treated a press
+   on any other trigger of the same root as an outside press. The popover closed on pointerdown
+   and reopened on click. At machine speed the two land in the same frame and it looks like a
+   clean switch; held for ~150ms it is a visible flicker, and it also restarted the enter
+   animation instead of gliding. Every registered trigger now counts as inside. Pinned by
+   `stays open through a press on a sibling trigger`, which asserts state _between_ pointerdown
+   and click.
+
+6. **The popup animated in from the top-left corner.** Until the first positioning pass lands the
+   positioner sits at the origin with no transform; applying the real transform while a
+   positional transition was live animated the popup across the viewport. Base UI suppresses this
+   with `DISABLED_TRANSITIONS_STYLE` keyed to `transitionStatus === 'starting'`, but that races
+   our async positioning — the mount status can clear before `computePosition` resolves. Ours is
+   keyed to positioning directly and held one extra frame, so the transform is already in place
+   and unchanged when transitions are enabled. Pinned by
+   `does not animate in from the origin on the first positioning pass` (Chromium; it fails with
+   `expected 0 to be greater than 300` without the fix).
+
+### Known divergence: `finalFocus` interaction type
+
+Base UI passes the interaction type that **closed** the popover; we pass the type that **opened**
+it (`PopoverPopup.tsx:91` reads `openMethod`). Base UI's
+`should support element-returning function and default via true + no-op via void for finalFocus
+based on closeType` therefore cannot be ported as written. Deciding whether to track a close type
+is open.
 
 ---
 
@@ -215,13 +251,26 @@ Recorded per the AGENTS.md migration checklist so they are not re-audited.
 | `remains anchored to the trigger when closing from a tooltip trigger close`                 | Requires Tooltip                                                                                                                                            |
 | `expect(...).toThrow()` on render-time errors                                               | An uncaught throw halts Solid's reactive system for the rest of the module. Capture with an `<Errored>` boundary instead — see `PopoverPositioner.test.tsx` |
 
-Two behavioural notes that are deliberate, not gaps:
+Solid-specific hazards that repeatedly bite when porting these tests — check these before
+concluding a ported test has found a bug:
 
-- Positioning is async, so the positioner is `opacity: 0` until its first pass lands. Assertions
-  on popup visibility must `await`. Base UI behaves identically; it is invisible to them because
-  their `render` is awaited.
-- `resolveInstantType` guards with `event instanceof MouseEvent` before reading `detail`, where
-  Base UI casts unconditionally. Same outcome on every real path, no `undefined === 0` accident.
+- **Signal writes are not visible to reads until the next flush.** `setFoo(x)` followed by a
+  synchronous `foo()` still returns the old value. In tests, use a plain variable for anything a
+  callback reads and the test mutates mid-run; in components, never read back a signal you just
+  wrote to make a decision. This caused three of the four defects above.
+- **A `delay={0}` hover timer is a macrotask.** `await flushMicrotasks()` does not advance it, so
+  a test asserting "hover did not open the popover" passes whether or not the guard works. Wait a
+  real tick — see `settleHoverDelay` in `PopoverTrigger.test.tsx`.
+- **Positioning is async**, so the positioner is `opacity: 0` until its first pass lands.
+  Assertions on popup visibility must `await`. Base UI behaves identically; it is invisible to
+  them because their `render` is awaited.
+- **Destructuring the payload render-prop** (`{({ payload }) => …}`) freezes the value, because
+  the render prop receives a real props object. This is the ordinary "don't destructure props"
+  rule, and `solid/no-destructure`-style lints catch it. Use `{(state) => … state.payload}`.
+
+One deliberate implementation difference, not a gap: `resolveInstantType` guards with
+`event instanceof MouseEvent` before reading `detail`, where Base UI casts unconditionally. Same
+outcome on every real path, no `undefined === 0` accident.
 
 ---
 

@@ -6,7 +6,7 @@ import {
   onCleanup,
   untrack,
 } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createComponent, type JSX } from "@solidjs/web";
 import {
   PopoverRootContext,
   type PopoverRootContextValue,
@@ -313,8 +313,13 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
 
   function containsTarget(target: Node | null) {
     if (!target) return false;
-    if (activeTrigger()?.element()?.contains(target) || popupElement()?.contains(target))
-      return true;
+    if (popupElement()?.contains(target)) return true;
+    // Every registered trigger counts as inside, not just the active one. Pressing a sibling
+    // trigger switches the popover to it; treating that as an outside press would close the
+    // popover on pointerdown and reopen it on click, which reads as a flicker.
+    for (const trigger of triggers.values()) {
+      if (trigger.element()?.contains(target)) return true;
+    }
     for (const overlay of descendantPortals) {
       if (overlay.element.contains(target)) return true;
     }
@@ -352,6 +357,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     modal,
     openReason,
     openMethod,
+    setOpenMethod,
     instantType,
     setInstantType,
     titleId,
@@ -472,9 +478,18 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     cancelScheduledTransition();
   });
 
+  // The payload render prop is a component, so it is created like one: `createComponent` invokes
+  // it once with a reactive props object instead of re-running it as a computation. Reactivity
+  // reaches the consumer through the `payload` getter, exactly as it would through any other
+  // component's props.
+  const payloadProps = {
+    get payload() {
+      return payload();
+    },
+  };
   const children = () => {
     const value = props.children;
-    return typeof value === "function" ? value({ payload: payload() }) : value;
+    return typeof value === "function" ? createComponent(value, payloadProps) : value;
   };
 
   return <PopoverRootContext value={context}>{children()}</PopoverRootContext>;

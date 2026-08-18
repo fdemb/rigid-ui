@@ -6,7 +6,12 @@ import {
   type PopoverRootContextValue,
   type RegisteredPopoverTrigger,
 } from "../root/PopoverRootContext";
-import { assignRef, callEventHandler, type PopoverNativeProps } from "../types";
+import {
+  assignRef,
+  callEventHandler,
+  type PopoverInteractionType,
+  type PopoverNativeProps,
+} from "../types";
 import { OPEN_DELAY } from "../utils/constants";
 
 export interface PopoverTriggerState {
@@ -60,6 +65,7 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
   );
 
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastPointerType: PopoverInteractionType | undefined;
 
   createEffect(
     () => [context(), id()] as const,
@@ -91,6 +97,12 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
     }
     const store = context();
     if (!store) return;
+    // A touch tap leaves the pointer parked wherever the cursor happened to be, so hover stays
+    // disarmed until the popover is reopened by other means. Otherwise a stray hover over a
+    // sibling trigger silently swaps the content the user just tapped for.
+    if (store.open() && store.openMethod() === "touch" && store.openReason() === "trigger-press") {
+      return;
+    }
     store.cancelHoverClose();
     clearTimeout(hoverTimer);
     hoverTimer = setTimeout(() => {
@@ -110,6 +122,7 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
 
   function handlePointerDown(event: PointerEvent) {
     callEventHandler(props.onPointerDown, event);
+    lastPointerType = event.pointerType as PopoverInteractionType;
   }
 
   function handleClick(event: MouseEvent) {
@@ -118,6 +131,11 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
     clearTimeout(hoverTimer);
     const store = context();
     if (!store) return;
+
+    // A click carries no pointer type, and keyboard activation reports `detail === 0` with no
+    // preceding `pointerdown`. Pair the two so the popover knows a tap from a keypress.
+    store.setOpenMethod(event.detail === 0 ? "keyboard" : (lastPointerType ?? "mouse"));
+    lastPointerType = undefined;
 
     const wasHoverOpened = openByThisTrigger() && store.openReason() === "trigger-hover";
     if (openByThisTrigger() && !wasHoverOpened) {

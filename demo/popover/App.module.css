@@ -22,6 +22,32 @@
   gap: 0.75rem;
 }
 
+.Note {
+  max-width: 44rem;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #555;
+}
+
+/*
+ * Animates the popup gliding to whichever trigger was activated. `data-instant` is present at
+ * rest, so scrolling and resizing reposition without dragging the popup across the screen.
+ */
+.Positioner {
+  transition: transform 200ms ease-out;
+}
+
+.Positioner[data-instant] {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .Positioner {
+    transition: none;
+  }
+}
+
 .Button {
   box-sizing: border-box;
   display: inline-flex;
@@ -133,6 +159,13 @@
 .Arrow[data-side="inline-end"] {
   left: -9px;
   rotate: -90deg;
+}
+
+.Status {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #666;
 }
 
 .Arrow::before {

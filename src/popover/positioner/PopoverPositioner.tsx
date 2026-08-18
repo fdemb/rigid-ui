@@ -118,6 +118,28 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     ([currentSide, currentAlign]) => context!.setPosition(currentSide, currentAlign),
   );
 
+  // Until the first pass lands the positioner sits at the origin with no transform, so enabling
+  // a positional transition at the moment the real transform arrives would animate the popup in
+  // from the top-left corner. Transitions stay off for a frame after positioning so the transform
+  // is already in place — and unchanged — by the time they are enabled.
+  const [transitionsReady, setTransitionsReady] = createSignal(false);
+
+  createEffect(
+    () => positioning.isPositioned(),
+    (positioned) => {
+      if (!positioned) {
+        setTransitionsReady(false);
+        return;
+      }
+      if (typeof requestAnimationFrame === "undefined") {
+        setTransitionsReady(true);
+        return;
+      }
+      const frame = requestAnimationFrame(() => setTransitionsReady(true));
+      return () => cancelAnimationFrame(frame);
+    },
+  );
+
   let previousTrigger: HTMLElement | undefined;
 
   // A popover shared by several triggers moves between them while it stays open. Let that move
@@ -139,6 +161,9 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
       ...positioning.positionerStyles(),
     };
+    if (!transitionsReady()) {
+      base.transition = "none";
+    }
     if (!context!.open()) {
       base["pointer-events"] = "none";
     }
