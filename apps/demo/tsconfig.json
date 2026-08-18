@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "types": ["vite/client"],
+    "paths": {
+      "rigid-ui/popover": ["../../packages/rigid-ui/src/popover/index.ts"],
+      "rigid-ui/scroll-area": ["../../packages/rigid-ui/src/scroll-area/index.ts"]
+    }
+  },
+  "include": ["src/**/*", "vite.config.ts"]
+}

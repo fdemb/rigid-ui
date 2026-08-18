@@ -1,18 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "jsx": "preserve",
-    "jsxImportSource": "@solidjs/web",
-    "strict": true,
+    "noEmit": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowImportingTsExtensions": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "declaration": true,
-    "declarationDir": "dist",
-    "rootDir": "."
+    "strict": true
   },
-  "include": ["src/**/*", "demo/**/*", "test/**/*"]
+  "include": ["vite.config.ts"]
 }

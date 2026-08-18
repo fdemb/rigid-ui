@@ -1,5 +1,7 @@
 We're building a component library for Solid. We're targeting the latest 2.x RC version of Solid. The components are similar in vein to Radix UI (older, but still more popular) and Base UI (more modern, actively maintained, we're targeting this API surface more). Prefer native browser features where they carry their weight, but not at the cost of the API: anchored popups use Floating UI (`@floating-ui/dom`, the vanilla build) through the `createAnchorPositioning` composable, because CSS anchor positioning cannot report the resolved placement back to JS. Our goal is building a de-facto standard unstyled component library for Solid 2. Our test coverage should be built on Base UI's - it has a great testing coverage we can learn from. See `reference/`. Known divergences from Base UI are tracked in `BACKLOG.md`; when you close one, port the Base UI test named there and delete the entry.
 
+The library lives in `packages/rigid-ui`. The demo lives in `apps/demo`.
+
 ## Base UI test migration checklist
 
 - [ ] Locate every Base UI test file for the component under `reference/base-ui/packages/react/src/`.

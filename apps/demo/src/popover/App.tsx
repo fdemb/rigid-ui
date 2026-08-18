@@ -1,5 +1,5 @@
 import { For } from "solid-js";
-import { Popover } from "../../src/popover/index";
+import { Popover } from "rigid-ui/popover";
 import styles from "./App.module.css";
 
 interface Member {

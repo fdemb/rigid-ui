@@ -1,71 +1,31 @@
 {
-  "name": "rigid-ui",
-  "version": "0.0.2",
-  "description": "Unstyled UI components for SolidJS — a port of Base UI",
-  "keywords": [
-    "component-library",
-    "components",
-    "headless",
-    "scroll-area",
-    "solid",
-    "solid-components",
-    "solidjs",
-    "ui",
-    "unstyled"
-  ],
-  "license": "MIT",
-  "author": "fdemb",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fdemb/rigid-ui"
-  },
-  "files": [
-    "dist"
-  ],
+  "name": "rigid-ui-monorepo",
+  "private": true,
   "type": "module",
-  "exports": {
-    "./scroll-area": {
-      "types": "./dist/scroll-area/index.d.ts",
-      "import": "./dist/scroll-area/index.js"
-    },
-    "./popover": {
-      "types": "./dist/popover/index.d.ts",
-      "import": "./dist/popover/index.js"
-    }
-  },
   "scripts": {
-    "dev": "vp dev",
+    "dev": "vp run demo#dev",
     "build": "vp pack",
     "build:site": "vp build",
     "format": "vp fmt .",
-    "test": "VITEST_ENV=jsdom vp test",
-    "test:run": "VITEST_ENV=jsdom vp test --run",
-    "test:chromium": "VITEST_ENV=chromium vp test --run"
-  },
-  "dependencies": {
-    "@floating-ui/dom": "^1.8.0",
-    "@floating-ui/utils": "^0.2.12"
+    "test": "VITEST_ENV=jsdom vp -C packages/rigid-ui test",
+    "test:run": "VITEST_ENV=jsdom vp -C packages/rigid-ui test --run",
+    "test:chromium": "VITEST_ENV=chromium vp -C packages/rigid-ui test --run",
+    "ready": "vp check && vp run -r test && vp run -r build",
+    "prepare": "vp config --no-agent"
   },
   "devDependencies": {
-    "@dom-expressions/compiler": "0.50.0-next.40",
-    "@solidjs/testing-library": "1.0.0-beta.2",
-    "@solidjs/vite-plugin": "3.0.0-next.28",
-    "@solidjs/web": "2.0.0-rc.0",
-    "@testing-library/dom": "10.4.1",
-    "@testing-library/jest-dom": "6.9.1",
-    "@types/node": "^26.2.0",
-    "@vitest/browser-playwright": "4.1.10",
-    "jsdom": "27.4.0",
-    "playwright": "1.62.1",
-    "solid-js": "2.0.0-rc.0",
-    "typescript": "^5.9.3",
     "vite": "catalog:",
-    "vite-plus": "catalog:",
-    "vitest": "4.1.10"
+    "vite-plus": "catalog:"
   },
-  "peerDependencies": {
-    "@solidjs/web": "^2.0.0-rc.0",
-    "solid-js": "^2.0.0-rc.0"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.22.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=22.18.0"
   },
   "packageManager": "pnpm@11.22.0"
 }

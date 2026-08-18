@@ -1,95 +1,28 @@
-import { transform } from "@dom-expressions/compiler";
-import solidPlugin from "@solidjs/vite-plugin";
-import { defineConfig, lazyPlugins } from "vite-plus";
-import { playwright } from "vite-plus/test/browser-playwright";
-
-const testEnvironment = process.env.VITEST_ENV ?? "jsdom";
-const browserMode = testEnvironment === "chromium";
-
-const SOLID_BUILT_INS = [
-  "For",
-  "Show",
-  "Switch",
-  "Match",
-  "Loading",
-  "Reveal",
-  "Portal",
-  "Repeat",
-  "Dynamic",
-  "Errored",
-];
-
-function solidNative() {
-  return {
-    name: "solid-native",
-    transform: {
-      filter: { id: /\.[jt]sx$/ },
-      handler(code: string, id: string) {
-        const result = transform(code, {
-          filename: id,
-          moduleName: "@solidjs/web",
-          generate: "dom",
-          builtIns: SOLID_BUILT_INS,
-          contextToCustomElements: true,
-          wrapConditionals: true,
-          sourceMap: true,
-        });
-        return { code: result.code, map: result.map };
-      },
-    },
-  };
-}
+import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-  pack: {
-    entry: {
-      "scroll-area/index": "src/scroll-area/index.ts",
-      "popover/index": "src/popover/index.ts",
-    },
-    platform: "neutral",
-    outDir: "dist",
-    dts: true,
-    clean: true,
-    treeshake: true,
-    plugins: [solidNative()],
+  defaultPackage: {
+    dev: "./apps/demo",
+    build: "./apps/demo",
+    preview: "./apps/demo",
+    pack: "./packages/rigid-ui",
   },
-  fmt: {},
+  fmt: {
+    ignorePatterns: ["reference/**", "**/dist/**"],
+  },
   lint: {
+    ignorePatterns: ["reference/**", "**/dist/**"],
     jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
     rules: { "vite-plus/prefer-vite-plus-imports": "error" },
     options: { typeAware: true, typeCheck: true },
   },
   test: {
-    globals: true,
-    setupFiles: ["./test/setupVitest.ts"],
-    ...(browserMode ? {} : { environment: "jsdom" }),
-    environmentOptions: {
-      jsdom: {
-        pretendToBeVisual: true,
-        url: "http://localhost",
-      },
-    },
-    browser: browserMode
-      ? {
-          enabled: true,
-          provider: playwright(),
-          headless: true,
-          instances: [{ browser: "chromium" }],
-        }
-      : undefined,
-    exclude: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "reference/**",
-      "**/.{idea,git,cache,output,temp}/**",
-    ],
+    projects: ["./packages/rigid-ui"],
   },
-  optimizeDeps: {
-    include: ["vite-plus/test"],
+  staged: {
+    "*.{js,ts,tsx,css,json,md}": "vp check --fix",
   },
-  plugins: lazyPlugins(() => [solidPlugin()]),
-  base: process.env.GITHUB_ACTIONS ? "/rigid-ui/" : "/",
-  server: {
-    port: 3333,
+  run: {
+    cache: true,
   },
 });

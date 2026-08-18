@@ -2,8 +2,6 @@
 
 Unstyled UI components for Solid 2. Based on [Base UI](https://base-ui.com/).
 
-Library: `packages/rigid-ui`. Demo: `apps/demo`. Publish from `packages/rigid-ui` (`pnpm --filter rigid-ui publish`).
-
 ## Components ported
 
 - **ScrollArea** — a container with native scroll and stylable scrollbars.

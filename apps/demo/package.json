@@ -1,0 +1,22 @@
+{
+  "name": "demo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview"
+  },
+  "dependencies": {
+    "@solidjs/web": "catalog:",
+    "rigid-ui": "workspace:*",
+    "solid-js": "catalog:"
+  },
+  "devDependencies": {
+    "@solidjs/vite-plugin": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

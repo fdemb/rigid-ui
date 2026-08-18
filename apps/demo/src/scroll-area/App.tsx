@@ -1,4 +1,4 @@
-import { ScrollArea } from "../../src/scroll-area/index";
+import { ScrollArea } from "rigid-ui/scroll-area";
 import styles from "./App.module.css";
 
 export default function App() {

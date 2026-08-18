@@ -1,0 +1,71 @@
+{
+  "name": "rigid-ui",
+  "version": "0.0.2",
+  "description": "Unstyled UI components for SolidJS — a port of Base UI",
+  "keywords": [
+    "component-library",
+    "components",
+    "headless",
+    "scroll-area",
+    "solid",
+    "solid-components",
+    "solidjs",
+    "ui",
+    "unstyled"
+  ],
+  "license": "MIT",
+  "author": "fdemb",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fdemb/rigid-ui",
+    "directory": "packages/rigid-ui"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    "./scroll-area": {
+      "types": "./dist/scroll-area/index.d.ts",
+      "import": "./dist/scroll-area/index.js"
+    },
+    "./popover": {
+      "types": "./dist/popover/index.d.ts",
+      "import": "./dist/popover/index.js"
+    }
+  },
+  "scripts": {
+    "build": "vp pack",
+    "dev": "vp pack --watch",
+    "test": "VITEST_ENV=jsdom vp test",
+    "test:run": "VITEST_ENV=jsdom vp test --run",
+    "test:chromium": "VITEST_ENV=chromium vp test --run",
+    "check": "vp check",
+    "prepublishOnly": "vp pack"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "catalog:",
+    "@floating-ui/utils": "catalog:"
+  },
+  "devDependencies": {
+    "@dom-expressions/compiler": "catalog:",
+    "@solidjs/testing-library": "catalog:",
+    "@solidjs/vite-plugin": "catalog:",
+    "@solidjs/web": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/browser-playwright": "catalog:",
+    "jsdom": "catalog:",
+    "playwright": "catalog:",
+    "solid-js": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plus": "catalog:",
+    "vitest": "catalog:"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "^2.0.0-rc.0",
+    "solid-js": "^2.0.0-rc.0"
+  }
+}
