@@ -14,6 +14,9 @@ export type * from "./store/PopoverHandle";
 export type {
   PopoverAlign,
   PopoverAnchor,
+  PopoverBoundary,
+  PopoverCollisionAvoidance,
+  PopoverCollisionPadding,
   PopoverFocusTarget,
   PopoverInteractionType,
   PopoverOffset,
@@ -22,4 +25,5 @@ export type {
   PopoverRootChangeEventReason,
   PopoverSide,
   PopoverTransitionStatus,
+  PopoverVirtualElement,
 } from "./types";

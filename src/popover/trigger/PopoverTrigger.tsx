@@ -6,7 +6,7 @@ import {
   type PopoverRootContextValue,
   type RegisteredPopoverTrigger,
 } from "../root/PopoverRootContext";
-import { assignRef, callEventHandler, mergeStyles, type PopoverNativeProps } from "../types";
+import { assignRef, callEventHandler, type PopoverNativeProps } from "../types";
 import { OPEN_DELAY } from "../utils/constants";
 
 export interface PopoverTriggerState {
@@ -36,7 +36,6 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
   const generatedId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
   const id = (): string =>
     typeof props.id === "string" ? props.id : `rigid-popover-trigger-${generatedId}`;
-  const anchorName = () => `--rigid-popover-anchor-${id().replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   const context = () => localContext ?? props.handle?.context();
   const disabled = () => props.disabled !== undefined && props.disabled !== false;
   const [element, setElement] = createSignal<HTMLButtonElement>();
@@ -63,12 +62,11 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
 
   createEffect(
-    () => [context(), id(), anchorName()] as const,
-    ([store, triggerId, triggerAnchorName]) => {
+    () => [context(), id()] as const,
+    ([store, triggerId]) => {
       if (!store) return;
       const registration: RegisteredPopoverTrigger<Payload> = {
         id: triggerId,
-        anchorName: triggerAnchorName,
         element,
         payload: () => props.payload,
         disabled,
@@ -129,9 +127,6 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
     }
   }
 
-  const style = (): JSX.CSSProperties | string =>
-    mergeStyles({ "anchor-name": anchorName() }, props.style);
-
   return (
     <button
       {...others}
@@ -147,7 +142,7 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
       aria-controls={openByThisTrigger() ? context()?.popupId : undefined}
       data-popup-open={openByThisTrigger() ? "" : undefined}
       data-pressed={pressed() ? "" : undefined}
-      style={style()}
+      style={props.style}
       onPointerDown={handlePointerDown}
       onPointerEnter={handlePointerEnter}
       onPointerLeave={handlePointerLeave}

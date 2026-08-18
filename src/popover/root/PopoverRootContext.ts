@@ -9,7 +9,6 @@ import type {
 
 export interface RegisteredPopoverTrigger<Payload = unknown> {
   id: string;
-  anchorName: string;
   element: Accessor<HTMLButtonElement | undefined>;
   payload: Accessor<Payload | undefined>;
   disabled: Accessor<boolean>;

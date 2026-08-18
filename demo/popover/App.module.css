@@ -98,6 +98,10 @@
   outline-offset: 2px;
 }
 
+/*
+ * The positioner supplies the arrow's cross-axis offset so it stays centered on the anchor;
+ * pushing it out to the popup's edge on the side axis is up to the consumer.
+ */
 .Arrow {
   width: 12px;
   height: 6px;
@@ -105,20 +109,24 @@
 }
 
 .Arrow[data-side="top"] {
+  bottom: -6px;
   rotate: 180deg;
 }
 
 .Arrow[data-side="bottom"] {
+  top: -6px;
   rotate: 0deg;
 }
 
 .Arrow[data-side="left"],
 .Arrow[data-side="inline-start"] {
+  right: -9px;
   rotate: 90deg;
 }
 
 .Arrow[data-side="right"],
 .Arrow[data-side="inline-end"] {
+  left: -9px;
   rotate: -90deg;
 }
 

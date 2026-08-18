@@ -42,6 +42,10 @@
     "test:run": "VITEST_ENV=jsdom vp test --run",
     "test:chromium": "VITEST_ENV=chromium vp test --run"
   },
+  "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@floating-ui/utils": "^0.2.12"
+  },
   "devDependencies": {
     "@dom-expressions/compiler": "0.50.0-next.40",
     "@solidjs/testing-library": "1.0.0-beta.2",

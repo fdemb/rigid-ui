@@ -1,10 +1,15 @@
 import { createContext, useContext, type Accessor } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import type { PopoverAlign, PopoverSide } from "../types";
 
 export interface PopoverPositionerContextValue {
+  /** The side the popup was actually rendered on, after collision handling. */
   side: Accessor<PopoverSide>;
+  /** The alignment the popup was actually rendered with, after collision handling. */
   align: Accessor<PopoverAlign>;
-  arrowOffset: Accessor<{ x: number; y: number }>;
+  arrowStyles: Accessor<JSX.CSSProperties>;
+  arrowUncentered: Accessor<boolean>;
+  setArrowElement(element: Element | undefined): void;
 }
 
 export const PopoverPositionerContext = createContext<PopoverPositionerContextValue | null>(null);

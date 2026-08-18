@@ -1,7 +1,18 @@
 import type { JSX } from "@solidjs/web";
+import type {
+  Align,
+  Anchor,
+  Boundary,
+  CollisionAvoidance,
+  CollisionPadding,
+  Offset,
+  OffsetData,
+  Side,
+  VirtualAnchorElement,
+} from "../utils/createAnchorPositioning";
 
-export type PopoverSide = "top" | "bottom" | "left" | "right" | "inline-start" | "inline-end";
-export type PopoverAlign = "start" | "center" | "end";
+export type PopoverSide = Side;
+export type PopoverAlign = Align;
 export type PopoverInteractionType = "mouse" | "touch" | "pen" | "keyboard";
 export type PopoverTransitionStatus = "starting" | "ending" | undefined;
 
@@ -46,26 +57,13 @@ export type PopoverNativeProps<
   ref?: PopoverElementRef<T>;
 };
 
-export interface PopoverOffsetData {
-  anchor: { width: number; height: number };
-  positioner: { width: number; height: number };
-  side: PopoverSide;
-  align: PopoverAlign;
-}
-
-export type PopoverOffset = number | ((data: PopoverOffsetData) => number);
-
-export interface PopoverCollisionAvoidance {
-  side?: "flip" | "shift" | "none";
-  align?: "flip" | "shift" | "none";
-  fallbackAxisSide?: "start" | "end" | "none";
-}
-
-export type PopoverAnchor =
-  | Element
-  | null
-  | { readonly current: Element | null }
-  | (() => Element | null);
+export type PopoverOffsetData = OffsetData;
+export type PopoverOffset = Offset;
+export type PopoverCollisionAvoidance = CollisionAvoidance;
+export type PopoverCollisionPadding = CollisionPadding;
+export type PopoverBoundary = Boundary;
+export type PopoverVirtualElement = VirtualAnchorElement;
+export type PopoverAnchor = Anchor;
 
 export function assignRef<T extends HTMLElement>(
   ref: PopoverElementRef<T> | undefined,
