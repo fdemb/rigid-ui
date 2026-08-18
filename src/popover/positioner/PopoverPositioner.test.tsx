@@ -1,5 +1,5 @@
 import { createSignal, Errored } from "solid-js";
-import { screen, waitFor } from "@testing-library/dom";
+import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { describe, expect, it } from "vite-plus/test";
 import { isJSDOM, render, waitForPositioned, waitSingleFrame } from "../../../test/test-utils";
 import { Popover } from "../index";
@@ -692,6 +692,55 @@ describe("<Popover.Positioner />", () => {
 
       await waitForPositioned(screen.getByTestId("positioner"));
       await waitFor(() => expect(screen.getByTestId("arrow")).toHaveAttribute("data-uncentered"));
+    });
+  });
+
+  describe.skipIf(isJSDOM)("instant transitions", () => {
+    it("lets the popup animate across to a new trigger, then returns to instant", async () => {
+      render(() => (
+        <>
+          <style>
+            {`
+              .moving-positioner { transition: transform 120ms linear; }
+              .moving-positioner[data-instant] { transition: none; }
+            `}
+          </style>
+          <Popover.Root>
+            <Popover.Trigger
+              id="trigger-a"
+              style={{ position: "fixed", left: "40px", top: "200px", ...triggerStyle }}
+            >
+              A
+            </Popover.Trigger>
+            <Popover.Trigger
+              id="trigger-b"
+              style={{ position: "fixed", left: "400px", top: "200px", ...triggerStyle }}
+            >
+              B
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner data-testid="positioner" class="moving-positioner">
+                <Popover.Popup style={popupStyle}>Popup</Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        </>
+      ));
+
+      // `detail: 1` marks these as pointer presses, which are not themselves instant.
+      fireEvent.click(screen.getByRole("button", { name: "A" }), { detail: 1 });
+      const positioner = await screen.findByTestId("positioner");
+      await waitForPositioned(positioner);
+      const anchoredToA = rect(positioner).x;
+
+      fireEvent.click(screen.getByRole("button", { name: "B" }), { detail: 1 });
+
+      // While the popup travels between triggers the hint is cleared so the move can animate.
+      await waitSingleFrame();
+      expect(positioner).not.toHaveAttribute("data-instant");
+
+      await waitFor(() => expect(positioner).toHaveAttribute("data-instant", "trigger-change"));
+      expect(rect(positioner).x).toBeGreaterThan(anchoredToA);
     });
   });
 

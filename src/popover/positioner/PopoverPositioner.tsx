@@ -11,6 +11,7 @@ import {
   type PopoverBoundary,
   type PopoverCollisionAvoidance,
   type PopoverCollisionPadding,
+  type PopoverInstantType,
   type PopoverNativeProps,
   type PopoverOffset,
   type PopoverSide,
@@ -19,6 +20,7 @@ import {
   createAnchorPositioning,
   DEFAULT_COLLISION_AVOIDANCE,
 } from "../../utils/createAnchorPositioning";
+import { runOnceAnimationsFinish } from "../../utils/runOnceAnimationsFinish";
 import {
   PopoverPositionerContext,
   type PopoverPositionerContextValue,
@@ -29,7 +31,7 @@ export interface PopoverPositionerState {
   side: PopoverSide;
   align: PopoverAlign;
   anchorHidden: boolean;
-  instant: string | undefined;
+  instant: PopoverInstantType;
 }
 
 export interface PopoverPositionerProps extends PopoverNativeProps<HTMLDivElement> {
@@ -116,6 +118,23 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     ([currentSide, currentAlign]) => context!.setPosition(currentSide, currentAlign),
   );
 
+  let previousTrigger: HTMLElement | undefined;
+
+  // A popover shared by several triggers moves between them while it stays open. Let that move
+  // animate, then go back to instant so ordinary repositioning — scrolling, resizing, a flip —
+  // does not drag the popup across the screen.
+  createEffect(
+    () => [context!.activeTrigger()?.element(), element()] as const,
+    ([trigger, positioner]) => {
+      const previous = previousTrigger;
+      if (trigger) previousTrigger = trigger;
+      if (!previous || !trigger || previous === trigger || !positioner) return;
+
+      context!.setInstantType(undefined);
+      return runOnceAnimationsFinish(positioner, () => context!.setInstantType("trigger-change"));
+    },
+  );
+
   function positionerStyle(): JSX.CSSProperties | string {
     const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
       ...positioning.positionerStyles(),
@@ -156,6 +175,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
           data-side={positioning.side()}
           data-align={positioning.align()}
           data-anchor-hidden={positioning.anchorHidden() ? "" : undefined}
+          data-instant={context!.instantType()}
           style={positionerStyle()}
           onPointerEnter={handlePointerEnter}
           onPointerLeave={handlePointerLeave}

@@ -16,6 +16,12 @@ export type PopoverAlign = Align;
 export type PopoverInteractionType = "mouse" | "touch" | "pen" | "keyboard";
 export type PopoverTransitionStatus = "starting" | "ending" | undefined;
 
+/**
+ * Why transitions should be skipped for the current change, surfaced as `data-instant`.
+ * Styling hint only — suppressing the transition is the consumer's choice.
+ */
+export type PopoverInstantType = "dismiss" | "click" | "focus" | "trigger-change" | undefined;
+
 export type PopoverRootChangeEventReason =
   | "trigger-hover"
   | "trigger-focus"

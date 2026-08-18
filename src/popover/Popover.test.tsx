@@ -402,6 +402,66 @@ describe("Popover", () => {
     });
   });
 
+  describe("instant transitions", () => {
+    // `data-instant` is a styling hint: whether to suppress the transition is the consumer's
+    // choice. These assert only which changes are classified as instant.
+    it("marks a keyboard-activated trigger press as instant", async () => {
+      render(() => <TestPopover keepMounted />);
+      // Activating a button with Enter or Space dispatches a click with `detail === 0`.
+      fireEvent.click(screen.getByRole("button", { name: "Toggle" }), { detail: 0 });
+      await waitFor(() => expect(screen.getByTestId("positioner")).toBeVisible());
+
+      expect(screen.getByTestId("positioner")).toHaveAttribute("data-instant", "click");
+      expect(screen.getByTestId("popup")).toHaveAttribute("data-instant", "click");
+    });
+
+    it("does not mark a pointer press as instant", async () => {
+      render(() => <TestPopover keepMounted />);
+      fireEvent.click(screen.getByRole("button", { name: "Toggle" }), { detail: 1 });
+      await waitFor(() => expect(screen.getByTestId("positioner")).toBeVisible());
+
+      expect(screen.getByTestId("positioner")).not.toHaveAttribute("data-instant");
+      expect(screen.getByTestId("popup")).not.toHaveAttribute("data-instant");
+    });
+
+    it("marks an Escape dismissal as instant", async () => {
+      render(() => <TestPopover defaultOpen keepMounted />);
+      const popup = screen.getByTestId("popup");
+      expect(popup).not.toHaveAttribute("data-instant");
+
+      fireEvent.keyDown(document, { key: "Escape" });
+      await waitFor(() => expect(popup).toHaveAttribute("data-instant", "dismiss"));
+    });
+
+    it("marks a focus-out close as instant", async () => {
+      render(() => <TestPopover defaultOpen keepMounted />);
+      const popup = screen.getByTestId("popup");
+      const outside = document.createElement("button");
+      document.body.append(outside);
+
+      try {
+        fireEvent.focusOut(screen.getByRole("button", { name: "Focusable" }), {
+          relatedTarget: outside,
+        });
+        await waitFor(() => expect(popup).toHaveAttribute("data-instant", "focus"));
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it("clears the instant hint on the next animated change", async () => {
+      render(() => <TestPopover keepMounted />);
+      const trigger = screen.getByRole("button", { name: "Toggle" });
+      fireEvent.click(trigger, { detail: 0 });
+      await waitFor(() =>
+        expect(screen.getByTestId("popup")).toHaveAttribute("data-instant", "click"),
+      );
+
+      fireEvent.click(trigger, { detail: 1 });
+      await waitFor(() => expect(screen.getByTestId("popup")).not.toHaveAttribute("data-instant"));
+    });
+  });
+
   describe("parts", () => {
     it("labels and describes the popup", () => {
       render(() => <TestPopover defaultOpen />);

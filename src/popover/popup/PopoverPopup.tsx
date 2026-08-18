@@ -8,6 +8,7 @@ import {
   mergeStyles,
   type PopoverAlign,
   type PopoverFocusTarget,
+  type PopoverInstantType,
   type PopoverNativeProps,
   type PopoverSide,
   type PopoverTransitionStatus,
@@ -27,7 +28,7 @@ export interface PopoverPopupState {
   side: PopoverSide;
   align: PopoverAlign;
   transitionStatus: PopoverTransitionStatus;
-  instant: "dismiss" | "click" | "focus" | "trigger-change" | undefined;
+  instant: PopoverInstantType;
 }
 
 export interface PopoverPopupProps extends PopoverNativeProps<HTMLDivElement> {
@@ -212,6 +213,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
       data-ending-style={context!.transitionStatus() === "ending" ? "" : undefined}
       data-side={positioner!.side()}
       data-align={positioner!.align()}
+      data-instant={context!.instantType()}
       style={popupStyle()}
       onKeyDown={handleKeyDown}
       onFocusOut={handleFocusOut}

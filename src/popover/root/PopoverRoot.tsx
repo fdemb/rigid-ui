@@ -16,6 +16,7 @@ import {
 import type { PopoverHandle } from "../store/PopoverHandle";
 import type {
   PopoverAlign,
+  PopoverInstantType,
   PopoverInteractionType,
   PopoverRootActions,
   PopoverRootChangeEventDetails,
@@ -88,6 +89,27 @@ function animationTime(animation: Animation) {
   return typeof timing?.endTime === "number" ? timing.endTime : 0;
 }
 
+/**
+ * Classifies a change as one that should not be animated. Keyboard-activated presses report a
+ * click with `detail === 0`, and dismissals have no motion to follow.
+ */
+function resolveInstantType(
+  nextOpen: boolean,
+  reason: PopoverRootChangeEventReason,
+  event: Event,
+): PopoverInstantType {
+  if (reason === "trigger-press" && event instanceof MouseEvent && event.detail === 0) {
+    return "click";
+  }
+  if (!nextOpen && (reason === "escape-key" || reason === "none")) {
+    return "dismiss";
+  }
+  if (reason === "focus-out") {
+    return "focus";
+  }
+  return undefined;
+}
+
 export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>) {
   const parentContext = usePopoverRootContext(true);
   const rootId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
@@ -104,6 +126,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     initialOpen ? "starting" : undefined,
   );
   const [openReason, setOpenReason] = createSignal<PopoverRootChangeEventReason>("none");
+  const [instantType, setInstantType] = createSignal<PopoverInstantType>(undefined);
   const [openMethod, setOpenMethod] = createSignal<PopoverInteractionType>("keyboard");
   const [titleId, setTitleId] = createSignal<string>();
   const [descriptionId, setDescriptionId] = createSignal<string>();
@@ -233,6 +256,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     else if (reason === "trigger-hover") setOpenMethod("mouse");
     else if (event instanceof KeyboardEvent) setOpenMethod("keyboard");
     setOpenReason(reason);
+    setInstantType(resolveInstantType(nextOpen, reason, event));
     if (props.open === undefined) setUncontrolledOpen(nextOpen);
     return true;
   }
@@ -328,6 +352,8 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     modal,
     openReason,
     openMethod,
+    instantType,
+    setInstantType,
     titleId,
     descriptionId,
     popupElement,

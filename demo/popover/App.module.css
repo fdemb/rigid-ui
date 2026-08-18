@@ -93,6 +93,11 @@
   transform: scale(0.98) translateY(4px);
 }
 
+/* Keyboard activation, dismissals, and moves between triggers are hinted as instant. */
+.Popup[data-instant] {
+  transition: none;
+}
+
 .Popup:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;

@@ -1,6 +1,7 @@
 import { createContext, useContext, type Accessor } from "solid-js";
 import type {
   PopoverAlign,
+  PopoverInstantType,
   PopoverInteractionType,
   PopoverRootChangeEventReason,
   PopoverSide,
@@ -27,6 +28,9 @@ export interface PopoverRootContextValue<Payload = unknown> {
   modal: Accessor<boolean | "trap-focus">;
   openReason: Accessor<PopoverRootChangeEventReason>;
   openMethod: Accessor<PopoverInteractionType>;
+  /** Why transitions should be skipped for the current change, or `undefined` to allow them. */
+  instantType: Accessor<PopoverInstantType>;
+  setInstantType(value: PopoverInstantType): void;
   titleId: Accessor<string | undefined>;
   descriptionId: Accessor<string | undefined>;
   popupElement: Accessor<HTMLDivElement | undefined>;

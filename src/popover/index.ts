@@ -18,6 +18,7 @@ export type {
   PopoverCollisionAvoidance,
   PopoverCollisionPadding,
   PopoverFocusTarget,
+  PopoverInstantType,
   PopoverInteractionType,
   PopoverOffset,
   PopoverOffsetData,
