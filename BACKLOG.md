@@ -140,22 +140,6 @@ all, relying on plain `Node.contains` in `containsTarget`.
 - `closing via outside press: works when clicking another element inside the same shadow root`
 - `closing via outside press: works when clicking outside the shadow root`
 
-### 9. `Popover.Viewport` is a stub
-
-`src/popover/viewport/PopoverViewport.tsx` renders a bare wrapper with no logic and is **not
-exported** from `index.parts.ts` — the only Base UI popover part we do not ship. Theirs is backed
-by `usePopupViewport` (394 lines) and `adaptiveOriginMiddleware` (73), and drives size transitions
-between panels keyed to the active trigger.
-
-Consequence for positioning: Base UI switches the positioner to `top`/`left` when a Viewport is
-present, because transforms break size animations. We always use `transform`.
-
-`viewport/PopoverViewport.test.tsx` (603 lines, 6 tests), plus
-`positioner/PopoverPositioner.test.tsx` — `uses top/left positioning with Viewport`.
-
-Its `PopoverViewportState.instant` field is declared but unwired; that resolves with this item,
-not separately.
-
 ---
 
 ## Fixed

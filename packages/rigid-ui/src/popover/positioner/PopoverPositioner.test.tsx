@@ -5,8 +5,8 @@ import { isJSDOM, render, waitForPositioned, waitSingleFrame } from "../../../te
 import { Popover } from "../index";
 
 // Ported from Base UI's `PopoverPositioner.test.tsx`. Cases that exercise React renderer
-// semantics (`describeConformance`, `render` prop replacement) or Base UI parts this library
-// does not implement (`Viewport` adaptive origin, `Tooltip` integration) are inapplicable.
+// semantics (`describeConformance`, `render` prop replacement) or Base UI integrations this
+// library does not implement (`Tooltip`) are inapplicable.
 // Positions are asserted relative to the measured trigger rect rather than against Base UI's
 // hardcoded baselines, which depend on their renderer's wrapper markup.
 

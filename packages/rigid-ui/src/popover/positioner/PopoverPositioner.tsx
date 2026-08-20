@@ -65,6 +65,7 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
 
   const [element, setElement] = createSignal<HTMLDivElement>();
   const [arrowElement, setArrowElement] = createSignal<Element>();
+  const [viewportCount, setViewportCount] = createSignal(0);
 
   const positioning = createAnchorPositioning({
     anchor: () => props.anchor ?? context!.activeTrigger()?.element(),
@@ -82,14 +83,21 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     sticky: () => props.sticky ?? false,
     arrowPadding: () => props.arrowPadding ?? 5,
     disableAnchorTracking: () => props.disableAnchorTracking ?? false,
+    useTopLeft: () => viewportCount() > 0,
   });
 
   const positionerContext: PopoverPositionerContextValue = {
     side: positioning.side,
+    physicalSide: positioning.physicalSide,
     align: positioning.align,
     arrowStyles: positioning.arrowStyles,
     arrowUncentered: positioning.arrowUncentered,
     setArrowElement,
+    hasViewport: () => viewportCount() > 0,
+    registerViewport() {
+      setViewportCount((count) => count + 1);
+      return () => setViewportCount((count) => Math.max(0, count - 1));
+    },
   };
 
   const others = omit(

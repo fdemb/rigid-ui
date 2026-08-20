@@ -19,6 +19,7 @@ import {
   type Strategy,
 } from "@floating-ui/dom";
 import { getAlignment, getSide, getSideAxis } from "@floating-ui/utils";
+import { createAdaptiveOriginMiddleware, DEFAULT_SIDES, type AdaptiveOriginData } from "./adaptiveOrigin";
 
 const AVAILABLE_WIDTH_VAR = "--available-width";
 const AVAILABLE_HEIGHT_VAR = "--available-height";
@@ -29,6 +30,7 @@ const POSITIONER_HEIGHT_VAR = "--positioner-height";
 const TRANSFORM_ORIGIN_VAR = "--transform-origin";
 
 export type Side = "top" | "bottom" | "left" | "right" | "inline-start" | "inline-end";
+export type { PhysicalSide };
 export type Align = "start" | "center" | "end";
 
 export interface AnchorRect {
@@ -120,6 +122,8 @@ export interface CreateAnchorPositioningParams {
   sticky: Accessor<boolean>;
   arrowPadding: Accessor<number>;
   disableAnchorTracking: Accessor<boolean>;
+  /** Use coordinates directly instead of a translate transform. Required by morphing viewports. */
+  useTopLeft: Accessor<boolean>;
 }
 
 export interface AnchorPositioning {
@@ -237,6 +241,10 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
   const [anchorHidden, setAnchorHidden] = createSignal(false);
   const [isPositioned, setIsPositioned] = createSignal(false);
   const [isRtl, setIsRtl] = createSignal(false);
+  // Which edge the coordinates below are relative to. Flips from left/top to right/bottom while
+  // the positioner has a size transition running, so a growing popup expands away from the
+  // trigger instead of across it. See `useTopLeft` and `adaptiveOrigin.ts`.
+  const [sides, setSides] = createSignal<AdaptiveOriginData>(DEFAULT_SIDES);
   // Seeded so consumer rules like `max-height: var(--available-height)` resolve to a valid length
   // on the first pass. An unresolved `var()` invalidates the whole declaration, which would let
   // the popup be measured unconstrained while `flip()` picks its side.
@@ -371,8 +379,13 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
           style.setProperty(AVAILABLE_HEIGHT_VAR, next.availableHeight);
           style.setProperty(ANCHOR_WIDTH_VAR, next.anchorWidth);
           style.setProperty(ANCHOR_HEIGHT_VAR, next.anchorHeight);
-          style.setProperty(POSITIONER_WIDTH_VAR, next.positionerWidth);
-          style.setProperty(POSITIONER_HEIGHT_VAR, next.positionerHeight);
+          // A morphing viewport owns these two vars imperatively (`createPopupAutoResize`), driving
+          // them from the popup's measured content size rather than the floating rect. Writing them
+          // here too would fight that: this callback also reruns on every scroll/resize tick.
+          if (!params.useTopLeft()) {
+            style.setProperty(POSITIONER_WIDTH_VAR, next.positionerWidth);
+            style.setProperty(POSITIONER_HEIGHT_VAR, next.positionerHeight);
+          }
 
           setSizeVars((current) => ({ ...current, ...next }));
         },
@@ -413,6 +426,10 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
         },
       },
       hideMiddleware,
+      // Only meaningful in coordinate mode: a transform can't be kept while its target properties
+      // change, so `useTopLeft` callers (morphing viewports) are the ones that need the anchored
+      // edge preserved as the popup resizes.
+      params.useTopLeft() ? createAdaptiveOriginMiddleware() : null,
     );
 
     return middleware.filter((entry): entry is Middleware => entry !== null);
@@ -450,6 +467,7 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
         }
         setIsRtl(rtl);
         setCoords({ x: result.x, y: result.y });
+        setSides((result.middlewareData.adaptiveOrigin as AdaptiveOriginData | undefined) ?? DEFAULT_SIDES);
         setRenderedPlacement(result.placement);
         setArrowCoords({ x: result.middlewareData.arrow?.x, y: result.middlewareData.arrow?.y });
         setArrowUncentered((result.middlewareData.arrow?.centerOffset ?? 0) !== 0);
@@ -498,6 +516,7 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
         params.sticky(),
         params.arrowPadding(),
         params.arrow(),
+        params.useTopLeft(),
       ] as const,
     () => update(),
   );
@@ -510,25 +529,33 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
     const vars = sizeVars();
     const positioned = isPositioned();
     const { x, y } = coords();
+    const useCoords = positioned && params.useTopLeft();
+    const { sideX, sideY } = sides();
     // Default to `fixed` before the first pass so an autofocused popup cannot scroll the page
     // from a stale offset while it is still laid out at the origin.
     const position = positioned ? params.positionMethod() : "fixed";
 
     return {
       position,
-      top: "0",
-      left: "0",
+      top: useCoords ? (sideY === "top" ? `${Math.round(y)}px` : undefined) : "0",
+      left: useCoords ? (sideX === "left" ? `${Math.round(x)}px` : undefined) : "0",
+      right: useCoords && sideX === "right" ? `${Math.round(x)}px` : undefined,
+      bottom: useCoords && sideY === "bottom" ? `${Math.round(y)}px` : undefined,
       // Ignore coordinates retained from a previous open until this open has been measured.
       // Rendering a full-size popup at a stale offset can overflow the layout viewport, which
       // makes mobile browsers zoom out and reflow everything the popup is anchored to.
-      transform: positioned ? `translate(${Math.round(x)}px, ${Math.round(y)}px)` : undefined,
+      transform:
+        positioned && !params.useTopLeft()
+          ? `translate(${Math.round(x)}px, ${Math.round(y)}px)`
+          : undefined,
       opacity: positioned ? undefined : 0,
       [AVAILABLE_WIDTH_VAR]: vars.availableWidth,
       [AVAILABLE_HEIGHT_VAR]: vars.availableHeight,
       [ANCHOR_WIDTH_VAR]: vars.anchorWidth,
       [ANCHOR_HEIGHT_VAR]: vars.anchorHeight,
-      [POSITIONER_WIDTH_VAR]: vars.positionerWidth,
-      [POSITIONER_HEIGHT_VAR]: vars.positionerHeight,
+      // A morphing viewport drives these two imperatively; see the matching guard in `size()`.
+      [POSITIONER_WIDTH_VAR]: params.useTopLeft() ? undefined : vars.positionerWidth,
+      [POSITIONER_HEIGHT_VAR]: params.useTopLeft() ? undefined : vars.positionerHeight,
       [TRANSFORM_ORIGIN_VAR]: vars.transformOrigin,
     } satisfies JSX.CSSProperties & Record<string, string | number | undefined>;
   };

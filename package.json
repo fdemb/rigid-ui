@@ -4,13 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "vp run demo#dev",
-    "build": "vp pack",
-    "build:site": "vp build",
+    "build": "vp run rigid-ui#build",
+    "build:site": "vp run demo#build",
     "format": "vp fmt .",
-    "test": "VITEST_ENV=jsdom vp -C packages/rigid-ui test",
-    "test:run": "VITEST_ENV=jsdom vp -C packages/rigid-ui test --run",
-    "test:chromium": "VITEST_ENV=chromium vp -C packages/rigid-ui test --run",
-    "ready": "vp check && vp run -r test && vp run -r build",
+    "test": "vp run rigid-ui#test",
+    "test:run": "vp run rigid-ui#test:run",
+    "test:chromium": "vp run rigid-ui#test:chromium",
+    "ready": "vp run rigid-ui#build && vp check && vp run rigid-ui#test:run && vp run rigid-ui#test:chromium && vp run demo#build",
     "prepare": "vp config --no-agent"
   },
   "devDependencies": {

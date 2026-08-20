@@ -22,7 +22,10 @@ jobs:
           node-version: "24"
           cache: true
       - run: vp install
-      - run: vp build
+      # `vp run build:site`, not the built-in `vp build`: the demo imports `rigid-ui`
+      # through its exports map, so the library has to be packed first. Going through
+      # the task graph pulls in that dependency; the built-in command would not.
+      - run: vp run build:site
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/demo/dist

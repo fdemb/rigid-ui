@@ -1,6 +1,6 @@
 We're building a component library for Solid. We're targeting the latest 2.x RC version of Solid. The components are similar in vein to Radix UI (older, but still more popular) and Base UI (more modern, actively maintained, we're targeting this API surface more). Prefer native browser features where they carry their weight, but not at the cost of the API: anchored popups use Floating UI (`@floating-ui/dom`, the vanilla build) through the `createAnchorPositioning` composable, because CSS anchor positioning cannot report the resolved placement back to JS. Our goal is building a de-facto standard unstyled component library for Solid 2. Our test coverage should be built on Base UI's - it has a great testing coverage we can learn from. See `reference/`. Known divergences from Base UI are tracked in `BACKLOG.md`; when you close one, port the Base UI test named there and delete the entry.
 
-The library lives in `packages/rigid-ui`. The demo lives in `apps/demo`.
+The library lives in `packages/rigid-ui`. The demo lives in `apps/demo`, and consumes the library through its published `exports` map rather than a source alias, so the demo build doubles as a check that the packaged artifact is intact. That makes `packages/rigid-ui/dist` a prerequisite for type checking and for running the demo — build the library first.
 
 ## Base UI test migration checklist
 
@@ -12,7 +12,7 @@ The library lives in `packages/rigid-ui`. The demo lives in `apps/demo`.
 - [ ] Run layout, overflow, ResizeObserver, and pointer-geometry coverage in Chromium rather than mocking browser measurements in JSDOM.
 - [ ] Treat failing migrated tests as implementation gaps; fix the component instead of weakening or skipping the contract.
 - [ ] Record intentionally inapplicable Base UI cases and the Solid or public-API difference that makes them inapplicable.
-- [ ] Run `pnpm test:run`, `pnpm test:chromium`, and `pnpm build` before considering the migration complete.
+- [ ] Run `pnpm ready` before considering the migration complete. It runs the library build, `vp check`, both test suites, and the demo build. The individual steps are also available as `pnpm build`, `pnpm test:run`, `pnpm test:chromium`, and `pnpm build:site`.
 
 <!--VITE PLUS START-->
 

@@ -11,11 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "isolatedModules": true,
-    "types": ["vite/client"],
-    "paths": {
-      "rigid-ui/popover": ["../../packages/rigid-ui/src/popover/index.ts"],
-      "rigid-ui/scroll-area": ["../../packages/rigid-ui/src/scroll-area/index.ts"]
-    }
+    "types": ["vite/client"]
   },
   "include": ["src/**/*", "vite.config.ts"]
 }
