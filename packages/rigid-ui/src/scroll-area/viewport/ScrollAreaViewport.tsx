@@ -374,6 +374,7 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
           },
           props: {
             role: "presentation",
+            "data-id": `${ctx.rootId}-viewport`,
             // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
             // Keep non-scrollable viewports out of tab order.
             get tabindex() {

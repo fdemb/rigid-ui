@@ -25,6 +25,12 @@ export interface OverflowEdges {
 }
 
 export interface ScrollAreaRootContextValue {
+  /**
+   * Stable per-instance id, stamped as `data-id="{rootId}-viewport"` on the viewport and
+   * `data-id="{rootId}-scrollbar"` on the scrollbars so sibling scroll areas can be told apart
+   * from outside.
+   */
+  rootId: string;
   cornerSize: Accessor<Size>;
   setCornerSize: Setter<Size>;
   thumbSize: Accessor<Size>;
