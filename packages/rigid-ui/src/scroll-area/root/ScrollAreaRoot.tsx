@@ -13,6 +13,7 @@ import { overflowStateAttributes } from "./stateAttributes";
 import { SCROLL_TIMEOUT } from "../constants";
 import { getOffset } from "../../utils/getOffset";
 import { styleDisableScrollbar } from "../../utils/styles";
+import { useCSPContext } from "../../internals/csp-context";
 import { contains } from "../../utils/contains";
 import { useTimeout } from "../../utils/useTimeout";
 
@@ -88,7 +89,9 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
   let currentOrientation: "vertical" | "horizontal" = "vertical";
   let savedSnapType: string | null = null;
 
-  styleDisableScrollbar.inject();
+  const { nonce, disableStyleElements } = useCSPContext();
+
+  styleDisableScrollbar.inject({ nonce, disabled: disableStyleElements });
 
   // Shared mutable refs object — child components write directly to this
   const refs = {
