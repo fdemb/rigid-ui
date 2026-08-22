@@ -8,17 +8,63 @@ Gaps were found two ways: by auditing the implementation against
 behavioral contracts, so a test of theirs we cannot write is usually a contract we do not honor.
 
 **Popover coverage: 105 tests across 6 files, against Base UI's 177 across 13.**
+**Scroll Area coverage: 100 tests across 8 files, against Base UI's 8 files.**
+**Dialog coverage: 40 tests across 2 files, against Base UI's ~90 across 8.**
 
 Each item cites the Base UI test that names the contract. When closing a gap, port that test and
 delete the entry.
 
 Sections:
 
-- [Not implemented](#not-implemented) — behavior we do not have
-- [Fixed](#fixed) — defects found by ported tests and by using the demo
-- [Missing infrastructure](#missing-infrastructure)
-- [Intentionally inapplicable](#intentionally-inapplicable) — recorded so they are not re-audited
-- [Not yet audited](#not-yet-audited)
+- [Popover](#popover)
+  - [Not implemented](#not-implemented) — behavior we do not have
+  - [Fixed](#fixed) — defects found by ported tests and by using the demo
+  - [Missing infrastructure](#missing-infrastructure)
+  - [Intentionally inapplicable](#intentionally-inapplicable)
+- [Scroll Area](#scroll-area)
+- [Dialog](#dialog)
+
+---
+
+# Dialog
+
+`dialog/` was built on new shared infrastructure in `src/utils/`, ported from Base UI:
+
+- `tabbable.ts`, `markOthers.ts`, `enqueueFocus.ts`, `FocusGuard.tsx` — direct ports.
+- `createPopupFocusManager.tsx` — Solid port of the essential `FloatingFocusManager`
+  semantics: inside/outside focus guards, initial and return focus (`initialFocus`/`finalFocus`
+  in boolean/ref/function forms), `restoreFocus="popup"`, modal `aria-hidden` of outside
+  content, `tabindex` management, interaction-type tracking.
+- `createScrollLock.ts` — port of Base UI's `useScrollLock`: scrollbar-width compensation,
+  the `scrollbar-gutter` fast path, and external-locker handoff. No layout shift on open.
+- `InternalBackdrop.tsx` — fixed backdrop with optional trigger cutout.
+
+This closes Popover backlog items **#4** (intentional outside press), **#5** (internal
+backdrop), and **#6** (layout-shifting scroll lock) **for Dialog**; #1 (focus management) is
+largely closed for Dialog via `createPopupFocusManager`. Those items stay listed under
+Popover because they describe Popover, which still runs its own inline implementations;
+migrating Popover onto this infrastructure is follow-up work, after which porting the named
+contracts should be straightforward.
+
+Known divergences from Base UI:
+
+- Non-modal dialogs render no focus guards; Tab can escape to browser chrome instead of the
+  element after the trigger. Modal dialogs trap correctly via inside guards.
+- `finalFocus` receives the interaction type tracked during the open session (last pointer /
+  keyboard input), not the type of the event that closed it — the same divergence recorded
+  for Popover above.
+
+Unported Base UI dialog test clusters, recorded so they are not re-audited blindly:
+
+- Touch outside-press choreography (Chromium; multi-touch `changedTouches` sequences).
+- Third-party scroll-lock handoff (react-remove-scroll / silk-hq / Ariakit simulators).
+- Trusted CDP click suppression and pointer-lock scrub dismissal.
+- Nested Menu/Select/Toolbar/Drawer integration — those components do not exist yet.
+- Detached-trigger SSR/hydration cases — React-only.
+
+---
+
+# Popover
 
 Anchor positioning is **not** listed: every public parameter of Base UI's
 `UseAnchorPositioningSharedParameters` is implemented in `src/utils/createAnchorPositioning.ts`.
@@ -214,11 +260,13 @@ Base UI declares every public attribute and custom property in per-part enum fil
 `popover/enumSync.test.tsx` (311 lines) asserts that what the components actually render matches
 those enums. That is what keeps their generated docs honest.
 
-We have none; our attribute names are string literals inline in each component
+The popover has none; its attribute names are string literals inline in each component
 (`data-side`, `data-instant`, `--available-width`, …). Nothing catches a typo or a rename, and
 there is no single place to generate documentation from.
 
-This is worth doing before a docs pass, and it is cheap relative to the items above.
+`scroll-area` now has the full set (`ScrollAreaRootDataAttributes.ts` and six more) plus
+`scroll-area/enumSync.test.tsx`, so that is the shape to copy here. Worth doing before a docs
+pass, and cheap relative to the items above.
 
 ---
 
@@ -258,9 +306,124 @@ outcome on every real path, no `undefined === 0` accident.
 
 ---
 
-## Not yet audited
+# Scroll Area
 
-**`scroll-area`.** Base UI has 3337 lines of tests across 5 files
-(`root`, `scrollbar`, `thumb`, `viewport`, `enumSync`); we have 208 lines in one. The gap is
-almost certainly larger than the popover's, but nobody has done the diff. Do that before treating
-this file as a complete picture of where Rigid UI stands.
+Audited against `reference/base-ui/packages/react/src/scroll-area/` (8 test files, 3337 lines).
+Ours is now 8 files mirroring theirs part-for-part: 100 tests, of which 3 are JSDOM-only and 44
+are Chromium-only. The audit closed the coverage gap; what follows is what remains.
+
+## Not implemented
+
+### 1. No text direction context (RTL)
+
+**Impact: the scroll area is wrong in RTL documents.** `direction` is a hardcoded `"ltr"` constant
+in `src/scroll-area/viewport/ScrollAreaViewport.tsx` and
+`src/scroll-area/scrollbar/ScrollAreaScrollbar.tsx`. Base UI resolves it from a
+`DirectionProvider`, and RTL is not cosmetic here: `scrollLeft` runs from `0` down to
+`-maxScrollLeft`, so every horizontal branch — overflow edges, wheel clamping, track click, thumb
+offset, overscroll pinning — inverts.
+
+The code paths are already written direction-agnostically (they branch on the constant), so this
+is a matter of adding the provider and threading a reactive `direction` through, not of
+rewriting the math.
+
+Base UI contracts we cannot port until then:
+
+- `root/ScrollAreaRoot.test.tsx` — `recomputes horizontal overflow edges when direction changes`, `correctly handles RTL`
+- `scrollbar/ScrollAreaScrollbar.test.tsx` — `allows horizontal scrolling away from the RTL start edge`, `clamps horizontal RTL wheel scrolling at both edges`, `scrolls into the negative RTL range when clicking a horizontal RTL track`
+- `thumb/ScrollAreaThumb.test.tsx` — `uses the negative RTL range and clears scrolling on pointer cancel`
+- `viewport/ScrollAreaViewport.test.tsx` — `shrinks and pins the horizontal thumb to the inline start while overscrolling (RTL)`, `…to the inline end while overscrolling (RTL)`
+
+The LTR halves of the parameterized cases above are ported; only the RTL arms are missing. Base
+UI's `registers after the horizontal scrollbar becomes visible` is written RTL-only and is ported
+here as its LTR equivalent.
+
+### 2. No CSP context
+
+Base UI's root reads `useCSPContext` for a `nonce` to stamp on the scrollbar-hiding `<style>`
+element, and a `disableStyleElements` flag for apps that ship the rule themselves. Ours injects a
+`<style>` into `document.head` unconditionally from a module-level singleton
+(`src/utils/styles.ts`), so a strict `style-src` CSP silently drops it and the native scrollbars
+stay visible on top of ours.
+
+No Base UI test names this contract directly; it is an implementation gap found by the audit.
+
+### 3. No `rootId` / `data-id` stamping
+
+Base UI gives each root a generated id and stamps `data-id="{rootId}-viewport"` and
+`data-id="{rootId}-scrollbar"` on the corresponding parts, so multiple scroll areas on a page are
+distinguishable from the outside. We render neither. Cosmetic, no test depends on it.
+
+## Fixed
+
+Found by the ported tests and by diffing against Base UI's source. Everything here was broken
+before this audit.
+
+1. **Scrollbar wheel handling did not clamp, chain, or report.** `viewportEl.scrollTop += deltaY`
+   with only an equality edge check: a large delta overshot past the end, a zero delta still
+   called `preventDefault`, and nothing marked the area as scrolling. Now clamped through
+   `Math.min`/`Math.max`, bailing before `preventDefault` at an edge so the wheel chains to the
+   page, and calling `handleScroll`. Pinned by seven cases in
+   `scrollbar/ScrollAreaScrollbar.test.tsx` including
+   `preventDefaults only when it consumes the scroll, allowing chaining at edges`.
+2. **A track press with a degenerate thumb teleported the scroll position.** No
+   `maxThumbOffset <= 0` guard, so a track shorter than `MIN_THUMB_SIZE` divided by zero or by a
+   negative and jumped to an extreme. Pinned by the four `non-positive thumb offset` cases.
+3. **A track press quantized to the nearest scroll-snap point.** `disableViewportSnap` existed but
+   was only called from the thumb-drag path, so a jump-to-click on a snapping viewport landed on a
+   snap point and the thumb sat offset from the pointer for the whole drag. Pinned by
+   `does not snap the initial jump-to-click position`.
+4. **A press on the track moved focus.** No `mousedown` `preventDefault`; native scrollbars never
+   move focus, for any button. Pinned by the four `track mouse down` cases.
+5. **A cancelled gesture on the track left the drag latched.** The track had no `pointercancel`
+   handler, and neither did the thumb. Pinned by `clears track drag state on pointer cancel` and
+   `restores viewport scroll snap on pointer cancel`.
+6. **Thumb presses were detected by `event.currentTarget !== event.target`**, which misses a thumb
+   whose press is retargeted across a shadow boundary — the track then ran its jump-to-click on
+   top of the drag. Now `contains(thumb, getTarget(event))`. Pinned by
+   `ignores thumb presses reported through the composed path`.
+7. **The thumb had no `data-scrolling` attribute at all**, so the documented per-axis scrolling
+   state was unstyleable from the thumb. Pinned by the thumb's `data-scrolling` cases.
+8. **Track and thumb painted at an unmeasured size on mount.** Neither honored
+   `hasMeasuredScrollbar` (which the working tree had already added to the context but never
+   consumed), so a `keepMounted` scrollbar flashed a full-height thumb for a frame. Pinned by
+   `shows keepMounted scrollbar track and thumb after mount compute`.
+9. **Scrollbars carried no overflow attributes.** `data-has-overflow-*` and `data-overflow-*` were
+   on the root, viewport, and content but not the scrollbars, where Base UI exposes the axis each
+   track controls. Pinned by `applies data attributes on vertical and horizontal scrollbars`.
+10. **`ScrollArea.Content`'s ResizeObserver double-computed on mount**, and content that mounted
+    _after_ the viewport's first measurement never brought the overflow state in sync at all,
+    because there was no skip-first logic either way. Pinned by
+    `measures content mounted after the viewport initial measurement`.
+11. **No overscroll feedback.** The thumb offset was a plain clamped ratio, so Safari's rubber-band
+    range (where `scrollTop` goes out of bounds) left the thumb pinned at full size. Ported Base
+    UI's `applyOverscrollThumb`, which shrinks the thumb against the pinned edge damped by
+    `content / (content + overscroll)`. Pinned by five `overscroll feedback` cases.
+12. **`touchModality` was a signal, so it was always one tick stale.** The viewport's `onScroll`
+    reads it in the same tick the root's `onPointerDown` writes it, and a Solid signal write is
+    not visible to a synchronous read — so the WebKit momentum-scroll path this flag exists for
+    never triggered. Now a plain field behind a context getter. Found by
+    `restores programmatic scroll suppression after modality flips back to mouse`, and it is the
+    fourth instance of the "signal writes are not visible until flush" hazard listed above.
+
+## Intentionally inapplicable
+
+| Base UI case                                                                                                | Why it does not apply                                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `describeConformance` in all five part test files                                                           | React renderer concept. Replaced with an explicit props/class/style/ref forwarding test per part                                                                           |
+| `supports a custom scrollbar renderer that does not forward its ref`, `supports a custom content renderer…` | Exercises the `render` prop, which Solid composition does not have                                                                                                         |
+| `does not re-render parts on scroll when the corner size is unchanged` (`context stability`)                | Counts React commits. Solid has no re-render; the equivalent guarantee is the bail-out in the `setCornerSize` updater, which is structural rather than observable          |
+| `adds [data-hovering] when the synthetic pointer target differs from the native path`                       | Pins that Base UI reads React's _synthetic_ `event.target` rather than `composedPath()[0]`. Solid binds `pointerenter` natively, so there is no retargeting to distinguish |
+| `expect(...).toThrow()` on the three missing-context errors                                                 | Same `<Errored>` boundary workaround as the popover; the contracts themselves are ported                                                                                   |
+
+Additional Solid-specific notes for this component, beyond the shared hazards listed above:
+
+- **JSDOM's `scrollTop`/`scrollLeft` setters are no-ops** on elements it deems unscrollable, so
+  Base UI's `fireEvent.scroll(el, { target: { scrollTop: 1 } })` silently does nothing. Use
+  `scrollViewport` from `test/ScrollAreaFixture.tsx`, which redefines the property and dispatches
+  the event by hand.
+- **Unmounting from an event handler is asynchronous.** Base UI's unmount-safety tests use
+  `ReactDOM.flushSync`; the Solid ports set a signal and `await flushMicrotasks()` before
+  asserting the part is gone. The contract being pinned — that the in-flight gesture does not
+  throw against a torn-down tree — is preserved, and each port additionally fires a follow-up
+  event at the detached node.

@@ -44,6 +44,7 @@ export default defineConfig({
   pack: {
     entry: {
       "scroll-area/index": "src/scroll-area/index.ts",
+      "dialog/index": "src/dialog/index.ts",
       "popover/index": "src/popover/index.ts",
     },
     platform: "neutral",
