@@ -23,6 +23,7 @@ Sections:
   - [Intentionally inapplicable](#intentionally-inapplicable)
 - [Scroll Area](#scroll-area)
 - [Dialog](#dialog)
+- [Solid 2 dev-mode diagnostics](#solid-2-dev-mode-diagnostics)
 
 ---
 
@@ -427,3 +428,29 @@ Additional Solid-specific notes for this component, beyond the shared hazards li
   asserting the part is gone. The contract being pinned — that the in-flight gesture does not
   throw against a torn-down tree — is preserved, and each port additionally fires a follow-up
   event at the detached node.
+
+---
+
+# Solid 2 dev-mode diagnostics
+
+Running any popup or scroll-area part under the Solid 2 RC dev runtime emits
+`[STRICT_READ_UNTRACKED]` — "Reactive value read directly in an effect callback will not
+update". The reads are ours, not the demo's: effects across the library schedule work with
+`queueMicrotask(...)` and then touch reactive values inside those closures, where nothing is
+tracking. The behavior is correct today (the closures read the values they need at run time);
+the diagnostic exists because a re-read scheduled this way can silently miss updates.
+
+Sites (all `queueMicrotask` callbacks reading state/signals after the effect body finished):
+
+- `src/popover/popup/PopoverPopup.tsx` — initial/return-focus effect reads `state.reason`,
+  `state.initialFocus`, `state.finalFocus`, `state.trigger`, `state.method` inside its
+  microtasks.
+- `src/utils/createPopupFocusManager.tsx` — focus guard and focus-out handling re-reads
+  manager state inside microtasks.
+- `src/dialog/root/DialogRoot.tsx`, `src/popover/root/PopoverRoot.tsx` — transition finishers.
+- `src/scroll-area/viewport/ScrollAreaViewport.tsx` — deferred thumb position computation.
+
+Fix direction: capture plain snapshots of everything a closure needs before scheduling it,
+or move the read into a tracked scope (`createEffect(on(...))`, a memo, or the effect's own
+deps function). Then port whichever Base UI tests cover the affected focus choreography and
+assert under a dev-mode run that the diagnostic stays silent.
