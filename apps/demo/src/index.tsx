@@ -1,20 +1,10 @@
 /* @refresh reload */
 import { render } from "@solidjs/web";
-import DialogApp from "./dialog/App";
-import PopoverApp from "./popover/App";
-import ScrollAreaApp from "./scroll-area/App";
+import { Router } from "./router";
+import Layout from "./Layout";
 import "./globals.css";
 
 const root = document.getElementById("root");
 if (root) {
-  render(
-    () => (
-      <>
-        <DialogApp />
-        <PopoverApp />
-        <ScrollAreaApp />
-      </>
-    ),
-    root,
-  );
+  render(() => <Router>{(props) => <Layout>{props.children}</Layout>}</Router>, root);
 }
