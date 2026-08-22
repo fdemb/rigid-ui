@@ -1,7 +1,8 @@
-import { omit, onSettled, type ParentProps } from "solid-js";
+import { omit, onSettled, untrack, type ParentProps } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
+import { overflowStateAttributes } from "../root/stateAttributes";
 
 export interface ScrollAreaContentProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
   ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
@@ -13,12 +14,26 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
   const { computeThumbPosition } = useScrollAreaViewportContext();
   const ctx = useScrollAreaRootContext();
 
+  // Content that mounts after the viewport's initial measurement is what brings the overflow state
+  // in sync, so its first ResizeObserver delivery must not be skipped. Read once, at creation.
+  const computeOnInitialResize = untrack(() => ctx.hasMeasuredScrollbar());
+
   let contentRef: HTMLDivElement | undefined;
 
   onSettled(() => {
     if (typeof ResizeObserver === "undefined" || !contentRef) return;
 
-    const ro = new ResizeObserver(computeThumbPosition);
+    let hasInitialized = false;
+    const ro = new ResizeObserver(() => {
+      // A ResizeObserver fires once upon observing. Skip that delivery to avoid
+      // double-calculating the thumb position on mount.
+      if (!hasInitialized) {
+        hasInitialized = true;
+        if (!computeOnInitialResize) return;
+      }
+
+      computeThumbPosition();
+    });
 
     ro.observe(contentRef);
     return () => ro.disconnect();
@@ -40,13 +55,7 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
       }}
       role="presentation"
       style={mergedStyle()}
-      data-scrolling={ctx.scrollingX() || ctx.scrollingY() ? "" : undefined}
-      data-has-overflow-x={!ctx.hiddenState().x ? "" : undefined}
-      data-has-overflow-y={!ctx.hiddenState().y ? "" : undefined}
-      data-overflow-x-start={ctx.overflowEdges().xStart ? "" : undefined}
-      data-overflow-x-end={ctx.overflowEdges().xEnd ? "" : undefined}
-      data-overflow-y-start={ctx.overflowEdges().yStart ? "" : undefined}
-      data-overflow-y-end={ctx.overflowEdges().yEnd ? "" : undefined}
+      {...overflowStateAttributes(ctx)}
       {...others}
     >
       {props.children}
