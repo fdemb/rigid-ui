@@ -5,7 +5,7 @@ import { flushMicrotasks, render } from "../../../test/test-utils";
 import { Popover } from "../index";
 
 // Ported from Base UI's `trigger/PopoverTrigger.test.tsx`. The patient/impatient click
-// (`stickIfOpen`) cases are omitted: that behaviour is not implemented, tracked in BACKLOG.md.
+// (`stickIfOpen`) cases are omitted: that behaviour is not implemented, tracked in Linear.
 
 function MultiTriggerPopover() {
   return (

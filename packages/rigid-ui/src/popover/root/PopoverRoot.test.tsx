@@ -6,7 +6,7 @@ import type { PopoverRootActions, PopoverRootChangeEventDetails } from "../types
 
 // Ported from Base UI's `root/PopoverRoot.test.tsx`. Cases covering parts this library does not
 // implement (internal backdrop, focus guards, safe polygon, nested menus) are tracked in
-// BACKLOG.md rather than skipped here.
+// Linear rather than skipped here.
 
 function TestPopover(props: {
   open?: boolean;
