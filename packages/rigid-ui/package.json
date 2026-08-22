@@ -5,6 +5,7 @@
   "keywords": [
     "component-library",
     "components",
+    "dialog",
     "headless",
     "scroll-area",
     "solid",
@@ -28,6 +29,10 @@
     "./scroll-area": {
       "types": "./dist/scroll-area/index.d.ts",
       "import": "./dist/scroll-area/index.js"
+    },
+    "./dialog": {
+      "types": "./dist/dialog/index.d.ts",
+      "import": "./dist/dialog/index.js"
     },
     "./popover": {
       "types": "./dist/popover/index.d.ts",

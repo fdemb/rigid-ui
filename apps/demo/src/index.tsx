@@ -1,5 +1,6 @@
 /* @refresh reload */
 import { render } from "@solidjs/web";
+import DialogApp from "./dialog/App";
 import PopoverApp from "./popover/App";
 import ScrollAreaApp from "./scroll-area/App";
 import "./globals.css";
@@ -9,6 +10,7 @@ if (root) {
   render(
     () => (
       <>
+        <DialogApp />
         <PopoverApp />
         <ScrollAreaApp />
       </>
