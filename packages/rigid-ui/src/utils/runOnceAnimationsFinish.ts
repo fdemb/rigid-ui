@@ -20,10 +20,9 @@ export interface RunOnceAnimationsFinishOptions {
 export function runOnceAnimationsFinish(
   element: HTMLElement,
   callback: () => void,
-  options: boolean | RunOnceAnimationsFinishOptions = false,
+  options: RunOnceAnimationsFinishOptions = {},
 ) {
-  const { includeDescendants = false, waitForStartingStyle = false } =
-    typeof options === "boolean" ? { includeDescendants: options } : options;
+  const { includeDescendants = false, waitForStartingStyle = false } = options;
 
   let aborted = false;
   let frame: number | undefined;

@@ -1,4 +1,5 @@
-import { createEffect, createSignal, For, onCleanup, omit, Show } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, omit, Show, untrack } from "solid-js";
+import type { JSX } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { usePopoverPositionerContext } from "../positioner/PopoverPositionerContext";
 import { assignRef, type PopoverNativeProps } from "../types";
@@ -16,8 +17,8 @@ export function PopoverViewport(props: PopoverViewportProps) {
   const root = usePopoverRootContext();
   const positioner = usePopoverPositionerContext();
   const others = omit(props, "ref", "children");
-  const [element, setElement] = createSignal<HTMLDivElement>();
   const [currentElement, setCurrentElement] = createSignal<HTMLDivElement>();
+  const [previousContainerElement, setPreviousContainerElement] = createSignal<HTMLDivElement>();
   const [contentKey, setContentKey] = createSignal("initial");
   const [previousContent, setPreviousContent] = createSignal<DocumentFragment>();
   const [previousDimensions, setPreviousDimensions] = createSignal<{
@@ -34,7 +35,6 @@ export function PopoverViewport(props: PopoverViewportProps) {
   // Guards against reprocessing the same trigger twice: the effect below reads `activeTrigger`
   // and `open`/`mounted` together, any of which can change independently and re-run it.
   let lastHandledTrigger: HTMLElement | undefined;
-  let previousContainerElement: HTMLDivElement | undefined;
   let capturedContent: DocumentFragment | undefined;
   let cleanupPrevious: (() => void) | undefined;
   let contentRevision = 0;
@@ -44,6 +44,18 @@ export function PopoverViewport(props: PopoverViewportProps) {
   // render that only changes the payload still gets a fresh DOM subtree instead of reusing one
   // built for the previous trigger (e.g. an `<img>` whose `src` comes from the payload).
   let pendingPayloadUpdate = false;
+
+  // Read through an accessor so the retained size stays reactive: the container is created once per
+  // transition, but `previousDimensions` lands afterwards, once the outgoing content is measured.
+  const previousContainerStyle = () => {
+    const dimensions = previousDimensions();
+    return {
+      position: "absolute",
+      ...(dimensions
+        ? { "--popup-width": `${dimensions.width}px`, "--popup-height": `${dimensions.height}px` }
+        : undefined),
+    } satisfies JSX.CSSProperties;
+  };
 
   createEffect(
     () => true,
@@ -60,13 +72,13 @@ export function PopoverViewport(props: PopoverViewportProps) {
       const current = currentElement();
       current?.style.setProperty("animation", "none");
       current?.style.setProperty("transition", "none");
-      previousContainerElement?.style.setProperty("display", "none");
+      untrack(previousContainerElement)?.style.setProperty("display", "none");
     },
     onMeasureLayoutComplete(previous) {
       const current = currentElement();
       current?.style.removeProperty("animation");
       current?.style.removeProperty("transition");
-      previousContainerElement?.style.removeProperty("display");
+      untrack(previousContainerElement)?.style.removeProperty("display");
       // `previous` is the outgoing content's measured size — retained on the previous snapshot so
       // it keeps rendering at that size instead of reflowing once cloned into its own container.
       if (previous) setPreviousDimensions(previous);
@@ -115,7 +127,7 @@ export function PopoverViewport(props: PopoverViewportProps) {
         root!.activeTrigger()?.element(),
         root!.activeTriggerId(),
       ] as const,
-    ([open, mounted, trigger, triggerId]) => {
+    ([open, mounted, trigger, _triggerId]) => {
       if (!open || !mounted) {
         previousTrigger = undefined;
         lastHandledTrigger = undefined;
@@ -123,6 +135,7 @@ export function PopoverViewport(props: PopoverViewportProps) {
         cleanupPrevious = undefined;
         setPreviousContent(undefined);
         setPreviousDimensions(undefined);
+        setShowStartingStyle(false);
         return;
       }
       if (
@@ -156,6 +169,7 @@ export function PopoverViewport(props: PopoverViewportProps) {
     () => [contentKey(), previousContent(), currentElement()] as const,
     ([, previous, current]) => {
       if (!previous || !current) return;
+      const container = current;
 
       // Abort the stale watcher synchronously. The remount cancels the old container's animations,
       // and the resulting rejection would otherwise run the cleanup in a microtask before the
@@ -168,7 +182,7 @@ export function PopoverViewport(props: PopoverViewportProps) {
       function arm() {
         setShowStartingStyle(false);
         cleanupPrevious = runOnceAnimationsFinish(
-          current,
+          container,
           () => {
             setPreviousContent(undefined);
             setPreviousDimensions(undefined);
@@ -183,7 +197,25 @@ export function PopoverViewport(props: PopoverViewportProps) {
         return;
       }
       const frame = requestAnimationFrame(arm);
-      return () => cancelAnimationFrame(frame);
+      // `arm` is the only other place that clears the flag, so canceling the frame has to clear it
+      // too. Closing mid-transition re-runs this effect, which bails at the guard above without
+      // ever arming — leaving `data-starting-style` stranded on the current container (and, with
+      // `keepMounted`, freezing consumer entry styles at their `from` state on every later open).
+      return () => {
+        cancelAnimationFrame(frame);
+        setShowStartingStyle(false);
+      };
+    },
+  );
+
+  // Populate the previous container imperatively rather than during render. The `<Show>` below is
+  // unkeyed, so a second trigger switch mid-transition swaps `previousContent` while reusing the
+  // same container element — reading the snapshot in the render body would pin the first one.
+  createEffect(
+    () => [previousContent(), previousContainerElement()] as const,
+    ([content, container]) => {
+      if (!content || !container) return;
+      container.replaceChildren(...Array.from(content.childNodes));
     },
   );
 
@@ -192,32 +224,23 @@ export function PopoverViewport(props: PopoverViewportProps) {
   return (
     <div
       {...others}
-      ref={(node) => {
-        setElement(node);
-        assignRef(props.ref, node);
-      }}
+      ref={(node) => assignRef(props.ref, node)}
       data-activation-direction={activationDirection() || undefined}
       data-transitioning={previousContent() ? "" : undefined}
       data-instant={root!.instantType()}
     >
       <Show when={previousContent()}>
-        {(content) => {
-          const nodes = Array.from(content().childNodes);
-          const dimensions = previousDimensions();
+        {(_snapshot) => {
+          // The container outlives individual snapshots, but not the transition itself — drop the
+          // reference on unmount so the auto-resize callbacks never poke a detached node.
+          onCleanup(() => setPreviousContainerElement(undefined));
           return (
             <div
               data-previous=""
               inert
-              style={{
-                position: "absolute",
-                ...(dimensions
-                  ? { "--popup-width": `${dimensions.width}px`, "--popup-height": `${dimensions.height}px` }
-                  : undefined),
-              }}
-              ref={(node) => {
-                previousContainerElement = node;
-                node.replaceChildren(...nodes);
-              }}
+              data-ending-style={showStartingStyle() ? undefined : ""}
+              style={previousContainerStyle()}
+              ref={setPreviousContainerElement}
             />
           );
         }}

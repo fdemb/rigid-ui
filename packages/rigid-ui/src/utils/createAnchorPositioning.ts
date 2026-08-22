@@ -19,7 +19,11 @@ import {
   type Strategy,
 } from "@floating-ui/dom";
 import { getAlignment, getSide, getSideAxis } from "@floating-ui/utils";
-import { createAdaptiveOriginMiddleware, DEFAULT_SIDES, type AdaptiveOriginData } from "./adaptiveOrigin";
+import {
+  createAdaptiveOriginMiddleware,
+  DEFAULT_SIDES,
+  type AdaptiveOriginData,
+} from "./adaptiveOrigin";
 
 const AVAILABLE_WIDTH_VAR = "--available-width";
 const AVAILABLE_HEIGHT_VAR = "--available-height";
@@ -467,7 +471,9 @@ export function createAnchorPositioning(params: CreateAnchorPositioningParams): 
         }
         setIsRtl(rtl);
         setCoords({ x: result.x, y: result.y });
-        setSides((result.middlewareData.adaptiveOrigin as AdaptiveOriginData | undefined) ?? DEFAULT_SIDES);
+        setSides(
+          (result.middlewareData.adaptiveOrigin as AdaptiveOriginData | undefined) ?? DEFAULT_SIDES,
+        );
         setRenderedPlacement(result.placement);
         setArrowCoords({ x: result.middlewareData.arrow?.x, y: result.middlewareData.arrow?.y });
         setArrowUncentered((result.middlewareData.arrow?.centerOffset ?? 0) !== 0);

@@ -13,7 +13,6 @@ export interface PopoverPositionerContextValue {
   arrowStyles: Accessor<JSX.CSSProperties>;
   arrowUncentered: Accessor<boolean>;
   setArrowElement(element: Element | undefined): void;
-  hasViewport: Accessor<boolean>;
   registerViewport(): () => void;
 }
 

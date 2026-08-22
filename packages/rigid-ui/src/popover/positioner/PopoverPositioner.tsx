@@ -93,7 +93,6 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     arrowStyles: positioning.arrowStyles,
     arrowUncentered: positioning.arrowUncentered,
     setArrowElement,
-    hasViewport: () => viewportCount() > 0,
     registerViewport() {
       setViewportCount((count) => count + 1);
       return () => setViewportCount((count) => Math.max(0, count - 1));
