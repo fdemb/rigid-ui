@@ -1,8 +1,9 @@
-import { createEffect, omit, Show } from "solid-js";
+import { createEffect, Show } from "solid-js";
 import { Portal } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
+import { renderElement } from "../../internals/renderElement";
 import { PopoverPortalContext } from "./PopoverPortalContext";
-import { assignRef, type PopoverNativeProps } from "../types";
+import type { PopoverNativeProps } from "../types";
 
 export interface PopoverPortalState {}
 
@@ -17,7 +18,6 @@ export interface PopoverPortalProps extends PopoverNativeProps<HTMLDivElement> {
 
 export function PopoverPortal(props: PopoverPortalProps) {
   const context = usePopoverRootContext();
-  const others = omit(props, "ref", "children", "keepMounted", "container");
   const container = () => {
     const value = props.container;
     if (value && "current" in value) return value.current;
@@ -34,12 +34,11 @@ export function PopoverPortal(props: PopoverPortalProps) {
       <Portal mount={container() as Element | undefined}>
         <PopoverPortalContext value={props.keepMounted ?? false}>
           <div
-            {...others}
-            ref={(element) => {
-              context!.setPortalElement(element);
-              assignRef(props.ref, element);
-            }}
-            data-rigid-ui-portal=""
+            {...renderElement<HTMLDivElement>(props as unknown as Record<string, unknown>, {
+              props: { "data-rigid-ui-portal": "" },
+              ref: (element: HTMLDivElement) => context!.setPortalElement(element),
+              exclude: ["keepMounted", "container"],
+            })}
           >
             {props.children}
           </div>

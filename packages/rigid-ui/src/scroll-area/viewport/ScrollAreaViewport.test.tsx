@@ -1,6 +1,7 @@
 import { createSignal, Errored, Show } from "solid-js";
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { DirectionProvider } from "../../direction-provider/DirectionProvider";
 import { ScrollArea } from "../index";
 import { SCROLL_TIMEOUT } from "../constants";
 import {
@@ -282,21 +283,32 @@ describe("<ScrollArea.Viewport />", () => {
     const CONTENT_SIZE = 1000;
     const MAX_SCROLL = CONTENT_SIZE - VIEWPORT_SIZE;
 
-    async function renderScrollArea(orientation: "vertical" | "horizontal") {
+    async function renderScrollArea(
+      orientation: "vertical" | "horizontal",
+      textDirection: "ltr" | "rtl" = "ltr",
+    ) {
       render(() => (
-        <ScrollArea.Root style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}>
-          <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
-            <div
-              style={{
-                width: orientation === "horizontal" ? `${CONTENT_SIZE}px` : "100%",
-                height: orientation === "vertical" ? `${CONTENT_SIZE}px` : "100%",
-              }}
-            />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted>
-            <ScrollArea.Thumb data-testid="thumb" />
-          </ScrollArea.Scrollbar>
-        </ScrollArea.Root>
+        <DirectionProvider direction={textDirection}>
+          <ScrollArea.Root
+            style={{
+              width: `${VIEWPORT_SIZE}px`,
+              height: `${VIEWPORT_SIZE}px`,
+              direction: textDirection,
+            }}
+          >
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div
+                style={{
+                  width: orientation === "horizontal" ? `${CONTENT_SIZE}px` : "100%",
+                  height: orientation === "vertical" ? `${CONTENT_SIZE}px` : "100%",
+                }}
+              />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted>
+              <ScrollArea.Thumb data-testid="thumb" />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        </DirectionProvider>
       ));
 
       const viewport = screen.getByTestId("viewport") as HTMLDivElement;
@@ -380,6 +392,38 @@ describe("<ScrollArea.Viewport />", () => {
       expect(thumb.getBoundingClientRect().width).toBeGreaterThan(restingWidth * 0.9);
       expect(thumb.getBoundingClientRect().right).toBeCloseTo(
         scrollbar.getBoundingClientRect().right,
+        0,
+      );
+    });
+
+    it("shrinks and pins the horizontal thumb to the inline start while overscrolling (RTL)", async () => {
+      const { viewport, scrollbar, thumb } = await renderScrollArea("horizontal", "rtl");
+      const restingWidth = thumb.getBoundingClientRect().width;
+
+      // RTL scrolls from 0 toward `-MAX_SCROLL`; overscrolling the inline start goes positive.
+      overscroll(viewport, "scrollLeft", 50);
+
+      await waitFor(() => expect(thumb.getBoundingClientRect().width).toBeLessThan(restingWidth));
+      expect(thumb.getBoundingClientRect().width).toBeGreaterThan(restingWidth * 0.9);
+      // Inline start is the right edge in RTL.
+      expect(thumb.getBoundingClientRect().right).toBeCloseTo(
+        scrollbar.getBoundingClientRect().right,
+        0,
+      );
+    });
+
+    it("shrinks and pins the horizontal thumb to the inline end while overscrolling (RTL)", async () => {
+      const { viewport, scrollbar, thumb } = await renderScrollArea("horizontal", "rtl");
+      const restingWidth = thumb.getBoundingClientRect().width;
+
+      // RTL overscroll past the inline end goes beyond `-MAX_SCROLL`.
+      overscroll(viewport, "scrollLeft", -(MAX_SCROLL + 50));
+
+      await waitFor(() => expect(thumb.getBoundingClientRect().width).toBeLessThan(restingWidth));
+      expect(thumb.getBoundingClientRect().width).toBeGreaterThan(restingWidth * 0.9);
+      // Inline end is the left edge in RTL.
+      expect(thumb.getBoundingClientRect().left).toBeCloseTo(
+        scrollbar.getBoundingClientRect().left,
         0,
       );
     });

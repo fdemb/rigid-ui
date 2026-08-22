@@ -1,11 +1,13 @@
-import { createSignal, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createSignal } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { assignRef, mergeStyles, type PopupNativeProps } from "../../utils/domProps";
+import { renderElement } from "../../internals/renderElement";
+import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
+import type { StateAttributesMapping } from "../../internals/getStateAttributesProps";
 import {
   createPopupFocusManager,
   type PopupFocusTarget,
 } from "../../utils/createPopupFocusManager";
+import { type PopupNativeProps } from "../../utils/domProps";
 import type { DialogInteractionType, DialogTransitionStatus } from "../types";
 
 export interface DialogPopupState {
@@ -36,9 +38,18 @@ function createTouchAwareInitialFocus(
   return (interactionType) => (interactionType === "touch" ? (popup() ?? true) : true);
 }
 
+const NESTED_DIALOG_OPEN_HOOK = { "data-nested-dialog-open": "" };
+
+// `getStateAttributesProps` lowercases keys verbatim, so the camelCase state key needs an explicit
+// kebab-case attribute mapping.
+const nestedDialogOpenMapping = {
+  nestedDialogOpen(value: boolean) {
+    return value ? NESTED_DIALOG_OPEN_HOOK : null;
+  },
+} satisfies StateAttributesMapping<{ nestedDialogOpen: boolean }>;
+
 export function DialogPopup(props: DialogPopupProps) {
   const context = useDialogRootContext();
-  const others = omit(props, "ref", "children", "initialFocus", "finalFocus", "style");
   const [element, setElement] = createSignal<HTMLDivElement>();
 
   const resolvedInitialFocus = (): PopupFocusTarget =>
@@ -79,39 +90,55 @@ export function DialogPopup(props: DialogPopupProps) {
     }
   }
 
-  function popupStyle(): JSX.CSSProperties | string {
-    return mergeStyles(
-      {
-        "--nested-dialogs": context!.nestedOpenDialogCount(),
-      },
-      props.style,
-    );
-  }
-
   return (
     <>
       {focusManager.renderBeforeGuard()}
       <div
-        {...others}
-        ref={(node) => {
-          setElement(node);
-          context!.setPopupElement(node);
-          assignRef(props.ref, node);
-        }}
-        id={props.id ?? context!.popupId}
-        role={props.role ?? "dialog"}
-        tabindex={props.tabindex ?? -1}
-        aria-labelledby={context!.titleId()}
-        aria-describedby={context!.descriptionId()}
-        hidden={!context!.mounted()}
-        data-open={context!.open() ? "" : undefined}
-        data-closed={!context!.open() ? "" : undefined}
-        data-starting-style={context!.transitionStatus() === "starting" ? "" : undefined}
-        data-ending-style={context!.transitionStatus() === "ending" ? "" : undefined}
-        data-nested={context!.nested ? "" : undefined}
-        data-nested-dialog-open={context!.nestedOpenDialogCount() > 0 ? "" : undefined}
-        style={popupStyle()}
-        onKeyDown={handleKeyDown}
+        {...renderElement<
+          HTMLDivElement,
+          {
+            open: boolean;
+            transitionStatus: DialogTransitionStatus;
+            nested: boolean;
+            nestedDialogOpen: boolean;
+          }
+        >(props as Record<string, unknown>, {
+          props: [
+            {
+              get id() {
+                return props.id ?? context!.popupId;
+              },
+              get role() {
+                return props.role ?? "dialog";
+              },
+              get tabindex() {
+                return props.tabindex ?? -1;
+              },
+              get "aria-labelledby"() {
+                return context!.titleId();
+              },
+              get "aria-describedby"() {
+                return context!.descriptionId();
+              },
+              get hidden() {
+                return !context!.mounted();
+              },
+              get style() {
+                return { "--nested-dialogs": context!.nestedOpenDialogCount() };
+              },
+              onKeyDown: handleKeyDown,
+            },
+          ],
+          state: () => ({
+            open: context!.open(),
+            transitionStatus: context!.transitionStatus(),
+            nested: context!.nested,
+            nestedDialogOpen: context!.nestedOpenDialogCount() > 0,
+          }),
+          stateAttributesMapping: { ...popupTransitionStateMapping, ...nestedDialogOpenMapping },
+          ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
+          exclude: ["initialFocus", "finalFocus", "id"],
+        })}
       >
         {props.children}
       </div>

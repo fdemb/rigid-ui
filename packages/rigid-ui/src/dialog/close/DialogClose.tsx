@@ -1,11 +1,14 @@
-import { createEffect, omit } from "solid-js";
-import { useDialogRootContext } from "../root/DialogRootContext";
-import { assignRef, callEventHandler, type PopupNativeProps } from "../../utils/domProps";
+import { createEffect } from "solid-js";
 import type { JSX } from "@solidjs/web";
+import { useDialogRootContext } from "../root/DialogRootContext";
+import { renderElement } from "../../internals/renderElement";
+import { REASONS } from "../../internals/reasons";
+import type { PopupNativeProps } from "../../utils/domProps";
 
 export interface DialogCloseState {
   disabled: boolean;
 }
+
 export interface DialogCloseProps extends PopupNativeProps<
   HTMLButtonElement,
   JSX.ButtonHTMLAttributes<HTMLButtonElement>
@@ -13,7 +16,6 @@ export interface DialogCloseProps extends PopupNativeProps<
 
 export function DialogClose(props: DialogCloseProps) {
   const context = useDialogRootContext();
-  const others = omit(props, "ref", "children", "onClick");
   const disabled = () => props.disabled !== undefined && props.disabled !== false;
 
   createEffect(
@@ -21,19 +23,23 @@ export function DialogClose(props: DialogCloseProps) {
     () => context!.registerClose(),
   );
 
-  function handleClick(event: MouseEvent) {
-    callEventHandler(props.onClick, event);
-    if (event.defaultPrevented || disabled() || !context!.open()) return;
-    context!.requestOpen(false, "close-press", event);
-  }
-
+  // The user's onClick is chained ahead of the internal handler by renderElement; the internal
+  // handler only observes defaultPrevented and the shared prevention flag.
   return (
     <button
-      {...others}
-      ref={(element) => assignRef(props.ref, element)}
-      type={props.type ?? "button"}
-      disabled={disabled()}
-      onClick={handleClick}
+      {...renderElement<HTMLButtonElement>(props, {
+        props: [
+          {
+            get type() {
+              return props.type ?? "button";
+            },
+            onClick(event: MouseEvent) {
+              if (event.defaultPrevented || disabled() || !context!.open()) return;
+              context!.requestOpen(false, REASONS.closePress, event);
+            },
+          },
+        ],
+      })}
     >
       {props.children}
     </button>

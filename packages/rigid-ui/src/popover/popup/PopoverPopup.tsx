@@ -1,17 +1,16 @@
-import { createEffect, createSignal, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createSignal } from "solid-js";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { usePopoverPositionerContext } from "../positioner/PopoverPositionerContext";
-import {
-  assignRef,
-  callEventHandler,
-  mergeStyles,
-  type PopoverAlign,
-  type PopoverFocusTarget,
-  type PopoverInstantType,
-  type PopoverNativeProps,
-  type PopoverSide,
-  type PopoverTransitionStatus,
+import { renderElement } from "../../internals/renderElement";
+import { REASONS } from "../../internals/reasons";
+import { callEventHandler } from "../../utils/domProps";
+import type {
+  PopoverAlign,
+  PopoverFocusTarget,
+  PopoverInstantType,
+  PopoverNativeProps,
+  PopoverSide,
+  PopoverTransitionStatus,
 } from "../types";
 
 const FOCUSABLE_SELECTOR = [
@@ -56,18 +55,6 @@ export function PopoverPopup(props: PopoverPopupProps) {
   const positioner = usePopoverPositionerContext();
   const [element, setElement] = createSignal<HTMLDivElement>();
   const [size, setSize] = createSignal({ width: 0, height: 0 });
-  const others = omit(
-    props,
-    "ref",
-    "children",
-    "initialFocus",
-    "finalFocus",
-    "style",
-    "onKeyDown",
-    "onFocusOut",
-    "onTransitionEnd",
-    "onAnimationEnd",
-  );
 
   let wasOpen = false;
 
@@ -96,7 +83,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
     (state) => {
       const popup = state.popup;
       if (!popup) return;
-      if (state.isOpen && !wasOpen && state.reason !== "trigger-hover") {
+      if (state.isOpen && !wasOpen && state.reason !== REASONS.triggerHover) {
         queueMicrotask(() => {
           if (!popup.isConnected) return;
           const resolved = targetFromValue(state.initialFocus, state.method);
@@ -111,7 +98,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
           else (focusable[0] ?? popup).focus();
         });
       }
-      if (!state.isOpen && wasOpen && state.reason !== "trigger-hover") {
+      if (!state.isOpen && wasOpen && state.reason !== REASONS.triggerHover) {
         queueMicrotask(() => {
           const resolved = targetFromValue(state.finalFocus, state.method);
           if (typeof state.finalFocus === "function" && resolved === undefined) return;
@@ -120,7 +107,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
             resolved.focus();
             return;
           }
-          if (state.reason !== "outside-press" && state.reason !== "focus-out") {
+          if (state.reason !== REASONS.outsidePress && state.reason !== REASONS.focusOut) {
             state.trigger?.focus();
           }
         });
@@ -129,8 +116,9 @@ export function PopoverPopup(props: PopoverPopupProps) {
     },
   );
 
+  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // observe defaultPrevented.
   function handleKeyDown(event: KeyboardEvent) {
-    callEventHandler(props.onKeyDown, event);
     if (
       event.defaultPrevented ||
       event.key !== "Tab" ||
@@ -162,7 +150,6 @@ export function PopoverPopup(props: PopoverPopupProps) {
   }
 
   function handleFocusOut(event: FocusEvent) {
-    callEventHandler(props.onFocusOut, event);
     if (event.defaultPrevented) return;
     const nextTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
     // Pointer presses are handled by the root's document-level pointerdown listener.
@@ -172,10 +159,14 @@ export function PopoverPopup(props: PopoverPopupProps) {
     if (nextTarget === null) return;
     queueMicrotask(() => {
       if (!context!.open() || context!.containsTarget(nextTarget)) return;
-      context!.requestOpen(false, "focus-out", event);
+      context!.requestOpen(false, REASONS.focusOut, event);
     });
   }
 
+  // Transition/animation events bubble, so the consumer's handler must stay gated on the popup
+  // itself — it cannot go through the automatic user-first chaining, which would fire it for
+  // events coming from children too. `exclude` keeps the raw handlers out of the merge; these
+  // wrappers re-invoke them under the original guard.
   function handleTransitionEnd(event: TransitionEvent) {
     if (event.target === event.currentTarget) callEventHandler(props.onTransitionEnd, event);
   }
@@ -184,41 +175,62 @@ export function PopoverPopup(props: PopoverPopupProps) {
     if (event.target === event.currentTarget) callEventHandler(props.onAnimationEnd, event);
   }
 
-  function popupStyle(): JSX.CSSProperties | string {
-    return mergeStyles(
-      {
-        "--popup-width": `${size().width}px`,
-        "--popup-height": `${size().height}px`,
-      },
-      props.style,
-    );
-  }
-
   return (
     <div
-      {...others}
-      ref={(node) => {
-        setElement(node);
-        context!.setPopupElement(node);
-        assignRef(props.ref, node);
-      }}
-      id={props.id ?? context!.popupId}
-      role={props.role ?? "dialog"}
-      tabindex={props.tabindex ?? -1}
-      aria-labelledby={context!.titleId()}
-      aria-describedby={context!.descriptionId()}
-      data-open={context!.open() ? "" : undefined}
-      data-closed={!context!.open() ? "" : undefined}
-      data-starting-style={context!.transitionStatus() === "starting" ? "" : undefined}
-      data-ending-style={context!.transitionStatus() === "ending" ? "" : undefined}
-      data-side={positioner!.side()}
-      data-align={positioner!.align()}
-      data-instant={context!.instantType()}
-      style={popupStyle()}
-      onKeyDown={handleKeyDown}
-      onFocusOut={handleFocusOut}
-      onTransitionEnd={handleTransitionEnd}
-      onAnimationEnd={handleAnimationEnd}
+      {...renderElement<HTMLDivElement>(props as unknown as Record<string, unknown>, {
+        props: {
+          get id() {
+            return props.id ?? context!.popupId;
+          },
+          get role() {
+            return props.role ?? "dialog";
+          },
+          get tabindex() {
+            return props.tabindex ?? -1;
+          },
+          get "aria-labelledby"() {
+            return context!.titleId();
+          },
+          get "aria-describedby"() {
+            return context!.descriptionId();
+          },
+          get "data-open"() {
+            return context!.open() ? "" : undefined;
+          },
+          get "data-closed"() {
+            return !context!.open() ? "" : undefined;
+          },
+          get "data-starting-style"() {
+            return context!.transitionStatus() === "starting" ? "" : undefined;
+          },
+          get "data-ending-style"() {
+            return context!.transitionStatus() === "ending" ? "" : undefined;
+          },
+          get "data-side"() {
+            return positioner!.side();
+          },
+          get "data-align"() {
+            return positioner!.align();
+          },
+          get "data-instant"() {
+            return context!.instantType();
+          },
+          // Merged with the consumer's style by the internal mergeProps: internal values first,
+          // user overrides per property.
+          get style() {
+            return {
+              "--popup-width": `${size().width}px`,
+              "--popup-height": `${size().height}px`,
+            };
+          },
+          onKeyDown: handleKeyDown,
+          onFocusOut: handleFocusOut,
+          onTransitionEnd: handleTransitionEnd,
+          onAnimationEnd: handleAnimationEnd,
+        },
+        ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
+        exclude: ["initialFocus", "finalFocus", "onTransitionEnd", "onAnimationEnd"],
+      })}
     >
       {props.children}
     </div>

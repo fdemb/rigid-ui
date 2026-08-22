@@ -1,8 +1,9 @@
-import { createEffect, createSignal, For, onCleanup, omit, Show, untrack } from "solid-js";
+import { createEffect, createSignal, For, onCleanup, Show, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { usePopoverPositionerContext } from "../positioner/PopoverPositionerContext";
-import { assignRef, type PopoverNativeProps } from "../types";
+import type { PopoverNativeProps } from "../types";
+import { renderElement } from "../../internals/renderElement";
 import { runOnceAnimationsFinish } from "../../utils/runOnceAnimationsFinish";
 import { createPopupAutoResize } from "../../utils/createPopupAutoResize";
 
@@ -16,7 +17,9 @@ export interface PopoverViewportProps extends PopoverNativeProps<HTMLDivElement>
 export function PopoverViewport(props: PopoverViewportProps) {
   const root = usePopoverRootContext();
   const positioner = usePopoverPositionerContext();
-  const others = omit(props, "ref", "children");
+  // renderElement composes the user ref automatically; children/ref never reach the DOM.
+  const elementProps = renderElement<HTMLDivElement>(props);
+
   const [currentElement, setCurrentElement] = createSignal<HTMLDivElement>();
   const [previousContainerElement, setPreviousContainerElement] = createSignal<HTMLDivElement>();
   const [contentKey, setContentKey] = createSignal("initial");
@@ -223,8 +226,7 @@ export function PopoverViewport(props: PopoverViewportProps) {
 
   return (
     <div
-      {...others}
-      ref={(node) => assignRef(props.ref, node)}
+      {...elementProps}
       data-activation-direction={activationDirection() || undefined}
       data-transitioning={previousContent() ? "" : undefined}
       data-instant={root!.instantType()}

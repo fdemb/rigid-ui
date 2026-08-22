@@ -1,4 +1,5 @@
-import { omit, onSettled, untrack, type ParentProps } from "solid-js";
+import { onSettled, untrack, type ParentProps } from "solid-js";
+import { renderElement } from "../../internals/renderElement";
 import type { JSX } from "@solidjs/web";
 import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
@@ -9,8 +10,6 @@ export interface ScrollAreaContentProps extends ParentProps<JSX.HTMLAttributes<H
 }
 
 export function ScrollAreaContent(props: ScrollAreaContentProps) {
-  const others = omit(props, "children", "ref", "style");
-
   const { computeThumbPosition } = useScrollAreaViewportContext();
   const ctx = useScrollAreaRootContext();
 
@@ -39,24 +38,18 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
     return () => ro.disconnect();
   });
 
-  const mergedStyle = () => {
-    const base: JSX.CSSProperties = { "min-width": "fit-content" };
-    if (typeof props.style === "object" && props.style) {
-      return { ...base, ...props.style };
-    }
-    return base;
-  };
-
   return (
     <div
-      ref={(el) => {
-        contentRef = el;
-        if (typeof props.ref === "function") props.ref(el);
-      }}
-      role="presentation"
-      style={mergedStyle()}
       {...overflowStateAttributes(ctx)}
-      {...others}
+      {...renderElement<HTMLDivElement>(props, {
+        ref(element) {
+          contentRef = element;
+        },
+        props: {
+          role: "presentation",
+          style: { "min-width": "fit-content" },
+        },
+      })}
     >
       {props.children}
     </div>

@@ -1,4 +1,4 @@
-import { createEffect, createSignal, createUniqueId, omit, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import type { PopoverHandle } from "../store/PopoverHandle";
 import {
@@ -6,12 +6,9 @@ import {
   type PopoverRootContextValue,
   type RegisteredPopoverTrigger,
 } from "../root/PopoverRootContext";
-import {
-  assignRef,
-  callEventHandler,
-  type PopoverInteractionType,
-  type PopoverNativeProps,
-} from "../types";
+import { renderElement } from "../../internals/renderElement";
+import { REASONS } from "../../internals/reasons";
+import type { PopoverInteractionType, PopoverNativeProps } from "../types";
 import { OPEN_DELAY } from "../utils/constants";
 
 export interface PopoverTriggerState {
@@ -32,6 +29,7 @@ export interface PopoverTriggerProps<Payload = unknown> extends PopoverNativePro
 
 export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Payload>) {
   const localContext = usePopoverRootContext(true) as PopoverRootContextValue<Payload> | undefined;
+
   if (!localContext && !untrack(() => props.handle)) {
     throw new Error(
       "Rigid UI: <Popover.Trigger> must be used within <Popover.Root> or receive a handle.",
@@ -48,21 +46,7 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
     const store = context();
     return store?.open() === true && store.activeTriggerId() === id();
   };
-  const pressed = () => openByThisTrigger() && context()?.openReason() === "trigger-press";
-  const others = omit(
-    props,
-    "ref",
-    "payload",
-    "handle",
-    "openOnHover",
-    "delay",
-    "closeDelay",
-    "style",
-    "onClick",
-    "onPointerEnter",
-    "onPointerLeave",
-    "onPointerDown",
-  );
+  const pressed = () => openByThisTrigger() && context()?.openReason() === REASONS.triggerPress;
 
   let hoverTimer: ReturnType<typeof setTimeout> | undefined;
   let lastPointerType: PopoverInteractionType | undefined;
@@ -85,86 +69,95 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
 
   onCleanup(() => clearTimeout(hoverTimer));
 
-  function handlePointerEnter(event: PointerEvent) {
-    callEventHandler(props.onPointerEnter, event);
-    if (
-      event.defaultPrevented ||
-      disabled() ||
-      !props.openOnHover ||
-      event.pointerType === "touch"
-    ) {
-      return;
-    }
-    const store = context();
-    if (!store) return;
-    // A touch tap leaves the pointer parked wherever the cursor happened to be, so hover stays
-    // disarmed until the popover is reopened by other means. Otherwise a stray hover over a
-    // sibling trigger silently swaps the content the user just tapped for.
-    if (store.open() && store.openMethod() === "touch" && store.openReason() === "trigger-press") {
-      return;
-    }
-    store.cancelHoverClose();
-    clearTimeout(hoverTimer);
-    hoverTimer = setTimeout(() => {
-      const latestStore = context();
-      if (!latestStore || disabled()) return;
-      latestStore.openByTrigger(id(), "trigger-hover", event);
-    }, props.delay ?? OPEN_DELAY);
-  }
-
-  function handlePointerLeave(event: PointerEvent) {
-    callEventHandler(props.onPointerLeave, event);
-    clearTimeout(hoverTimer);
-    const store = context();
-    if (!store || !props.openOnHover) return;
-    store.scheduleHoverClose(id(), event, props.closeDelay ?? 0);
-  }
-
-  function handlePointerDown(event: PointerEvent) {
-    callEventHandler(props.onPointerDown, event);
-    lastPointerType = event.pointerType as PopoverInteractionType;
-  }
-
-  function handleClick(event: MouseEvent) {
-    callEventHandler(props.onClick, event);
-    if (event.defaultPrevented || disabled()) return;
-    clearTimeout(hoverTimer);
-    const store = context();
-    if (!store) return;
-
-    // A click carries no pointer type, and keyboard activation reports `detail === 0` with no
-    // preceding `pointerdown`. Pair the two so the popover knows a tap from a keypress.
-    store.setOpenMethod(event.detail === 0 ? "keyboard" : (lastPointerType ?? "mouse"));
-    lastPointerType = undefined;
-
-    const wasHoverOpened = openByThisTrigger() && store.openReason() === "trigger-hover";
-    if (openByThisTrigger() && !wasHoverOpened) {
-      store.requestOpen(false, "trigger-press", event, id());
-    } else {
-      store.openByTrigger(id(), "trigger-press", event);
-    }
-  }
-
+  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // observe defaultPrevented.
   return (
     <button
-      {...others}
-      ref={(node) => {
-        setElement(node);
-        assignRef(props.ref, node);
-      }}
-      id={id()}
-      type={props.type ?? "button"}
-      disabled={disabled()}
-      aria-haspopup="dialog"
-      aria-expanded={openByThisTrigger() ? "true" : "false"}
-      aria-controls={openByThisTrigger() ? context()?.popupId : undefined}
-      data-popup-open={openByThisTrigger() ? "" : undefined}
-      data-pressed={pressed() ? "" : undefined}
-      style={props.style}
-      onPointerDown={handlePointerDown}
-      onPointerEnter={handlePointerEnter}
-      onPointerLeave={handlePointerLeave}
-      onClick={handleClick}
+      {...renderElement<HTMLButtonElement>(props as unknown as Record<string, unknown>, {
+        props: {
+          get id() {
+            return id();
+          },
+          get type() {
+            return props.type ?? "button";
+          },
+          get disabled() {
+            return disabled();
+          },
+          "aria-haspopup": "dialog",
+          get "aria-expanded"() {
+            return openByThisTrigger() ? "true" : "false";
+          },
+          get "aria-controls"() {
+            return openByThisTrigger() ? context()?.popupId : undefined;
+          },
+          get "data-popup-open"() {
+            return openByThisTrigger() ? "" : undefined;
+          },
+          get "data-pressed"() {
+            return pressed() ? "" : undefined;
+          },
+          onPointerDown(event: PointerEvent) {
+            lastPointerType = event.pointerType as PopoverInteractionType;
+          },
+          onPointerEnter(event: PointerEvent) {
+            if (
+              event.defaultPrevented ||
+              disabled() ||
+              !props.openOnHover ||
+              event.pointerType === "touch"
+            ) {
+              return;
+            }
+            const store = context();
+            if (!store) return;
+            // A touch tap leaves the pointer parked wherever the cursor happened to be, so hover
+            // stays disarmed until the popover is reopened by other means. Otherwise a stray
+            // hover over a sibling trigger silently swaps the content the user just tapped for.
+            if (
+              store.open() &&
+              store.openMethod() === "touch" &&
+              store.openReason() === REASONS.triggerPress
+            ) {
+              return;
+            }
+            store.cancelHoverClose();
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => {
+              const latestStore = context();
+              if (!latestStore || disabled()) return;
+              latestStore.openByTrigger(id(), REASONS.triggerHover, event);
+            }, props.delay ?? OPEN_DELAY);
+          },
+          onPointerLeave(event: PointerEvent) {
+            clearTimeout(hoverTimer);
+            const store = context();
+            if (!store || !props.openOnHover) return;
+            store.scheduleHoverClose(id(), event, props.closeDelay ?? 0);
+          },
+          onClick(event: MouseEvent) {
+            if (event.defaultPrevented || disabled()) return;
+            clearTimeout(hoverTimer);
+            const store = context();
+            if (!store) return;
+
+            // A click carries no pointer type, and keyboard activation reports `detail === 0`
+            // with no preceding `pointerdown`. Pair the two so the popover knows a tap from a
+            // keypress.
+            store.setOpenMethod(event.detail === 0 ? "keyboard" : (lastPointerType ?? "mouse"));
+            lastPointerType = undefined;
+
+            const wasHoverOpened =
+              openByThisTrigger() && store.openReason() === REASONS.triggerHover;
+            if (openByThisTrigger() && !wasHoverOpened) {
+              store.requestOpen(false, REASONS.triggerPress, event, id());
+            } else {
+              store.openByTrigger(id(), REASONS.triggerPress, event);
+            }
+          },
+        },
+        ref: setElement,
+      })}
     >
       {props.children}
     </button>
@@ -173,5 +166,5 @@ export function PopoverTrigger<Payload = unknown>(props: PopoverTriggerProps<Pay
 
 export namespace PopoverTrigger {
   export type State = PopoverTriggerState;
-  export type Props<Payload = unknown> = PopoverTriggerProps<Payload>;
+  export type Props = PopoverTriggerProps;
 }

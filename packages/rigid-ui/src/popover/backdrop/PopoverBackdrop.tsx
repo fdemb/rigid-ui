@@ -1,12 +1,6 @@
-import { omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
-import {
-  assignRef,
-  mergeStyles,
-  type PopoverNativeProps,
-  type PopoverTransitionStatus,
-} from "../types";
+import { renderElement } from "../../internals/renderElement";
+import type { PopoverNativeProps, PopoverTransitionStatus } from "../types";
 
 export interface PopoverBackdropState {
   open: boolean;
@@ -16,28 +10,40 @@ export interface PopoverBackdropProps extends PopoverNativeProps<HTMLDivElement>
 
 export function PopoverBackdrop(props: PopoverBackdropProps) {
   const context = usePopoverRootContext();
-  const others = omit(props, "ref", "children", "style");
-  const style = (): JSX.CSSProperties | string =>
-    mergeStyles(
-      {
-        "pointer-events": context!.openReason() === "trigger-hover" ? "none" : undefined,
-        "user-select": "none",
-        "-webkit-user-select": "none",
-      },
-      props.style,
-    );
 
   return (
     <div
-      {...others}
-      ref={(element) => assignRef(props.ref, element)}
-      role={props.role ?? "presentation"}
-      hidden={!context!.mounted()}
-      data-open={context!.open() ? "" : undefined}
-      data-closed={!context!.open() ? "" : undefined}
-      data-starting-style={context!.transitionStatus() === "starting" ? "" : undefined}
-      data-ending-style={context!.transitionStatus() === "ending" ? "" : undefined}
-      style={style()}
+      {...renderElement<HTMLDivElement>(props, {
+        props: {
+          get role() {
+            return props.role ?? "presentation";
+          },
+          get hidden() {
+            return !context!.mounted();
+          },
+          get "data-open"() {
+            return context!.open() ? "" : undefined;
+          },
+          get "data-closed"() {
+            return !context!.open() ? "" : undefined;
+          },
+          get "data-starting-style"() {
+            return context!.transitionStatus() === "starting" ? "" : undefined;
+          },
+          get "data-ending-style"() {
+            return context!.transitionStatus() === "ending" ? "" : undefined;
+          },
+          // Merged with the consumer's style by the internal mergeProps: internal values first,
+          // user overrides per property.
+          get style() {
+            return {
+              "pointer-events": context!.openReason() === "trigger-hover" ? "none" : undefined,
+              "user-select": "none",
+              "-webkit-user-select": "none",
+            };
+          },
+        },
+      })}
     >
       {props.children}
     </div>
