@@ -39,12 +39,23 @@ export interface ScrollAreaRootContextValue {
   setHiddenState: Setter<HiddenState>;
   overflowEdges: Accessor<OverflowEdges>;
   setOverflowEdges: Setter<OverflowEdges>;
-  overflowEdgeThreshold: {
+  overflowEdgeThreshold: Accessor<{
     xStart: number;
     xEnd: number;
     yStart: number;
     yEnd: number;
-  };
+  }>;
+  /**
+   * Whether the viewport has been measured at least once. Until then the scrollbar parts stay
+   * `visibility: hidden`, so a track never paints at an unmeasured thumb size.
+   */
+  hasMeasuredScrollbar: Accessor<boolean>;
+  setHasMeasuredScrollbar: Setter<boolean>;
+  /**
+   * Whether the last pointer interaction came from touch. Deliberately not a signal: it is only
+   * read from event handlers, one of which can run in the same tick as the write.
+   */
+  readonly touchModality: boolean;
 
   // Mutable DOM refs — no signals needed, Solid doesn't re-render
   viewportRef: HTMLDivElement | undefined;
@@ -58,6 +69,7 @@ export interface ScrollAreaRootContextValue {
   handlePointerMove: (event: PointerEvent) => void;
   handlePointerUp: (event: PointerEvent) => void;
   handleScroll: (scrollPosition: Coords) => void;
+  disableViewportSnap: () => void;
 }
 
 export const ScrollAreaRootContext = createContext<ScrollAreaRootContextValue>();
@@ -66,6 +78,6 @@ export function useScrollAreaRootContext(): ScrollAreaRootContextValue {
   try {
     return useContext(ScrollAreaRootContext);
   } catch {
-    throw new Error("rigid-ui: ScrollArea parts must be placed within <ScrollAreaRoot>.");
+    throw new Error("Rigid UI: ScrollArea parts must be used within <ScrollArea.Root>.");
   }
 }

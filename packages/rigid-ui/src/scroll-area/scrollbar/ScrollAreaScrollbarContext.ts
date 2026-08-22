@@ -10,8 +10,6 @@ export function useScrollAreaScrollbarContext(): ScrollAreaScrollbarContextValue
   try {
     return useContext(ScrollAreaScrollbarContext);
   } catch {
-    throw new Error(
-      "rigid-ui: ScrollAreaScrollbarContext is missing. ScrollAreaScrollbar parts must be placed within <ScrollArea.Scrollbar>.",
-    );
+    throw new Error("Rigid UI: <ScrollArea.Thumb> must be used within <ScrollArea.Scrollbar>.");
   }
 }

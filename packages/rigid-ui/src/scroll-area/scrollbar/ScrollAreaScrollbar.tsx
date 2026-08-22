@@ -2,12 +2,24 @@ import { createEffect, omit, Show, type ParentProps } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaScrollbarContext } from "./ScrollAreaScrollbarContext";
+import { contains } from "../../utils/contains";
+import { getTarget } from "../../utils/getTarget";
 import { getOffset } from "../../utils/getOffset";
 import { ScrollAreaRootCssVars } from "../root/ScrollAreaRootCssVars";
 import { ScrollAreaScrollbarCssVars } from "./ScrollAreaScrollbarCssVars";
+import { ScrollAreaScrollbarDataAttributes } from "./ScrollAreaScrollbarDataAttributes";
+import { scrollbarOverflowStateAttributes } from "../root/stateAttributes";
 
 export interface ScrollAreaScrollbarProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
+  /**
+   * Whether the scrollbar controls vertical or horizontal scroll.
+   * @default 'vertical'
+   */
   orientation?: "vertical" | "horizontal";
+  /**
+   * Whether to keep the HTML element in the DOM when the viewport isn't scrollable.
+   * @default false
+   */
   keepMounted?: boolean;
   ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
 }
@@ -16,44 +28,66 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
   const others = omit(props, "children", "orientation", "keepMounted", "ref", "style");
 
   const orientation = () => props.orientation ?? "vertical";
+  const vertical = () => orientation() === "vertical";
   const keepMounted = () => props.keepMounted ?? false;
 
   const ctx = useScrollAreaRootContext();
 
-  // Direction hardcoded to 'ltr' for now
+  // Direction hardcoded to 'ltr' for now; RTL is tracked in BACKLOG.md.
   const direction: "ltr" | "rtl" = "ltr";
 
-  // Wheel handler on scrollbar
-  createEffect(
-    () => orientation(),
-    (orient) => {
-      const scrollbarEl = orient === "vertical" ? ctx.scrollbarYRef : ctx.scrollbarXRef;
-      const viewportEl = ctx.viewportRef;
+  const isHidden = () => (vertical() ? ctx.hiddenState().y : ctx.hiddenState().x);
+  const shouldRender = () => keepMounted() || !isHidden();
+  // Until the viewport has been measured the thumb size is still 0, so a track rendered now would
+  // paint at the wrong size for a frame. `keepMounted` opts out: it asks for the track to be in
+  // the DOM regardless of measurement.
+  const hideTrackUntilMeasured = () => !ctx.hasMeasuredScrollbar() && !keepMounted();
 
+  // The wheel listener is registered non-passively so it can `preventDefault`, which Solid's
+  // delegated `onWheel` cannot do. Re-registers when the track mounts, which for a non-`keepMounted`
+  // scrollbar is only once overflow appears.
+  createEffect(
+    () => [orientation(), shouldRender()] as const,
+    ([orient, rendered]) => {
+      if (!rendered) return;
+
+      const scrollbarEl = orient === "vertical" ? ctx.scrollbarYRef : ctx.scrollbarXRef;
       if (!scrollbarEl) return;
 
       function handleWheel(event: WheelEvent) {
-        if (!viewportEl || !scrollbarEl || event.ctrlKey) return;
+        const viewportEl = ctx.viewportRef;
+        if (!viewportEl || event.ctrlKey) return;
+
+        const horizontal = orient === "horizontal";
+        const scrollProperty = horizontal ? "scrollLeft" : "scrollTop";
+        const delta = horizontal ? event.deltaX : event.deltaY;
+        if (delta === 0) return;
+
+        const maxScroll = horizontal
+          ? viewportEl.scrollWidth - viewportEl.clientWidth
+          : viewportEl.scrollHeight - viewportEl.clientHeight;
+        // RTL horizontal scrolling uses a negative `scrollLeft` range, from 0 to `-maxScroll`.
+        const minScroll = horizontal && direction === "rtl" ? -maxScroll : 0;
+        const maxScrollValue = horizontal && direction === "rtl" ? 0 : maxScroll;
+        const scrollValue = viewportEl[scrollProperty];
+
+        // At an edge (or with no overflow), let the wheel event chain to the parent/page instead
+        // of swallowing it via `preventDefault`.
+        if (
+          (scrollValue <= minScroll && delta < 0) ||
+          (scrollValue >= maxScrollValue && delta > 0)
+        ) {
+          return;
+        }
 
         event.preventDefault();
 
-        if (orient === "vertical") {
-          if (viewportEl.scrollTop === 0 && event.deltaY < 0) return;
-          if (
-            viewportEl.scrollTop === viewportEl.scrollHeight - viewportEl.clientHeight &&
-            event.deltaY > 0
-          )
-            return;
-          viewportEl.scrollTop += event.deltaY;
-        } else {
-          if (viewportEl.scrollLeft === 0 && event.deltaX < 0) return;
-          if (
-            viewportEl.scrollLeft === viewportEl.scrollWidth - viewportEl.clientWidth &&
-            event.deltaX > 0
-          )
-            return;
-          viewportEl.scrollLeft += event.deltaX;
-        }
+        viewportEl[scrollProperty] = Math.min(
+          maxScrollValue,
+          Math.max(minScroll, scrollValue + delta),
+        );
+
+        ctx.handleScroll({ x: viewportEl.scrollLeft, y: viewportEl.scrollTop });
       }
 
       scrollbarEl.addEventListener("wheel", handleWheel, { passive: false });
@@ -63,61 +97,61 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
 
   function handleScrollbarPointerDown(event: PointerEvent) {
     if (event.button !== 0) return;
-    if (event.currentTarget !== event.target) return;
+
+    const isVertical = vertical();
+    const thumbEl = isVertical ? ctx.thumbYRef : ctx.thumbXRef;
+
+    // Ignore presses that land on the thumb; that gesture is a drag, not a jump-to-click.
+    // `getTarget` sees through shadow boundaries, where `event.target` is retargeted to the host.
+    if (thumbEl && contains(thumbEl, getTarget(event) as Element | null)) {
+      return;
+    }
 
     const viewportEl = ctx.viewportRef;
     if (!viewportEl) return;
 
-    const orient = orientation();
+    const scrollbarEl = isVertical ? ctx.scrollbarYRef : ctx.scrollbarXRef;
+    if (!thumbEl || !scrollbarEl) return;
 
-    if (ctx.thumbYRef && ctx.scrollbarYRef && orient === "vertical") {
-      const thumbYOffset = getOffset(ctx.thumbYRef, "margin", "y");
-      const scrollbarYOffset = getOffset(ctx.scrollbarYRef, "padding", "y");
-      const thumbHeight = ctx.thumbYRef.offsetHeight;
-      const trackRectY = ctx.scrollbarYRef.getBoundingClientRect();
-      const clickY =
-        event.clientY - trackRectY.top - thumbHeight / 2 - scrollbarYOffset + thumbYOffset / 2;
+    const axis = isVertical ? "y" : "x";
+    const thumbOffset = getOffset(thumbEl, "margin", axis);
+    const scrollbarOffset = getOffset(scrollbarEl, "padding", axis);
+    const thumbSizePx = isVertical ? thumbEl.offsetHeight : thumbEl.offsetWidth;
+    const trackRect = scrollbarEl.getBoundingClientRect();
+    const clickPosition = isVertical
+      ? event.clientY - trackRect.top - thumbSizePx / 2 - scrollbarOffset + thumbOffset / 2
+      : event.clientX - trackRect.left - thumbSizePx / 2 - scrollbarOffset + thumbOffset / 2;
 
-      const scrollableContentHeight = viewportEl.scrollHeight;
-      const viewportHeight = viewportEl.clientHeight;
-      const maxThumbOffsetY =
-        ctx.scrollbarYRef.offsetHeight - thumbHeight - scrollbarYOffset - thumbYOffset;
-      const scrollRatioY = clickY / maxThumbOffsetY;
-      viewportEl.scrollTop = scrollRatioY * (scrollableContentHeight - viewportHeight);
+    const scrollableSize = isVertical ? viewportEl.scrollHeight : viewportEl.scrollWidth;
+    const viewportSize = isVertical ? viewportEl.clientHeight : viewportEl.clientWidth;
+    const trackSize = isVertical ? scrollbarEl.offsetHeight : scrollbarEl.offsetWidth;
+
+    const maxThumbOffset = trackSize - thumbSizePx - scrollbarOffset - thumbOffset;
+    // A short or heavily padded track drives `maxThumbOffset` to zero or negative once the thumb
+    // hits its `MIN_THUMB_SIZE` floor. Dividing by it would yield a non-finite or inverted scroll
+    // position.
+    if (maxThumbOffset <= 0) return;
+
+    const scrollRatio = clickPosition / maxThumbOffset;
+    const maxScrollDistance = scrollableSize - viewportSize;
+
+    // Disable snapping before the jump-to-click assignment, or the assigned position quantizes to
+    // the nearest snap point and the thumb stays offset from the pointer for the whole drag.
+    // `handlePointerDown` below re-runs this as a guarded no-op for the thumb-drag path.
+    ctx.disableViewportSnap();
+
+    if (isVertical) {
+      viewportEl.scrollTop = scrollRatio * maxScrollDistance;
+    } else if (direction === "rtl") {
+      viewportEl.scrollLeft = -(1 - scrollRatio) * maxScrollDistance;
+    } else {
+      viewportEl.scrollLeft = scrollRatio * maxScrollDistance;
     }
 
-    if (ctx.thumbXRef && ctx.scrollbarXRef && orient === "horizontal") {
-      const thumbXOffset = getOffset(ctx.thumbXRef, "margin", "x");
-      const scrollbarXOffset = getOffset(ctx.scrollbarXRef, "padding", "x");
-      const thumbWidth = ctx.thumbXRef.offsetWidth;
-      const trackRectX = ctx.scrollbarXRef.getBoundingClientRect();
-      const clickX =
-        event.clientX - trackRectX.left - thumbWidth / 2 - scrollbarXOffset + thumbXOffset / 2;
-
-      const scrollableContentWidth = viewportEl.scrollWidth;
-      const viewportWidth = viewportEl.clientWidth;
-      const maxThumbOffsetX =
-        ctx.scrollbarXRef.offsetWidth - thumbWidth - scrollbarXOffset - thumbXOffset;
-      const scrollRatioX = clickX / maxThumbOffsetX;
-
-      let newScrollLeft: number;
-      if (direction === "rtl") {
-        newScrollLeft = (1 - scrollRatioX) * (scrollableContentWidth - viewportWidth);
-        if (viewportEl.scrollLeft <= 0) {
-          newScrollLeft = -newScrollLeft;
-        }
-      } else {
-        newScrollLeft = scrollRatioX * (scrollableContentWidth - viewportWidth);
-      }
-
-      viewportEl.scrollLeft = newScrollLeft;
-    }
+    ctx.handleScroll({ x: viewportEl.scrollLeft, y: viewportEl.scrollTop });
 
     ctx.handlePointerDown(event);
   }
-
-  const isHidden = () => (orientation() === "vertical" ? ctx.hiddenState().y : ctx.hiddenState().x);
-  const shouldRender = () => keepMounted() || !isHidden();
 
   const mergedStyle = () => {
     const base: JSX.CSSProperties = {
@@ -126,7 +160,10 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
       "-webkit-user-select": "none",
       "user-select": "none",
     };
-    if (orientation() === "vertical") {
+    if (hideTrackUntilMeasured()) {
+      base.visibility = "hidden";
+    }
+    if (vertical()) {
       Object.assign(base, {
         top: "0",
         bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
@@ -152,20 +189,31 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
       <ScrollAreaScrollbarContext value={{ orientation: orientation() }}>
         <div
           ref={(el) => {
-            if (orientation() === "vertical") {
+            if (vertical()) {
               ctx.scrollbarYRef = el;
             } else {
               ctx.scrollbarXRef = el;
             }
             if (typeof props.ref === "function") props.ref(el);
           }}
-          data-orientation={orientation()}
-          data-hovering={ctx.hovering() ? "" : undefined}
-          data-scrolling={
-            (orientation() === "vertical" ? ctx.scrollingY() : ctx.scrollingX()) ? "" : undefined
-          }
+          {...{
+            [ScrollAreaScrollbarDataAttributes.orientation]: orientation(),
+            [ScrollAreaScrollbarDataAttributes.hovering]: ctx.hovering() ? "" : undefined,
+            [ScrollAreaScrollbarDataAttributes.scrolling]: (
+              vertical() ? ctx.scrollingY() : ctx.scrollingX()
+            )
+              ? ""
+              : undefined,
+          }}
+          {...scrollbarOverflowStateAttributes(ctx, orientation())}
           onPointerDown={handleScrollbarPointerDown}
+          // Native scrollbars don't move focus when pressed, whichever button is used. Handled
+          // here rather than on the thumb so the bubbled press covers both.
+          onMouseDown={(event) => event.preventDefault()}
           onPointerUp={(e) => ctx.handlePointerUp(e)}
+          // Mirror `onPointerUp` so a browser-cancelled gesture on the track (no thumb child
+          // captures the pointer) still clears the drag state.
+          onPointerCancel={(e) => ctx.handlePointerUp(e)}
           style={mergedStyle()}
           {...others}
         >

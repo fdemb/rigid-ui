@@ -10,8 +10,6 @@ export function useScrollAreaViewportContext(): ScrollAreaViewportContextValue {
   try {
     return useContext(ScrollAreaViewportContext);
   } catch {
-    throw new Error(
-      "rigid-ui: ScrollAreaViewportContext missing. ScrollAreaViewport parts must be placed within <ScrollArea.Viewport>.",
-    );
+    throw new Error("Rigid UI: <ScrollArea.Content> must be used within <ScrollArea.Viewport>.");
   }
 }
