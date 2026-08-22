@@ -56,7 +56,9 @@
 }
 
 .Backdrop {
-  background-color: rgb(0 0 0 / 30%);
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 40%);
   transition-property: opacity;
   transition-duration: 150ms;
   transition-timing-function: ease-out;
