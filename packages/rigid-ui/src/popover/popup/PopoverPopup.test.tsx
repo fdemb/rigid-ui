@@ -6,7 +6,7 @@ import { Popover } from "../index";
 import type { PopoverFocusTarget } from "../types";
 
 // Ported from Base UI's `popup/PopoverPopup.test.tsx`. Toolbar composite-key cases are omitted:
-// this library has no Toolbar. Focus-guard cases are tracked in BACKLOG.md.
+// this library has no Toolbar. Focus-guard cases are tracked in Linear.
 
 function FocusPopover(props: {
   initialFocus?: PopoverFocusTarget;
@@ -207,7 +207,7 @@ describe("<Popover.Popup />", () => {
     });
 
     // Base UI passes the *close* interaction type here; we pass the type that opened the
-    // popover. Recorded as a divergence in BACKLOG.md.
+    // popover. Recorded as a divergence in Linear.
     it("selects a target based on the interaction type that opened the popover", async () => {
       let final: HTMLInputElement | undefined;
       render(() => (
