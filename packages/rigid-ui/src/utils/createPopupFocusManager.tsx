@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, Show, type Accessor } from "solid-js";
+import { createEffect, createMemo, createSignal, Show, untrack, type Accessor } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { contains } from "./contains";
 import { getTarget } from "./getTarget";
@@ -422,58 +422,66 @@ export function createPopupFocusManager(options: PopupFocusManagerOptions) {
 
       addPreviouslyFocusedElement(elementFocusedBeforeOpen);
 
-      return () => {
-        const activeEl = activeElement(doc);
-        const insideElements = [floatingFocusElement, ...getInsideElements()];
-        const isFocusInsideFloatingTree = insideElements.some(
-          (element) => element === activeEl || contains(element, activeEl),
-        );
+      // The disposer runs in the effect phase and is one-shot: it resolves where focus goes
+      // back to *at close time*, then consumes that answer in the same tick. `options.trigger`
+      // and `options.finalFocus` are reactive, and `trigger.isConnected` in particular has to
+      // be evaluated now rather than at open time, because the trigger may have unmounted
+      // while the popup was open. Nothing here wants to re-run on a later change, so the reads
+      // are untracked deliberately instead of tripping STRICT_READ_UNTRACKED.
+      return () =>
+        untrack(() => {
+          const activeEl = activeElement(doc);
+          const insideElements = [floatingFocusElement, ...getInsideElements()];
+          const isFocusInsideFloatingTree = insideElements.some(
+            (element) => element === activeEl || contains(element, activeEl),
+          );
 
-        const method: InteractionType = lastInteractionType.current || "keyboard";
-        const resolvedFinalFocus = resolveTarget(options.finalFocus, method);
-
-        let returnElement: Element | null = null;
-        if (resolvedFinalFocus !== undefined && resolvedFinalFocus !== false) {
-          if (resolvedFinalFocus === true || resolvedFinalFocus === null) {
-            const referenceReturnElement = options.trigger?.()?.isConnected
-              ? options.trigger()!
-              : null;
-            const previousReturnElement =
-              elementFocusedBeforeOpen?.isConnected &&
-              elementFocusedBeforeOpen.nodeName.toLowerCase() !== "body"
-                ? elementFocusedBeforeOpen
-                : null;
-            returnElement = preferPreviousFocus
-              ? previousReturnElement || referenceReturnElement
-              : referenceReturnElement || previousReturnElement;
-            if (!returnElement) {
-              returnElement = getPreviouslyFocusedElement() || null;
-            }
-          } else {
-            returnElement = resolvedFinalFocus;
-          }
-        }
-
-        queueMicrotask(() => {
-          const tabbableReturnElement = getFirstTabbableElement(returnElement);
+          const method: InteractionType = lastInteractionType.current || "keyboard";
+          const resolvedFinalFocus = resolveTarget(options.finalFocus, method);
           const hasExplicitReturnFocus = typeof options.finalFocus !== "boolean";
 
-          if (
-            returnElement &&
-            resolvedFinalFocus !== undefined &&
-            resolvedFinalFocus !== false &&
-            !preventReturnFocus.current &&
-            tabbableReturnElement instanceof HTMLElement &&
-            (!hasExplicitReturnFocus && tabbableReturnElement !== activeEl && activeEl !== doc.body
-              ? isFocusInsideFloatingTree
-              : true)
-          ) {
-            tabbableReturnElement.focus({ preventScroll: true });
+          let returnElement: Element | null = null;
+          if (resolvedFinalFocus !== undefined && resolvedFinalFocus !== false) {
+            if (resolvedFinalFocus === true || resolvedFinalFocus === null) {
+              const trigger = options.trigger?.();
+              const referenceReturnElement = trigger?.isConnected ? trigger : null;
+              const previousReturnElement =
+                elementFocusedBeforeOpen?.isConnected &&
+                elementFocusedBeforeOpen.nodeName.toLowerCase() !== "body"
+                  ? elementFocusedBeforeOpen
+                  : null;
+              returnElement = preferPreviousFocus
+                ? previousReturnElement || referenceReturnElement
+                : referenceReturnElement || previousReturnElement;
+              if (!returnElement) {
+                returnElement = getPreviouslyFocusedElement() || null;
+              }
+            } else {
+              returnElement = resolvedFinalFocus;
+            }
           }
 
-          preventReturnFocus.current = false;
+          queueMicrotask(() => {
+            const tabbableReturnElement = getFirstTabbableElement(returnElement);
+
+            if (
+              returnElement &&
+              resolvedFinalFocus !== undefined &&
+              resolvedFinalFocus !== false &&
+              !preventReturnFocus.current &&
+              tabbableReturnElement instanceof HTMLElement &&
+              (!hasExplicitReturnFocus &&
+              tabbableReturnElement !== activeEl &&
+              activeEl !== doc.body
+                ? isFocusInsideFloatingTree
+                : true)
+            ) {
+              tabbableReturnElement.focus({ preventScroll: true });
+            }
+
+            preventReturnFocus.current = false;
+          });
         });
-      };
     },
   );
 
