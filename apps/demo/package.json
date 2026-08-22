@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@solidjs/router": "catalog:",
     "@solidjs/web": "catalog:",
     "rigid-ui": "workspace:*",
     "solid-js": "catalog:"
   },
   "devDependencies": {
     "@solidjs/vite-plugin": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"
