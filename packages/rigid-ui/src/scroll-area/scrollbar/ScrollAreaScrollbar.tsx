@@ -177,6 +177,7 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
             },
             exclude: ["orientation", "keepMounted"],
             props: {
+              "data-id": `${ctx.rootId}-scrollbar`,
               onPointerDown: handleScrollbarPointerDown,
               // Native scrollbars don't move focus when pressed, whichever button is used. Handled
               // here rather than on the thumb so the bubbled press covers both.

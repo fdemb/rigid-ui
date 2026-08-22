@@ -114,6 +114,65 @@ describe("<ScrollArea.Root />", () => {
     });
   });
 
+  describe.skipIf(!isJSDOM)("data-id stamping in JSDOM", () => {
+    it("stamps matching data-id values on the viewport and scrollbars", () => {
+      render(() => (
+        <ScrollArea.Root data-testid="root">
+          <ScrollArea.Viewport data-testid="viewport" />
+          <ScrollArea.Scrollbar data-testid="scrollbar-y" keepMounted />
+          <ScrollArea.Scrollbar data-testid="scrollbar-x" orientation="horizontal" keepMounted />
+        </ScrollArea.Root>
+      ));
+
+      const viewport = screen.getByTestId("viewport");
+      const scrollbarY = screen.getByTestId("scrollbar-y");
+      const scrollbarX = screen.getByTestId("scrollbar-x");
+
+      expect(viewport).toHaveAttribute("data-id");
+      expect(viewport.getAttribute("data-id")).toMatch(/-viewport$/);
+      expect(scrollbarY.getAttribute("data-id")).toBe(
+        `${viewport.getAttribute("data-id")!.replace(/-viewport$/, "")}-scrollbar`,
+      );
+      // Both orientations share the root id.
+      expect(scrollbarX.getAttribute("data-id")).toBe(scrollbarY.getAttribute("data-id"));
+    });
+
+    it("generates distinct ids per scroll area instance", () => {
+      render(() => (
+        <div>
+          <ScrollArea.Root>
+            <ScrollArea.Viewport data-testid="viewport-1" />
+            <ScrollArea.Scrollbar data-testid="scrollbar-1" keepMounted />
+          </ScrollArea.Root>
+          <ScrollArea.Root>
+            <ScrollArea.Viewport data-testid="viewport-2" />
+            <ScrollArea.Scrollbar data-testid="scrollbar-2" keepMounted />
+          </ScrollArea.Root>
+        </div>
+      ));
+
+      const id1 = screen.getByTestId("viewport-1").getAttribute("data-id");
+      const id2 = screen.getByTestId("viewport-2").getAttribute("data-id");
+
+      expect(id1).toBeTruthy();
+      expect(id2).toBeTruthy();
+      expect(id1).not.toBe(id2);
+      expect(screen.getByTestId("scrollbar-2").getAttribute("data-id")).toBe(
+        id2!.replace(/-viewport$/, "-scrollbar"),
+      );
+    });
+
+    it("lets an explicit data-id prop win over the generated one", () => {
+      render(() => (
+        <ScrollArea.Root>
+          <ScrollArea.Viewport data-testid="viewport" data-id="custom-viewport" />
+        </ScrollArea.Root>
+      ));
+
+      expect(screen.getByTestId("viewport")).toHaveAttribute("data-id", "custom-viewport");
+    });
+  });
+
   describe.skipIf(isJSDOM)("sizing", () => {
     it("recomputes thumb size when becoming visible without requiring scroll", async () => {
       const [visible, setVisible] = createSignal(false);
