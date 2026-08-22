@@ -1,8 +1,9 @@
-import { createEffect, omit, Show } from "solid-js";
+import { createEffect, Show } from "solid-js";
 import { Portal } from "@solidjs/web";
 import { useDialogRootContext } from "../root/DialogRootContext";
 import { InternalBackdrop } from "../../utils/InternalBackdrop";
-import { assignRef, type PopupNativeProps } from "../../utils/domProps";
+import { renderElement } from "../../internals/renderElement";
+import { type PopupNativeProps } from "../../utils/domProps";
 
 export interface DialogPortalState {}
 
@@ -17,7 +18,6 @@ export interface DialogPortalProps extends PopupNativeProps<HTMLDivElement> {
 
 export function DialogPortal(props: DialogPortalProps) {
   const context = useDialogRootContext();
-  const others = omit(props, "ref", "children", "keepMounted", "container");
   const container = () => {
     const value = props.container;
     if (value && "current" in value) return value.current;
@@ -33,12 +33,11 @@ export function DialogPortal(props: DialogPortalProps) {
     <Show when={context!.mounted() || props.keepMounted}>
       <Portal mount={container() as Element | undefined}>
         <div
-          {...others}
-          ref={(element) => {
-            context!.setPortalElement(element);
-            assignRef(props.ref, element);
-          }}
-          data-rigid-ui-portal=""
+          {...renderElement<HTMLDivElement>(props as Record<string, unknown>, {
+            props: [{ "data-rigid-ui-portal": "" }],
+            ref: [(element: HTMLDivElement) => context!.setPortalElement(element)],
+            exclude: ["keepMounted", "container"],
+          })}
         >
           {context!.mounted() && context!.modal() === true && (
             <InternalBackdrop

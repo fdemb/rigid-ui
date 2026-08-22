@@ -1,8 +1,10 @@
-import { createEffect, omit, Show, type ParentProps } from "solid-js";
+import { createEffect, Show, type ParentProps } from "solid-js";
+import { renderElement } from "../../internals/renderElement";
 import type { JSX } from "@solidjs/web";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaScrollbarContext } from "./ScrollAreaScrollbarContext";
 import { contains } from "../../utils/contains";
+import { useDirection } from "../../internals/direction-context";
 import { getTarget } from "../../utils/getTarget";
 import { getOffset } from "../../utils/getOffset";
 import { ScrollAreaRootCssVars } from "../root/ScrollAreaRootCssVars";
@@ -25,16 +27,14 @@ export interface ScrollAreaScrollbarProps extends ParentProps<JSX.HTMLAttributes
 }
 
 export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
-  const others = omit(props, "children", "orientation", "keepMounted", "ref", "style");
-
   const orientation = () => props.orientation ?? "vertical";
   const vertical = () => orientation() === "vertical";
   const keepMounted = () => props.keepMounted ?? false;
 
   const ctx = useScrollAreaRootContext();
 
-  // Direction hardcoded to 'ltr' for now; RTL is tracked in BACKLOG.md.
-  const direction: "ltr" | "rtl" = "ltr";
+  // Effective text direction; defaults to "ltr" without a DirectionProvider.
+  const direction = useDirection();
 
   const isHidden = () => (vertical() ? ctx.hiddenState().y : ctx.hiddenState().x);
   const shouldRender = () => keepMounted() || !isHidden();
@@ -67,8 +67,8 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
           ? viewportEl.scrollWidth - viewportEl.clientWidth
           : viewportEl.scrollHeight - viewportEl.clientHeight;
         // RTL horizontal scrolling uses a negative `scrollLeft` range, from 0 to `-maxScroll`.
-        const minScroll = horizontal && direction === "rtl" ? -maxScroll : 0;
-        const maxScrollValue = horizontal && direction === "rtl" ? 0 : maxScroll;
+        const minScroll = horizontal && direction() === "rtl" ? -maxScroll : 0;
+        const maxScrollValue = horizontal && direction() === "rtl" ? 0 : maxScroll;
         const scrollValue = viewportEl[scrollProperty];
 
         // At an edge (or with no overflow), let the wheel event chain to the parent/page instead
@@ -142,7 +142,7 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
 
     if (isVertical) {
       viewportEl.scrollTop = scrollRatio * maxScrollDistance;
-    } else if (direction === "rtl") {
+    } else if (direction() === "rtl") {
       viewportEl.scrollLeft = -(1 - scrollRatio) * maxScrollDistance;
     } else {
       viewportEl.scrollLeft = scrollRatio * maxScrollDistance;
@@ -153,49 +153,10 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
     ctx.handlePointerDown(event);
   }
 
-  const mergedStyle = () => {
-    const base: JSX.CSSProperties = {
-      position: "absolute",
-      "touch-action": "none",
-      "-webkit-user-select": "none",
-      "user-select": "none",
-    };
-    if (hideTrackUntilMeasured()) {
-      base.visibility = "hidden";
-    }
-    if (vertical()) {
-      Object.assign(base, {
-        top: "0",
-        bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
-        "inset-inline-end": "0",
-        [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight]: `${ctx.thumbSize().height}px`,
-      });
-    } else {
-      Object.assign(base, {
-        "inset-inline-start": "0",
-        "inset-inline-end": `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
-        bottom: "0",
-        [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth]: `${ctx.thumbSize().width}px`,
-      });
-    }
-    if (typeof props.style === "object" && props.style) {
-      return { ...base, ...props.style };
-    }
-    return base;
-  };
-
   return (
     <Show when={shouldRender()}>
       <ScrollAreaScrollbarContext value={{ orientation: orientation() }}>
         <div
-          ref={(el) => {
-            if (vertical()) {
-              ctx.scrollbarYRef = el;
-            } else {
-              ctx.scrollbarXRef = el;
-            }
-            if (typeof props.ref === "function") props.ref(el);
-          }}
           {...{
             [ScrollAreaScrollbarDataAttributes.orientation]: orientation(),
             [ScrollAreaScrollbarDataAttributes.hovering]: ctx.hovering() ? "" : undefined,
@@ -206,16 +167,53 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
               : undefined,
           }}
           {...scrollbarOverflowStateAttributes(ctx, orientation())}
-          onPointerDown={handleScrollbarPointerDown}
-          // Native scrollbars don't move focus when pressed, whichever button is used. Handled
-          // here rather than on the thumb so the bubbled press covers both.
-          onMouseDown={(event) => event.preventDefault()}
-          onPointerUp={(e) => ctx.handlePointerUp(e)}
-          // Mirror `onPointerUp` so a browser-cancelled gesture on the track (no thumb child
-          // captures the pointer) still clears the drag state.
-          onPointerCancel={(e) => ctx.handlePointerUp(e)}
-          style={mergedStyle()}
-          {...others}
+          {...renderElement<HTMLDivElement>(props, {
+            ref(element) {
+              if (vertical()) {
+                ctx.scrollbarYRef = element;
+              } else {
+                ctx.scrollbarXRef = element;
+              }
+            },
+            exclude: ["orientation", "keepMounted"],
+            props: {
+              onPointerDown: handleScrollbarPointerDown,
+              // Native scrollbars don't move focus when pressed, whichever button is used. Handled
+              // here rather than on the thumb so the bubbled press covers both.
+              onMouseDown: (event: MouseEvent) => event.preventDefault(),
+              onPointerUp: ctx.handlePointerUp,
+              // Mirror `onPointerUp` so a browser-cancelled gesture on the track (no thumb child
+              // captures the pointer) still clears the drag state.
+              onPointerCancel: ctx.handlePointerUp,
+              get style() {
+                const base: JSX.CSSProperties = {
+                  position: "absolute",
+                  "touch-action": "none",
+                  "-webkit-user-select": "none",
+                  "user-select": "none",
+                };
+                if (hideTrackUntilMeasured()) {
+                  base.visibility = "hidden";
+                }
+                if (vertical()) {
+                  Object.assign(base, {
+                    top: "0",
+                    bottom: `var(${ScrollAreaRootCssVars.scrollAreaCornerHeight})`,
+                    "inset-inline-end": "0",
+                    [ScrollAreaScrollbarCssVars.scrollAreaThumbHeight]: `${ctx.thumbSize().height}px`,
+                  });
+                } else {
+                  Object.assign(base, {
+                    "inset-inline-start": "0",
+                    "inset-inline-end": `var(${ScrollAreaRootCssVars.scrollAreaCornerWidth})`,
+                    bottom: "0",
+                    [ScrollAreaScrollbarCssVars.scrollAreaThumbWidth]: `${ctx.thumbSize().width}px`,
+                  });
+                }
+                return base;
+              },
+            },
+          })}
         >
           {props.children}
         </div>

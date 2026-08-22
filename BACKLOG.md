@@ -8,7 +8,7 @@ Gaps were found two ways: by auditing the implementation against
 behavioral contracts, so a test of theirs we cannot write is usually a contract we do not honor.
 
 **Popover coverage: 105 tests across 6 files, against Base UI's 177 across 13.**
-**Scroll Area coverage: 100 tests across 8 files, against Base UI's 8 files.**
+**Scroll Area coverage: 108 tests across 8 files, against Base UI's 8 files.**
 **Dialog coverage: 40 tests across 2 files, against Base UI's ~90 across 8.**
 
 Each item cites the Base UI test that names the contract. When closing a gap, port that test and
@@ -309,36 +309,12 @@ outcome on every real path, no `undefined === 0` accident.
 # Scroll Area
 
 Audited against `reference/base-ui/packages/react/src/scroll-area/` (8 test files, 3337 lines).
-Ours is now 8 files mirroring theirs part-for-part: 100 tests, of which 3 are JSDOM-only and 44
+Ours is now 8 files mirroring theirs part-for-part: 108 tests, of which 3 are JSDOM-only and 50
 are Chromium-only. The audit closed the coverage gap; what follows is what remains.
 
 ## Not implemented
 
-### 1. No text direction context (RTL)
-
-**Impact: the scroll area is wrong in RTL documents.** `direction` is a hardcoded `"ltr"` constant
-in `src/scroll-area/viewport/ScrollAreaViewport.tsx` and
-`src/scroll-area/scrollbar/ScrollAreaScrollbar.tsx`. Base UI resolves it from a
-`DirectionProvider`, and RTL is not cosmetic here: `scrollLeft` runs from `0` down to
-`-maxScrollLeft`, so every horizontal branch — overflow edges, wheel clamping, track click, thumb
-offset, overscroll pinning — inverts.
-
-The code paths are already written direction-agnostically (they branch on the constant), so this
-is a matter of adding the provider and threading a reactive `direction` through, not of
-rewriting the math.
-
-Base UI contracts we cannot port until then:
-
-- `root/ScrollAreaRoot.test.tsx` — `recomputes horizontal overflow edges when direction changes`, `correctly handles RTL`
-- `scrollbar/ScrollAreaScrollbar.test.tsx` — `allows horizontal scrolling away from the RTL start edge`, `clamps horizontal RTL wheel scrolling at both edges`, `scrolls into the negative RTL range when clicking a horizontal RTL track`
-- `thumb/ScrollAreaThumb.test.tsx` — `uses the negative RTL range and clears scrolling on pointer cancel`
-- `viewport/ScrollAreaViewport.test.tsx` — `shrinks and pins the horizontal thumb to the inline start while overscrolling (RTL)`, `…to the inline end while overscrolling (RTL)`
-
-The LTR halves of the parameterized cases above are ported; only the RTL arms are missing. Base
-UI's `registers after the horizontal scrollbar becomes visible` is written RTL-only and is ported
-here as its LTR equivalent.
-
-### 2. No CSP context
+### 1. No CSP context
 
 Base UI's root reads `useCSPContext` for a `nonce` to stamp on the scrollbar-hiding `<style>`
 element, and a `disableStyleElements` flag for apps that ship the rule themselves. Ours injects a
@@ -348,7 +324,7 @@ stay visible on top of ours.
 
 No Base UI test names this contract directly; it is an implementation gap found by the audit.
 
-### 3. No `rootId` / `data-id` stamping
+### 2. No `rootId` / `data-id` stamping
 
 Base UI gives each root a generated id and stamps `data-id="{rootId}-viewport"` and
 `data-id="{rootId}-scrollbar"` on the corresponding parts, so multiple scroll areas on a page are
@@ -356,8 +332,19 @@ distinguishable from the outside. We render neither. Cosmetic, no test depends o
 
 ## Fixed
 
-Found by the ported tests and by diffing against Base UI's source. Everything here was broken
-before this audit.
+### Text direction (RTL)
+
+`DirectionProvider` (`src/direction-provider/`) now carries a reactive direction that defaults to
+`"ltr"` outside a provider; scroll-area viewport, scrollbar, and thumb read it via
+`useDirection()`, and a provider flip re-runs the overflow measurement. Every horizontal branch —
+overflow edges, wheel clamping, track click, thumb offset, overscroll pinning — resolves against
+the negative RTL `scrollLeft` range. All ten Base UI RTL contracts are ported: root
+(`correctly handles RTL`, `recomputes horizontal overflow edges when direction changes`),
+scrollbar (RTL wheel clamp pair, negative-range track click), thumb (negative RTL drag with
+pointer-cancel cleanup), viewport (inline-start/end overscroll pinning).
+
+Found by the ported tests and by diffing against Base UI's source. Everything below this point
+was broken before this audit.
 
 1. **Scrollbar wheel handling did not clamp, chain, or report.** `viewportEl.scrollTop += deltaY`
    with only an equality edge check: a large delta overshot past the end, a zero delta still

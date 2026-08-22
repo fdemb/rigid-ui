@@ -1,20 +1,18 @@
-import { createEffect, createSignal, omit, Show } from "solid-js";
+import { createEffect, createSignal, Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { usePopoverPortalContext } from "../portal/PopoverPortalContext";
-import {
-  assignRef,
-  callEventHandler,
-  mergeStyles,
-  type PopoverAlign,
-  type PopoverAnchor,
-  type PopoverBoundary,
-  type PopoverCollisionAvoidance,
-  type PopoverCollisionPadding,
-  type PopoverInstantType,
-  type PopoverNativeProps,
-  type PopoverOffset,
-  type PopoverSide,
+import { renderElement } from "../../internals/renderElement";
+import type {
+  PopoverAlign,
+  PopoverAnchor,
+  PopoverBoundary,
+  PopoverCollisionAvoidance,
+  PopoverCollisionPadding,
+  PopoverInstantType,
+  PopoverNativeProps,
+  PopoverOffset,
+  PopoverSide,
 } from "../types";
 import {
   createAnchorPositioning,
@@ -99,27 +97,6 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     },
   };
 
-  const others = omit(
-    props,
-    "ref",
-    "children",
-    "anchor",
-    "positionMethod",
-    "side",
-    "sideOffset",
-    "align",
-    "alignOffset",
-    "collisionBoundary",
-    "collisionPadding",
-    "collisionAvoidance",
-    "arrowPadding",
-    "sticky",
-    "disableAnchorTracking",
-    "style",
-    "onPointerEnter",
-    "onPointerLeave",
-  );
-
   createEffect(
     () => [positioning.side(), positioning.align()] as const,
     ([currentSide, currentAlign]) => context!.setPosition(currentSide, currentAlign),
@@ -164,26 +141,13 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     },
   );
 
-  function positionerStyle(): JSX.CSSProperties | string {
-    const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
-      ...positioning.positionerStyles(),
-    };
-    if (!transitionsReady()) {
-      base.transition = "none";
-    }
-    if (!context!.open()) {
-      base["pointer-events"] = "none";
-    }
-    return mergeStyles(base, props.style);
-  }
-
-  function handlePointerEnter(event: PointerEvent) {
-    callEventHandler(props.onPointerEnter, event);
+  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // observe defaultPrevented.
+  function handlePointerEnter() {
     context!.cancelHoverClose();
   }
 
   function handlePointerLeave(event: PointerEvent) {
-    callEventHandler(props.onPointerLeave, event);
     const trigger = context!.activeTrigger();
     if (!trigger?.openOnHover()) return;
     context!.scheduleHoverClose(trigger.id, event, trigger.closeDelay());
@@ -193,24 +157,64 @@ export function PopoverPositioner(props: PopoverPositionerProps) {
     <Show when={context!.mounted() || keepMounted}>
       <PopoverPositionerContext value={positionerContext}>
         <div
-          {...others}
-          ref={(node) => {
-            setElement(node);
-            context!.setPositionerElement(node);
-            assignRef(props.ref, node);
-          }}
-          role="presentation"
-          hidden={!context!.mounted()}
-          inert={!context!.open() ? true : undefined}
-          data-open={context!.open() ? "" : undefined}
-          data-closed={!context!.open() ? "" : undefined}
-          data-side={positioning.side()}
-          data-align={positioning.align()}
-          data-anchor-hidden={positioning.anchorHidden() ? "" : undefined}
-          data-instant={context!.instantType()}
-          style={positionerStyle()}
-          onPointerEnter={handlePointerEnter}
-          onPointerLeave={handlePointerLeave}
+          {...renderElement<HTMLDivElement>(props as unknown as Record<string, unknown>, {
+            props: {
+              role: "presentation",
+              get hidden() {
+                return !context!.mounted();
+              },
+              get inert() {
+                return !context!.open() ? true : undefined;
+              },
+              get "data-open"() {
+                return context!.open() ? "" : undefined;
+              },
+              get "data-closed"() {
+                return !context!.open() ? "" : undefined;
+              },
+              get "data-side"() {
+                return positioning.side();
+              },
+              get "data-align"() {
+                return positioning.align();
+              },
+              get "data-anchor-hidden"() {
+                return positioning.anchorHidden() ? "" : undefined;
+              },
+              get "data-instant"() {
+                return context!.instantType();
+              },
+              get style(): JSX.CSSProperties | string {
+                const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
+                  ...positioning.positionerStyles(),
+                };
+                if (!transitionsReady()) {
+                  base.transition = "none";
+                }
+                if (!context!.open()) {
+                  base["pointer-events"] = "none";
+                }
+                return base;
+              },
+              onPointerEnter: handlePointerEnter,
+              onPointerLeave: handlePointerLeave,
+            },
+            ref: [setElement, (node: HTMLDivElement) => context!.setPositionerElement(node)],
+            exclude: [
+              "anchor",
+              "positionMethod",
+              "side",
+              "sideOffset",
+              "align",
+              "alignOffset",
+              "collisionBoundary",
+              "collisionPadding",
+              "collisionAvoidance",
+              "arrowPadding",
+              "sticky",
+              "disableAnchorTracking",
+            ],
+          })}
         >
           {props.children}
         </div>

@@ -1,10 +1,12 @@
-import { createEffect, omit, onSettled, type ParentProps } from "solid-js";
+import { createEffect, onSettled, type ParentProps } from "solid-js";
+import { renderElement } from "../../internals/renderElement";
 import type { JSX } from "@solidjs/web";
 import { isWebKit } from "../../utils/detectBrowser";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
 import { getOffset } from "../../utils/getOffset";
 import { MIN_THUMB_SIZE } from "../constants";
+import { useDirection } from "../../internals/direction-context";
 import { clamp } from "../../utils/clamp";
 import { normalizeScrollOffset } from "../../utils/scrollEdges";
 import { styleDisableScrollbar } from "../../utils/styles";
@@ -76,8 +78,6 @@ export interface ScrollAreaViewportProps extends ParentProps<JSX.HTMLAttributes<
 }
 
 export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
-  const others = omit(props, "children", "ref", "class", "style");
-
   const ctx = useScrollAreaRootContext();
 
   let programmaticScroll = true;
@@ -88,8 +88,8 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
   // ResizeObserver delivery from one that carries a real change.
   let lastMeasured: [number, number, number, number] = [NaN, NaN, NaN, NaN];
 
-  // Direction hardcoded to 'ltr' for now; RTL is tracked in BACKLOG.md.
-  const direction: "ltr" | "rtl" = "ltr";
+  // Effective text direction; defaults to "ltr" without a DirectionProvider.
+  const direction = useDirection();
 
   function computeThumbPosition() {
     const viewportEl = ctx.viewportRef;
@@ -129,7 +129,7 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
     if (!scrollbarXHidden) {
       // `normalizeScrollOffset` clamps internally.
       scrollLeftFromStart = normalizeScrollOffset(
-        direction === "rtl" ? -scrollLeft : scrollLeft,
+        direction() === "rtl" ? -scrollLeft : scrollLeft,
         maxScrollLeft,
       );
       scrollLeftFromEnd = maxScrollLeft - scrollLeftFromStart;
@@ -202,7 +202,7 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
         scrollbarXEl.offsetWidth - clampedNextWidth - scrollbarXOffset - thumbXOffset;
       // RTL scrolls from 0 down to `-maxScrollLeft`; measure from the inline start edge so the
       // overscroll math is direction-agnostic, then flip the resulting offset back below.
-      const scrollFromStart = direction === "rtl" ? -scrollLeft : scrollLeft;
+      const scrollFromStart = direction() === "rtl" ? -scrollLeft : scrollLeft;
 
       const offsetX = applyOverscrollThumb(
         thumbXEl,
@@ -213,7 +213,7 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
         clampedNextWidth,
         maxThumbOffsetX,
       );
-      thumbXEl.style.transform = `translate3d(${direction === "rtl" ? -offsetX : offsetX}px,0,0)`;
+      thumbXEl.style.transform = `translate3d(${direction() === "rtl" ? -offsetX : offsetX}px,0,0)`;
     }
 
     const overflowMetricsPx: Array<[ScrollAreaViewportCssVars, number]> = [
@@ -268,6 +268,16 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
       return nextOverflowEdges;
     });
   }
+
+  // Overflow-edge math branches on direction (RTL scrollLeft runs negative), so a provider
+  // flip must trigger a fresh measurement pass.
+  createEffect(
+    () => direction(),
+    (_current, previous) => {
+      if (previous === undefined) return;
+      queueMicrotask(computeThumbPosition);
+    },
+  );
 
   onSettled(() => {
     const viewportEl = ctx.viewportRef;
@@ -354,61 +364,57 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
 
   const hs = () => ctx.hiddenState();
 
-  const mergedStyle = () => {
-    const base: JSX.CSSProperties = {
-      overflow: "scroll",
-      height: "100%",
-    };
-    if (typeof props.style === "object" && props.style) {
-      return { ...base, ...props.style };
-    }
-    return base;
-  };
-
   return (
     <ScrollAreaViewportContext value={{ computeThumbPosition }}>
       <div
-        ref={(el) => {
-          ctx.viewportRef = el;
-          if (typeof props.ref === "function") props.ref(el);
-        }}
-        role="presentation"
-        // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
-        // Keep non-scrollable viewports out of tab order.
-        tabindex={hs().x && hs().y ? -1 : 0}
-        class={[styleDisableScrollbar.className, props.class]}
-        onScroll={() => {
-          const viewportEl = ctx.viewportRef;
-          if (!viewportEl) return;
-
-          computeThumbPosition();
-
-          // WebKit consumes a touch that catches an in-flight momentum scroll or rubber-band
-          // bounce without dispatching any DOM events for the whole gesture (not even
-          // `touchstart`), so scrolls cannot be attributed to the user through events. Treat every
-          // scroll in touch modality as user-driven instead.
-          if (ctx.touchModality || !programmaticScroll) {
-            ctx.handleScroll({
-              x: viewportEl.scrollLeft,
-              y: viewportEl.scrollTop,
-            });
-          }
-
-          // Debounce the restoration of the programmatic flag so it only flips back once scrolling
-          // has come to rest, keeping momentum scrolling (which fires no further interaction
-          // events) user-driven. 100ms without scroll events ≈ scroll end.
-          scrollEndTimeout.start(100, () => {
-            programmaticScroll = true;
-          });
-        }}
-        onWheel={handleUserInteraction}
-        onTouchMove={handleUserInteraction}
-        onPointerMove={handleUserInteraction}
-        onPointerEnter={handleUserInteraction}
-        onKeyDown={handleUserInteraction}
-        style={mergedStyle()}
         {...overflowStateAttributes(ctx)}
-        {...others}
+        {...renderElement<HTMLDivElement>(props, {
+          ref(element) {
+            ctx.viewportRef = element;
+          },
+          props: {
+            role: "presentation",
+            // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
+            // Keep non-scrollable viewports out of tab order.
+            get tabindex() {
+              return hs().x && hs().y ? -1 : 0;
+            },
+            class: styleDisableScrollbar.className,
+            onScroll() {
+              const viewportEl = ctx.viewportRef;
+              if (!viewportEl) return;
+
+              computeThumbPosition();
+
+              // WebKit consumes a touch that catches an in-flight momentum scroll or rubber-band
+              // bounce without dispatching any DOM events for the whole gesture (not even
+              // `touchstart`), so scrolls cannot be attributed to the user through events. Treat every
+              // scroll in touch modality as user-driven instead.
+              if (ctx.touchModality || !programmaticScroll) {
+                ctx.handleScroll({
+                  x: viewportEl.scrollLeft,
+                  y: viewportEl.scrollTop,
+                });
+              }
+
+              // Debounce the restoration of the programmatic flag so it only flips back once scrolling
+              // has come to rest, keeping momentum scrolling (which fires no further interaction
+              // events) user-driven. 100ms without scroll events ≈ scroll end.
+              scrollEndTimeout.start(100, () => {
+                programmaticScroll = true;
+              });
+            },
+            onWheel: handleUserInteraction,
+            onTouchMove: handleUserInteraction,
+            onPointerMove: handleUserInteraction,
+            onPointerEnter: handleUserInteraction,
+            onKeyDown: handleUserInteraction,
+            style: {
+              overflow: "scroll",
+              height: "100%",
+            },
+          },
+        })}
       >
         {props.children}
       </div>

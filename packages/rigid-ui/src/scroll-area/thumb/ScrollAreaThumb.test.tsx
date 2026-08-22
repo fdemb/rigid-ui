@@ -1,6 +1,7 @@
 import { createSignal, Errored, Show } from "solid-js";
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { DirectionProvider } from "../../direction-provider/DirectionProvider";
 import { ScrollArea } from "../index";
 import { SCROLL_TIMEOUT } from "../constants";
 import {
@@ -399,21 +400,23 @@ describe("<ScrollArea.Thumb />", () => {
   });
 
   describe.skipIf(isJSDOM)("dragging", () => {
-    async function renderHorizontal() {
+    async function renderHorizontal(direction: "ltr" | "rtl" = "ltr") {
       render(() => (
-        <ScrollArea.Root style={{ width: "200px", height: "200px" }}>
-          <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
-            <div style={{ width: "1000px", height: "200px" }} />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar
-            orientation="horizontal"
-            data-testid="scrollbar"
-            keepMounted
-            style={{ display: "flex", width: "200px", height: "10px" }}
-          >
-            <ScrollArea.Thumb data-testid="thumb" />
-          </ScrollArea.Scrollbar>
-        </ScrollArea.Root>
+        <DirectionProvider direction={direction}>
+          <ScrollArea.Root style={{ width: "200px", height: "200px", direction }}>
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div style={{ width: "1000px", height: "200px" }} />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar
+              orientation="horizontal"
+              data-testid="scrollbar"
+              keepMounted
+              style={{ display: "flex", width: "200px", height: "10px" }}
+            >
+              <ScrollArea.Thumb data-testid="thumb" />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        </DirectionProvider>
       ));
 
       const thumb = screen.getByTestId("thumb");
@@ -457,6 +460,33 @@ describe("<ScrollArea.Thumb />", () => {
       fireEvent.pointerUp(thumb, { pointerId: 1 });
 
       expect(releasePointerCapture).toHaveBeenCalled();
+    });
+
+    it("uses the negative RTL range and clears scrolling on pointer cancel", async () => {
+      const { scrollbar, thumb, viewport } = await renderHorizontal("rtl");
+      const rect = thumb.getBoundingClientRect();
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.top + rect.height / 2;
+
+      fireEvent.pointerDown(thumb, {
+        button: 0,
+        clientX: startX,
+        clientY: startY,
+        pointerId: 1,
+      });
+      // Dragging toward the inline start (leftward) moves into the negative RTL range.
+      fireEvent.pointerMove(thumb, {
+        clientX: startX - 20,
+        clientY: startY,
+        pointerId: 1,
+        buttons: 1,
+      });
+
+      expect(viewport.scrollLeft).toBeLessThan(0);
+      await waitFor(() => expect(scrollbar).toHaveAttribute("data-scrolling"));
+
+      expect(() => fireEvent.pointerCancel(thumb, { pointerId: 1 })).not.toThrow();
+      await waitFor(() => expect(scrollbar).not.toHaveAttribute("data-scrolling"));
     });
 
     it("ends a drag whose release was missed instead of scrolling on hover", async () => {

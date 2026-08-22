@@ -7,6 +7,7 @@ import {
   untrack,
 } from "solid-js";
 import { createComponent, type JSX } from "@solidjs/web";
+import { createChangeEventDetails } from "../../internals/createBaseUIEventDetails";
 import {
   PopoverRootContext,
   type PopoverRootContextValue,
@@ -215,28 +216,11 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     event: Event,
     trigger: Element | undefined,
   ): PopoverRootChangeEventDetails {
-    let canceled = false;
-    let propagationAllowed = false;
-    return {
-      reason,
-      event,
-      trigger,
-      get isCanceled() {
-        return canceled;
-      },
-      get isPropagationAllowed() {
-        return propagationAllowed;
-      },
-      cancel() {
-        canceled = true;
-      },
-      allowPropagation() {
-        propagationAllowed = true;
-      },
+    return createChangeEventDetails(reason, event, trigger, {
       preventUnmountOnClose() {
         preventCurrentUnmount = true;
       },
-    };
+    });
   }
 
   function requestOpen(

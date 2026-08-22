@@ -1,37 +1,13 @@
-import { createSignal, type Accessor } from "solid-js";
+import { PopupHandle } from "../../utils/popupHandle";
 import type { DialogRootContextValue } from "../root/DialogRootContext";
 
-export class DialogHandle<Payload = unknown> {
-  /** Reactive view of the attached root, for components that must re-run when it changes. */
-  readonly context: Accessor<DialogRootContextValue<Payload> | undefined>;
-  private readonly setContext: (context: DialogRootContextValue<Payload> | undefined) => void;
-  /**
-   * The attached root as a plain field. Signal writes are not visible to reads until the next
-   * flush, so attachment bookkeeping and the imperative methods cannot go through the signal.
-   */
-  private attached: DialogRootContextValue<Payload> | undefined;
-
+export class DialogHandle<Payload = unknown> extends PopupHandle<DialogRootContextValue<Payload>> {
   constructor() {
-    const [context, setContext] = createSignal<DialogRootContextValue<Payload>>();
-    this.context = context;
-    this.setContext = setContext;
-  }
-
-  attach(context: DialogRootContextValue<Payload>) {
-    if (this.attached && this.attached !== context) {
-      console.warn("Rigid UI: a Dialog.Handle cannot be attached to multiple mounted roots.");
-    }
-    this.attached = context;
-    this.setContext(context);
-    return () => {
-      if (this.attached !== context) return;
-      this.attached = undefined;
-      this.setContext(undefined);
-    };
+    super("Dialog");
   }
 
   open(triggerId: string | null) {
-    const attached = this.attached;
+    const attached = this.attachedRoot();
     if (!attached) return;
     if (triggerId === null) {
       attached.requestOpen(true, "imperative-action");
@@ -41,7 +17,7 @@ export class DialogHandle<Payload = unknown> {
   }
 
   openWithPayload(payload: Payload) {
-    const attached = this.attached;
+    const attached = this.attachedRoot();
     if (!attached) {
       console.warn(
         "Rigid UI: Dialog.Handle.openWithPayload() was called while no root using this handle is " +
@@ -52,14 +28,6 @@ export class DialogHandle<Payload = unknown> {
     }
     attached.setExplicitPayload(payload);
     attached.requestOpen(true, "imperative-action");
-  }
-
-  close() {
-    this.attached?.requestOpen(false, "imperative-action");
-  }
-
-  get isOpen() {
-    return this.attached?.open() ?? false;
   }
 }
 

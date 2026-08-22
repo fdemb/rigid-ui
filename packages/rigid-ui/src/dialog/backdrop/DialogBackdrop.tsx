@@ -1,7 +1,8 @@
-import { createEffect, createSignal, omit, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createSignal, Show } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { assignRef, mergeStyles, type PopupNativeProps } from "../../utils/domProps";
+import { renderElement } from "../../internals/renderElement";
+import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
+import type { PopupNativeProps } from "../../utils/domProps";
 import type { DialogTransitionStatus } from "../types";
 
 export interface DialogBackdropState {
@@ -15,7 +16,6 @@ export interface DialogBackdropProps extends PopupNativeProps<HTMLDivElement> {
 
 export function DialogBackdrop(props: DialogBackdropProps) {
   const context = useDialogRootContext();
-  const others = omit(props, "ref", "children", "style", "forceRender");
   const [element, setElement] = createSignal<HTMLDivElement>();
 
   createEffect(
@@ -32,24 +32,32 @@ export function DialogBackdrop(props: DialogBackdropProps) {
   return (
     <Show when={!context!.nested || props.forceRender}>
       <div
-        {...others}
-        ref={(node) => {
-          setElement(node);
-          assignRef(props.ref, node);
-        }}
-        role={props.role ?? "presentation"}
-        hidden={!context!.mounted()}
-        data-open={context!.open() ? "" : undefined}
-        data-closed={!context!.open() ? "" : undefined}
-        data-starting-style={context!.transitionStatus() === "starting" ? "" : undefined}
-        data-ending-style={context!.transitionStatus() === "ending" ? "" : undefined}
-        style={mergeStyles(
-          {
-            "user-select": "none",
-            "-webkit-user-select": "none",
-          },
-          props.style as JSX.CSSProperties | string | undefined,
-        )}
+        {...renderElement<
+          HTMLDivElement,
+          { open: boolean; transitionStatus: DialogTransitionStatus }
+        >(props as Record<string, unknown>, {
+          props: [
+            {
+              get role() {
+                return props.role ?? "presentation";
+              },
+              get hidden() {
+                return !context!.mounted();
+              },
+              style: {
+                "user-select": "none",
+                "-webkit-user-select": "none",
+              },
+            },
+          ],
+          state: () => ({
+            open: context!.open(),
+            transitionStatus: context!.transitionStatus(),
+          }),
+          stateAttributesMapping: popupTransitionStateMapping,
+          ref: setElement,
+          exclude: ["forceRender"],
+        })}
       >
         {props.children}
       </div>

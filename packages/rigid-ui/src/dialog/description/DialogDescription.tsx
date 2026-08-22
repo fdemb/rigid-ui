@@ -1,6 +1,7 @@
-import { createEffect, createUniqueId, omit } from "solid-js";
+import { createEffect, createUniqueId } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { assignRef, type PopupNativeProps } from "../../utils/domProps";
+import { renderElement } from "../../internals/renderElement";
+import { type PopupNativeProps } from "../../utils/domProps";
 
 export interface DialogDescriptionState {}
 export interface DialogDescriptionProps extends PopupNativeProps<HTMLParagraphElement> {}
@@ -10,7 +11,6 @@ export function DialogDescription(props: DialogDescriptionProps) {
   const generatedId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
   const id = (): string =>
     typeof props.id === "string" ? props.id : `rigid-dialog-description-${generatedId}`;
-  const others = omit(props, "ref", "children");
 
   createEffect(
     () => id(),
@@ -18,7 +18,18 @@ export function DialogDescription(props: DialogDescriptionProps) {
   );
 
   return (
-    <p {...others} id={id()} ref={(element) => assignRef(props.ref, element)}>
+    <p
+      {...renderElement<HTMLParagraphElement>(props, {
+        props: [
+          {
+            get id() {
+              return id();
+            },
+          },
+        ],
+        exclude: ["id"],
+      })}
+    >
       {props.children}
     </p>
   );

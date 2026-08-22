@@ -1,6 +1,7 @@
 import { createSignal } from "solid-js";
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { DirectionProvider } from "../../direction-provider/DirectionProvider";
 import { ScrollArea } from "../index";
 import { SCROLL_TIMEOUT } from "../constants";
 import {
@@ -763,6 +764,94 @@ describe("<ScrollArea.Root />", () => {
       // Raising the threshold above the current offset must clear the edge without a new scroll.
       setYStart(20);
       await waitFor(() => expect(viewport).not.toHaveAttribute("data-overflow-y-start"));
+    });
+
+    it("correctly handles RTL", async () => {
+      render(() => (
+        <DirectionProvider direction="rtl">
+          <ScrollArea.Root
+            data-testid="root"
+            style={{ width: `${VIEWPORT_SIZE}px`, height: `${VIEWPORT_SIZE}px`, direction: "rtl" }}
+          >
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div style={{ width: `${SCROLLABLE_CONTENT_SIZE}px`, height: "200px" }} />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar orientation="horizontal" data-testid="scrollbar-horizontal">
+              <ScrollArea.Thumb />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        </DirectionProvider>
+      ));
+
+      const root = screen.getByTestId("root");
+      const viewport = screen.getByTestId("viewport");
+
+      const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+      scrollViewport(viewport, { scrollLeft: 0 });
+      await waitFor(() => expect(root).toHaveAttribute("data-has-overflow-x"));
+      expect(root).not.toHaveAttribute("data-overflow-x-start");
+      expect(root).toHaveAttribute("data-overflow-x-end");
+
+      scrollViewport(viewport, { scrollLeft: -maxScrollLeft / 2 });
+      await waitFor(() => expect(root).toHaveAttribute("data-overflow-x-start"));
+      expect(root).toHaveAttribute("data-overflow-x-end");
+
+      scrollViewport(viewport, { scrollLeft: -maxScrollLeft });
+      await waitFor(() => expect(root).not.toHaveAttribute("data-overflow-x-end"));
+      expect(root).toHaveAttribute("data-overflow-x-start");
+    });
+
+    it("recomputes horizontal overflow edges when direction changes", async () => {
+      // Solid's render has no `rerender`; a signal driving the provider is the same
+      // reactive contract.
+      const [direction, setDirection] = createSignal<"ltr" | "rtl">("ltr");
+
+      render(() => (
+        <DirectionProvider direction={direction()}>
+          <ScrollArea.Root
+            data-testid="root"
+            style={{
+              width: `${VIEWPORT_SIZE}px`,
+              height: `${VIEWPORT_SIZE}px`,
+              get direction() {
+                return direction();
+              },
+            }}
+          >
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div
+                style={{ width: `${SCROLLABLE_CONTENT_SIZE}px`, height: `${VIEWPORT_SIZE}px` }}
+              />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar orientation="horizontal">
+              <ScrollArea.Thumb />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        </DirectionProvider>
+      ));
+
+      const root = screen.getByTestId("root");
+      const viewport = screen.getByTestId("viewport");
+
+      await waitFor(() => expect(root).toHaveAttribute("data-has-overflow-x"));
+
+      const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth;
+      scrollViewport(viewport, { scrollLeft: maxScrollLeft / 2 });
+
+      await waitFor(() => {
+        expect(root).toHaveAttribute("data-overflow-x-start");
+        expect(root).toHaveAttribute("data-overflow-x-end");
+      });
+
+      setDirection("rtl");
+
+      await waitFor(() => expect(root.style.direction).toBe("rtl"));
+      scrollViewport(viewport, { scrollLeft: -maxScrollLeft });
+
+      await waitFor(() => {
+        expect(root).toHaveAttribute("data-overflow-x-start");
+        expect(root).not.toHaveAttribute("data-overflow-x-end");
+      });
     });
 
     it("does not add state attributes when content does not overflow", async () => {

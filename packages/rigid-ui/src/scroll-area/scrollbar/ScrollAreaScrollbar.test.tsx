@@ -1,5 +1,6 @@
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { describe, expect, it, vi } from "vite-plus/test";
+import { DirectionProvider } from "../../direction-provider/DirectionProvider";
 import { ScrollArea } from "../index";
 import { SCROLL_TIMEOUT } from "../constants";
 import {
@@ -356,20 +357,28 @@ describe("<ScrollArea.Scrollbar />", () => {
   describe("wheel", () => {
     function renderWheelTest(
       props: {
+        direction?: "ltr" | "rtl";
         orientation?: "horizontal" | "vertical";
         scrollLeft?: number;
         scrollTop?: number;
       } = {},
     ) {
-      const { orientation = "horizontal", scrollLeft = 0, scrollTop = 0 } = props;
+      const {
+        direction = "ltr",
+        orientation = "horizontal",
+        scrollLeft = 0,
+        scrollTop = 0,
+      } = props;
 
       render(() => (
-        <ScrollArea.Root style={{ width: "200px", height: "200px" }}>
-          <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
-            <div style={{ width: "1000px", height: "1000px" }} />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted />
-        </ScrollArea.Root>
+        <DirectionProvider direction={direction}>
+          <ScrollArea.Root style={{ width: "200px", height: "200px", direction }}>
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div style={{ width: "1000px", height: "1000px" }} />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted />
+          </ScrollArea.Root>
+        </DirectionProvider>
       ));
 
       const viewport = screen.getByTestId("viewport") as HTMLDivElement;
@@ -394,6 +403,36 @@ describe("<ScrollArea.Scrollbar />", () => {
 
       fireEvent.wheel(scrollbar, { deltaX: 50 });
       expect(viewport.scrollLeft).toBe(800);
+    });
+
+    it("allows horizontal scrolling away from the RTL start edge", async () => {
+      const { viewport, scrollbar } = renderWheelTest({ direction: "rtl" });
+
+      fireEvent.wheel(scrollbar, { deltaX: -50 });
+
+      expect(viewport.scrollLeft).toBe(-50);
+    });
+
+    it("clamps horizontal RTL wheel scrolling at both edges", async () => {
+      const { viewport, scrollbar } = renderWheelTest({ direction: "rtl" });
+
+      fireEvent.wheel(scrollbar, { deltaX: 50 });
+      expect(viewport.scrollLeft).toBe(0);
+
+      viewport.scrollLeft = -100;
+      fireEvent.wheel(scrollbar, { deltaX: 50 });
+      expect(viewport.scrollLeft).toBe(-50);
+
+      viewport.scrollLeft = -790;
+      fireEvent.wheel(scrollbar, { deltaX: -50 });
+      expect(viewport.scrollLeft).toBe(-800);
+
+      fireEvent.wheel(scrollbar, { deltaX: -50 });
+      expect(viewport.scrollLeft).toBe(-800);
+
+      viewport.scrollLeft = -10;
+      fireEvent.wheel(scrollbar, { deltaX: 50 });
+      expect(viewport.scrollLeft).toBe(0);
     });
 
     it("clamps vertical wheel scrolling at both edges", async () => {
@@ -502,16 +541,21 @@ describe("<ScrollArea.Scrollbar />", () => {
   // `getOffset` reads logical margins and paddings that JSDOM doesn't compute, so exercise the
   // merged branch against real layout here.
   describe.skipIf(isJSDOM)("track click by axis", () => {
-    async function renderAxisTrack(orientation: "horizontal" | "vertical") {
+    async function renderAxisTrack(
+      orientation: "horizontal" | "vertical",
+      direction: "ltr" | "rtl" = "ltr",
+    ) {
       render(() => (
-        <ScrollArea.Root style={{ width: "200px", height: "200px" }}>
-          <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
-            <div style={{ width: "1000px", height: "1000px" }} />
-          </ScrollArea.Viewport>
-          <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted>
-            <ScrollArea.Thumb data-testid="thumb" />
-          </ScrollArea.Scrollbar>
-        </ScrollArea.Root>
+        <DirectionProvider direction={direction}>
+          <ScrollArea.Root style={{ width: "200px", height: "200px", direction }}>
+            <ScrollArea.Viewport data-testid="viewport" style={{ width: "100%", height: "100%" }}>
+              <div style={{ width: "1000px", height: "1000px" }} />
+            </ScrollArea.Viewport>
+            <ScrollArea.Scrollbar orientation={orientation} data-testid="scrollbar" keepMounted>
+              <ScrollArea.Thumb data-testid="thumb" />
+            </ScrollArea.Scrollbar>
+          </ScrollArea.Root>
+        </DirectionProvider>
       ));
 
       const viewport = screen.getByTestId("viewport") as HTMLDivElement;
@@ -548,6 +592,20 @@ describe("<ScrollArea.Scrollbar />", () => {
       });
 
       expect(viewport.scrollLeft).toBeGreaterThan(0);
+    });
+
+    it("scrolls into the negative RTL range when clicking a horizontal RTL track", async () => {
+      const { viewport, scrollbar } = await renderAxisTrack("horizontal", "rtl");
+      const rect = scrollbar.getBoundingClientRect();
+
+      fireEvent.pointerDown(scrollbar, {
+        button: 0,
+        clientX: rect.left + 5,
+        clientY: rect.top + rect.height / 2,
+        pointerId: 1,
+      });
+
+      expect(viewport.scrollLeft).toBeLessThan(0);
     });
   });
 

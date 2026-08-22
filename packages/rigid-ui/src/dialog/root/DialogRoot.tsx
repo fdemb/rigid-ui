@@ -8,6 +8,7 @@ import {
   type Accessor,
 } from "solid-js";
 import { createComponent, type JSX } from "@solidjs/web";
+import { createChangeEventDetails } from "../../internals/createBaseUIEventDetails";
 import {
   DialogRootContext,
   type DialogRootContextValue,
@@ -161,21 +162,11 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
     event: Event,
     trigger: Element | undefined,
   ): DialogRootChangeEventDetails {
-    let canceled = false;
-    return {
-      reason,
-      event,
-      trigger,
-      get isCanceled() {
-        return canceled;
-      },
-      cancel() {
-        canceled = true;
-      },
+    return createChangeEventDetails(reason, event, trigger, {
       preventUnmountOnClose() {
         preventCurrentUnmount = true;
       },
-    };
+    });
   }
 
   function requestOpen(

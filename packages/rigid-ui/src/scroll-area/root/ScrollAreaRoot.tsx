@@ -1,4 +1,5 @@
-import { createMemo, createSignal, omit, type ParentProps } from "solid-js";
+import { createMemo, createSignal, type ParentProps } from "solid-js";
+import { renderElement } from "../../internals/renderElement";
 import type { JSX } from "@solidjs/web";
 import {
   ScrollAreaRootContext,
@@ -54,8 +55,6 @@ function normalizeOverflowEdgeThreshold(
 }
 
 export function ScrollAreaRoot(props: ScrollAreaRootProps) {
-  const others = omit(props, "children", "overflowEdgeThreshold", "ref", "style");
-
   const overflowEdgeThreshold = createMemo(() =>
     normalizeOverflowEdgeThreshold(props.overflowEdgeThreshold),
   );
@@ -319,34 +318,33 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
     disableViewportSnap,
   };
 
-  const mergedStyle = () => {
-    const base: JSX.CSSProperties = {
-      position: "relative",
-      overflow: "hidden",
-      [ScrollAreaRootCssVars.scrollAreaCornerHeight]: `${cornerSize().height}px`,
-      [ScrollAreaRootCssVars.scrollAreaCornerWidth]: `${cornerSize().width}px`,
-    };
-    if (typeof props.style === "object" && props.style) {
-      return { ...base, ...props.style };
-    }
-    return base;
-  };
-
   return (
     <ScrollAreaRootContext value={contextValue}>
       <div
-        ref={(el) => {
-          rootRef = el;
-          if (typeof props.ref === "function") props.ref(el);
-        }}
-        role="presentation"
-        onPointerEnter={handlePointerEnterOrMove}
-        onPointerMove={handlePointerEnterOrMove}
-        onPointerDown={handleTouchModalityChange}
-        onPointerLeave={() => setHovering(false)}
-        style={mergedStyle()}
         {...overflowStateAttributes(contextValue)}
-        {...others}
+        {...renderElement<HTMLDivElement>(props, {
+          ref(element) {
+            rootRef = element;
+          },
+          exclude: ["overflowEdgeThreshold"],
+          props: {
+            role: "presentation",
+            onPointerEnter: handlePointerEnterOrMove,
+            onPointerMove: handlePointerEnterOrMove,
+            onPointerDown: handleTouchModalityChange,
+            onPointerLeave() {
+              setHovering(false);
+            },
+            get style() {
+              return {
+                position: "relative",
+                overflow: "hidden",
+                [ScrollAreaRootCssVars.scrollAreaCornerHeight]: `${cornerSize().height}px`,
+                [ScrollAreaRootCssVars.scrollAreaCornerWidth]: `${cornerSize().width}px`,
+              };
+            },
+          },
+        })}
       >
         {props.children}
       </div>
