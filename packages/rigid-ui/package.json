@@ -37,6 +37,10 @@
     "./popover": {
       "types": "./dist/popover/index.d.ts",
       "import": "./dist/popover/index.js"
+    },
+    "./csp-provider": {
+      "types": "./dist/csp-provider/index.d.ts",
+      "import": "./dist/csp-provider/index.js"
     }
   },
   "scripts": {

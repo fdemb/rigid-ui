@@ -46,6 +46,7 @@ export default defineConfig({
       "scroll-area/index": "src/scroll-area/index.ts",
       "dialog/index": "src/dialog/index.ts",
       "popover/index": "src/popover/index.ts",
+      "csp-provider/index": "src/csp-provider/index.ts",
     },
     platform: "neutral",
     outDir: "dist",
