@@ -61,6 +61,7 @@ export function DialogPopup(props: DialogPopupProps) {
     open: () => context!.open(),
     disabled: () => !context!.mounted(),
     modal: () => context!.modal() !== false,
+    portalContainer: () => context!.portalElement() ?? null,
     closeOnFocusOut: () => !context!.disablePointerDismissal(),
     restoreFocus: "popup",
     get initialFocus() {
