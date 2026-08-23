@@ -261,6 +261,91 @@ describe("Dialog", () => {
     });
   });
 
+  describe("non-modal focus guards", () => {
+    // Document tab order: outside-before, [portal: beforeGuard, popup, afterGuard],
+    // outside-after. The portal renders into an explicit container so the fixture controls
+    // what precedes and follows it.
+    function NonModalTabDialog() {
+      let portalContainer: HTMLDivElement | undefined;
+      return (
+        <div>
+          <span tabindex={0} data-testid="outside-before" />
+          <div data-testid="portal-container" ref={portalContainer} />
+          <span tabindex={0} data-testid="outside-after" />
+          <Dialog.Root modal={false}>
+            <Dialog.Trigger data-testid="trigger">Toggle</Dialog.Trigger>
+            <Dialog.Portal container={portalContainer}>
+              <Dialog.Popup data-testid="popup">
+                <button data-testid="inside">Inside</button>
+              </Dialog.Popup>
+            </Dialog.Portal>
+          </Dialog.Root>
+        </div>
+      );
+    }
+
+    async function openNonModal() {
+      render(() => <NonModalTabDialog />);
+      const trigger = screen.getByTestId("trigger");
+      trigger.focus();
+      fireEvent.click(trigger);
+      const inside = await screen.findByTestId("inside");
+      await waitFor(() => expect(inside).toHaveFocus());
+      const popup = screen.getByTestId("popup");
+      return {
+        popup,
+        beforeGuard: popup.previousElementSibling as HTMLElement,
+        afterGuard: popup.nextElementSibling as HTMLElement,
+        outsideBefore: screen.getByTestId("outside-before"),
+        outsideAfter: screen.getByTestId("outside-after"),
+        inside,
+      };
+    }
+
+    it("renders guards for a portaled non-modal dialog", async () => {
+      const { beforeGuard, afterGuard } = await openNonModal();
+
+      expect(beforeGuard).toHaveAttribute("data-rigid-ui-focus-guard");
+      expect(afterGuard).toHaveAttribute("data-rigid-ui-focus-guard");
+    });
+
+    it("renders no guards when the popup is not portaled", async () => {
+      render(() => (
+        <Dialog.Root modal={false}>
+          <Dialog.Trigger>Toggle</Dialog.Trigger>
+          <Dialog.Popup data-testid="popup">
+            <button>Inside</button>
+          </Dialog.Popup>
+        </Dialog.Root>
+      ));
+
+      fireEvent.click(screen.getByRole("button", { name: "Toggle" }));
+      await screen.findByTestId("popup");
+
+      expect(document.querySelectorAll("[data-rigid-ui-focus-guard]")).toHaveLength(0);
+    });
+
+    it("continues forward tabbing into the document flow after the portal and closes", async () => {
+      const { afterGuard, outsideAfter } = await openNonModal();
+
+      // Tabbing forward from the last tabbable inside lands on the after guard; the manager
+      // must hand focus past the portal instead of letting it die there.
+      afterGuard.focus();
+
+      await waitFor(() => expect(outsideAfter).toHaveFocus());
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    });
+
+    it("continues backward tabbing to the element before the portal and stays open", async () => {
+      const { beforeGuard, outsideBefore } = await openNonModal();
+
+      beforeGuard.focus();
+
+      await waitFor(() => expect(outsideBefore).toHaveFocus());
+      expect(screen.queryByRole("dialog")).not.toBeNull();
+    });
+  });
+
   describe("modal behavior", () => {
     it("renders an internal backdrop for modal dialogs only", async () => {
       const modal = render(() => <TestDialog />);

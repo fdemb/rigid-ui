@@ -7,7 +7,10 @@ import { enqueueFocus } from "./enqueueFocus";
 import { FocusGuard } from "./FocusGuard";
 import {
   activeElement,
+  getNextTabbable,
+  getPreviousTabbable,
   isElementVisible,
+  isOutsideEvent,
   isTabbable,
   ownerDocument,
   tabbable,
@@ -39,6 +42,11 @@ export interface PopupFocusManagerOptions {
   disabled?: Accessor<boolean>;
   /** Traps focus inside the popup and hides everything outside from assistive tech. */
   modal?: boolean | Accessor<boolean>;
+  /**
+   * The portaled container the popup renders into, when there is one. Non-modal popups render
+   * focus guards only when portaled, and use them to bridge tabbing across the portal gap.
+   */
+  portalContainer?: () => Element | null | undefined;
   closeOnFocusOut?: Accessor<boolean>;
   /**
    * Where focus lands when it is lost from inside the popup, e.g. its focused child being
@@ -150,6 +158,9 @@ export function createPopupFocusManager(options: PopupFocusManagerOptions) {
     (typeof options.modal === "function" ? options.modal() : options.modal) ?? true;
   const closeOnFocusOut = options.closeOnFocusOut ?? (() => true);
   const restoreFocusMode = () => options.restoreFocus ?? false;
+  // The portaled popup container, when the caller renders one. Non-modal popups only render
+  // focus guards when they are portaled: inline guards would intercept ordinary page tabbing.
+  const portalContainer = () => options.portalContainer?.() ?? null;
 
   const [beforeGuard, setBeforeGuard] = createSignal<HTMLSpanElement>();
   const [afterGuard, setAfterGuard] = createSignal<HTMLSpanElement>();
@@ -163,7 +174,9 @@ export function createPopupFocusManager(options: PopupFocusManagerOptions) {
   const getInsideElements = (): Element[] =>
     (options.insideElements?.() ?? []).filter((element): element is Element => element != null);
 
-  const guardsVisible = createMemo(() => !disabled() && modal());
+  // Modal popups trap through their guards; portaled non-modal ones use the guards to bridge
+  // the portal gap so tabbing out continues into the surrounding document flow.
+  const guardsVisible = createMemo(() => !disabled() && (modal() || portalContainer() != null));
 
   createEffect(
     () => [options.popup(), disabled()] as const,
@@ -485,19 +498,53 @@ export function createPopupFocusManager(options: PopupFocusManagerOptions) {
     },
   );
 
-  function handleBeforeGuardFocus() {
-    if (!modal()) return;
+  function handleBeforeGuardFocus(event: FocusEvent) {
     const floatingFocusElement = options.popup();
     if (!floatingFocusElement) return;
-    const content = tabbable(floatingFocusElement);
-    enqueueFocus(content[content.length - 1]);
+
+    if (modal()) {
+      const content = tabbable(floatingFocusElement);
+      enqueueFocus(content[content.length - 1]);
+      return;
+    }
+
+    const guard = event.currentTarget as HTMLElement;
+    if (!isOutsideEvent(event, portalContainer() ?? undefined)) {
+      // Backward exit from inside the popup continues into the document flow before the
+      // portal, rather than escaping to browser chrome.
+      enqueueFocus(getPreviousTabbable(guard));
+      return;
+    }
+    // Entered from the surrounding document: hand focus to the start of the popup.
+    enqueueFocus(tabbable(floatingFocusElement)[0]);
   }
 
-  function handleAfterGuardFocus() {
-    if (!modal()) return;
+  function handleAfterGuardFocus(event: FocusEvent) {
     const floatingFocusElement = options.popup();
     if (!floatingFocusElement) return;
-    enqueueFocus(tabbable(floatingFocusElement)[0]);
+
+    if (modal()) {
+      enqueueFocus(tabbable(floatingFocusElement)[0]);
+      return;
+    }
+
+    const guard = event.currentTarget as HTMLElement;
+    if (!isOutsideEvent(event, portalContainer() ?? undefined)) {
+      // Forward exit from inside the popup: continue into the document flow after the portal.
+      // The dialog follows Base UI in treating that settled outside focus as a dismissal when
+      // focus-out closing is enabled, suppressing return focus for it.
+      if (closeOnFocusOut()) {
+        preventReturnFocus.current = true;
+        enqueueFocus(getNextTabbable(guard));
+        options.onRequestClose?.(event);
+        return;
+      }
+      enqueueFocus(getNextTabbable(guard));
+      return;
+    }
+    // Entered from the surrounding document: hand focus to the end of the popup.
+    const content = tabbable(floatingFocusElement);
+    enqueueFocus(content[content.length - 1]);
   }
 
   const guardVisible = guardsVisible;
