@@ -1,4 +1,4 @@
-import { createMemo, createSignal, type ParentProps } from "solid-js";
+import { createMemo, createSignal, createUniqueId, type ParentProps } from "solid-js";
 import { renderElement } from "../../internals/renderElement";
 import type { JSX } from "@solidjs/web";
 import {
@@ -55,6 +55,8 @@ function normalizeOverflowEdgeThreshold(
 }
 
 export function ScrollAreaRoot(props: ScrollAreaRootProps) {
+  const rootId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
+
   const overflowEdgeThreshold = createMemo(() =>
     normalizeOverflowEdgeThreshold(props.overflowEdgeThreshold),
   );
@@ -252,6 +254,7 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
   }
 
   const contextValue = {
+    rootId,
     cornerSize,
     setCornerSize,
     thumbSize,
