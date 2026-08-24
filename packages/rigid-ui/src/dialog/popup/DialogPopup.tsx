@@ -110,7 +110,7 @@ export function DialogPopup(props: DialogPopupProps) {
                 return props.id ?? context!.popupId;
               },
               get role() {
-                return props.role ?? "dialog";
+                return props.role ?? context!.role();
               },
               get tabindex() {
                 return props.tabindex ?? -1;

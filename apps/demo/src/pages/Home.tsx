@@ -9,6 +9,13 @@ const components = [
     examples: 2,
   },
   {
+    href: "/alert-dialog",
+    name: "Alert dialog",
+    description:
+      "A modal dialog for interruptions and confirmations that cannot be dismissed by clicking outside.",
+    examples: 1,
+  },
+  {
     href: "/popover",
     name: "Popover",
     description:

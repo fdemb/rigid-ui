@@ -34,6 +34,10 @@
       "types": "./dist/dialog/index.d.ts",
       "import": "./dist/dialog/index.js"
     },
+    "./alert-dialog": {
+      "types": "./dist/alert-dialog/index.d.ts",
+      "import": "./dist/alert-dialog/index.js"
+    },
     "./popover": {
       "types": "./dist/popover/index.d.ts",
       "import": "./dist/popover/index.js"

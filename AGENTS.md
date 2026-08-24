@@ -75,6 +75,14 @@ Check these before concluding a ported test has found a bug.
 | Nested Menu/Select/Toolbar/Drawer integration | Those components do not exist yet |
 | Detached-trigger SSR and hydration cases      | React-only                        |
 
+### Alert dialog
+
+| Base UI case                                                                                   | Why it does not apply                                                                                                  |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `renders a viewport`                                                                           | `Dialog.Viewport` is not ported yet; port the test when RUI-46 closes                                                  |
+| Detached-trigger reparenting while open (`keeps detached triggers clickable when reparented…`) | Pins React reparenting semantics via `setProps` wrapper swaps; Solid triggers keep their DOM node when wrappers change |
+| `keeps detached triggers clickable during Fast Refresh-like handle recreation`                 | Fast Refresh is React-only                                                                                             |
+
 ### Scroll Area
 
 | Base UI case                                                                                                | Why it does not apply                                                                                                                                                    |

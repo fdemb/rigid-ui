@@ -22,6 +22,8 @@ export interface DialogRootContextValue<Payload = unknown> {
   activeTrigger: Accessor<RegisteredDialogTrigger<Payload> | undefined>;
   payload: Accessor<Payload | undefined>;
   modal: Accessor<DialogModal>;
+  /** `"alertdialog"` for alert dialogs, `"dialog"` otherwise; used as the popup's default role. */
+  role: Accessor<"dialog" | "alertdialog">;
   nested: boolean;
   openReason: Accessor<DialogRootChangeEventReason>;
   openMethod: Accessor<DialogInteractionType>;

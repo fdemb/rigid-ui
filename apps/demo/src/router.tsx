@@ -7,6 +7,7 @@ export const Router = createRouter({
   routes: [
     { path: "/", component: lazy(() => import("./pages/Home")) },
     { path: "/dialog", component: lazy(() => import("./pages/DialogPage")) },
+    { path: "/alert-dialog", component: lazy(() => import("./pages/AlertDialogPage")) },
     { path: "/popover", component: lazy(() => import("./pages/PopoverPage")) },
     { path: "/scroll-area", component: lazy(() => import("./pages/ScrollAreaPage")) },
     { path: "*404", component: lazy(() => import("./pages/NotFound")) },
