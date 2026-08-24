@@ -76,6 +76,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
       popup: element(),
       reason: context!.openReason(),
       method: context!.openMethod(),
+      closeMethod: context!.closeMethod(),
       initialFocus: props.initialFocus,
       finalFocus: props.finalFocus,
       trigger: context!.activeTrigger()?.element(),
@@ -100,7 +101,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
       }
       if (!state.isOpen && wasOpen && state.reason !== REASONS.triggerHover) {
         queueMicrotask(() => {
-          const resolved = targetFromValue(state.finalFocus, state.method);
+          const resolved = targetFromValue(state.finalFocus, state.closeMethod);
           if (typeof state.finalFocus === "function" && resolved === undefined) return;
           if (resolved === false) return;
           if (resolved instanceof HTMLElement) {
