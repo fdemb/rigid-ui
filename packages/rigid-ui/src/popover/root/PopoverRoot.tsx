@@ -129,6 +129,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
   const [openReason, setOpenReason] = createSignal<PopoverRootChangeEventReason>("none");
   const [instantType, setInstantType] = createSignal<PopoverInstantType>(undefined);
   const [openMethod, setOpenMethod] = createSignal<PopoverInteractionType>("keyboard");
+  const [closeMethod, setCloseMethod] = createSignal<PopoverInteractionType>("keyboard");
   const [titleId, setTitleId] = createSignal<string>();
   const [descriptionId, setDescriptionId] = createSignal<string>();
   const [popupElement, setPopupElement] = createSignal<HTMLDivElement>();
@@ -236,6 +237,15 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     if (details.isCanceled) return false;
 
     if (triggerId !== undefined && props.triggerId === undefined) setInternalTriggerId(triggerId);
+    if (!nextOpen) {
+      if (event instanceof PointerEvent) {
+        setCloseMethod((event.pointerType || "mouse") as PopoverInteractionType);
+      } else if (event instanceof KeyboardEvent) {
+        setCloseMethod("keyboard");
+      } else if (event instanceof MouseEvent && event.detail === 0) {
+        setCloseMethod("keyboard");
+      }
+    }
     if (event instanceof PointerEvent) setOpenMethod(event.pointerType as PopoverInteractionType);
     else if (reason === "trigger-hover") setOpenMethod("mouse");
     else if (event instanceof KeyboardEvent) setOpenMethod("keyboard");
@@ -341,6 +351,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     modal,
     openReason,
     openMethod,
+    closeMethod,
     setOpenMethod,
     instantType,
     setInstantType,
@@ -399,6 +410,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
     (isOpen) => {
       if (!isOpen) return;
       const handlePointerDown = (event: PointerEvent) => {
+        setCloseMethod((event.pointerType || "mouse") as PopoverInteractionType);
         const target = event.target as Node | null;
         if (hasOpenDescendant()) return;
         if (!target) return;
@@ -412,6 +424,7 @@ export function PopoverRoot<Payload = unknown>(props: PopoverRootProps<Payload>)
         requestOpen(false, "outside-press", event);
       };
       const handleKeyDown = (event: KeyboardEvent) => {
+        setCloseMethod("keyboard");
         if (event.key !== "Escape") return;
         if (hasOpenDescendant()) return;
         event.preventDefault();

@@ -206,9 +206,7 @@ describe("<Popover.Popup />", () => {
       await waitFor(() => expect(screen.getByRole("button", { name: "Open" })).toHaveFocus());
     });
 
-    // Base UI passes the *close* interaction type here; we pass the type that opened the
-    // popover. Recorded as a divergence in Linear.
-    it("selects a target based on the interaction type that opened the popover", async () => {
+    it("selects a target based on the interaction type that closed the popover", async () => {
       let final: HTMLInputElement | undefined;
       render(() => (
         <>
@@ -221,17 +219,22 @@ describe("<Popover.Popup />", () => {
         </>
       ));
 
-      // Closed by pointer: `true` means the default, so focus returns to the trigger.
+      // Open by pointer, then close by pointer. `true` means the default, so focus returns to the
+      // trigger.
       fireEvent.pointerDown(screen.getByRole("button", { name: "Open" }), { pointerType: "mouse" });
       fireEvent.click(screen.getByRole("button", { name: "Open" }), { detail: 1 });
       await waitFor(() => expect(screen.getByTestId("popup")).toBeVisible());
-      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Close" }), {
+        pointerType: "mouse",
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Close" }), { detail: 1 });
       await waitFor(() => expect(screen.getByRole("button", { name: "Open" })).toHaveFocus());
 
-      // Closed by keyboard: focus moves to the returned element instead.
-      fireEvent.click(screen.getByRole("button", { name: "Open" }), { detail: 0 });
+      // Open by pointer, then close by keyboard. The callback now sees the close type.
+      fireEvent.pointerDown(screen.getByRole("button", { name: "Open" }), { pointerType: "mouse" });
+      fireEvent.click(screen.getByRole("button", { name: "Open" }), { detail: 1 });
       await waitFor(() => expect(screen.getByTestId("popup")).toBeVisible());
-      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      fireEvent.click(screen.getByRole("button", { name: "Close" }), { detail: 0 });
       await waitFor(() => expect(screen.getByTestId("final")).toHaveFocus());
     });
   });
