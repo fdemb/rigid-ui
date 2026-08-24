@@ -116,6 +116,32 @@ describe("Dialog", () => {
   });
 
   describe("dismissal and focus", () => {
+    it.skipIf(isJSDOM)("closes a controlled portaled dialog without a Dialog.Trigger", async () => {
+      function ControlledDialog() {
+        const [open, setOpen] = createSignal(false);
+        return (
+          <>
+            <button onClick={() => setOpen(true)}>Open dialog</button>
+            <Dialog.Root open={open()} onOpenChange={setOpen}>
+              <Dialog.Portal>
+                <Dialog.Popup>
+                  <Dialog.Close>Close dialog</Dialog.Close>
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
+          </>
+        );
+      }
+
+      render(() => <ControlledDialog />);
+      fireEvent.click(screen.getByRole("button", { name: "Open dialog" }));
+      await screen.findByRole("dialog");
+
+      fireEvent.click(screen.getByRole("button", { name: "Close dialog" }));
+
+      await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    });
+
     it("closes from Close and restores focus to the trigger", async () => {
       render(() => <TestDialog modal={false} />);
       const trigger = screen.getByRole("button", { name: "Toggle" });

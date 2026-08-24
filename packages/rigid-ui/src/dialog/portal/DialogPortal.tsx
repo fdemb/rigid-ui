@@ -30,8 +30,8 @@ export function DialogPortal(props: DialogPortalProps) {
   );
 
   return (
-    <Show when={context!.mounted() || props.keepMounted}>
-      <Portal mount={container() as Element | undefined}>
+    <Portal mount={container() as Element | undefined}>
+      <Show when={context!.mounted() || props.keepMounted}>
         <div
           {...renderElement<HTMLDivElement>(props as Record<string, unknown>, {
             props: [{ "data-rigid-ui-portal": "" }],
@@ -47,8 +47,8 @@ export function DialogPortal(props: DialogPortalProps) {
           )}
           {props.children}
         </div>
-      </Portal>
-    </Show>
+      </Show>
+    </Portal>
   );
 }
 
