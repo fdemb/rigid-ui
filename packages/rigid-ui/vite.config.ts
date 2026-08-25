@@ -47,6 +47,7 @@ export default defineConfig({
       "dialog/index": "src/dialog/index.ts",
       "alert-dialog/index": "src/alert-dialog/index.ts",
       "popover/index": "src/popover/index.ts",
+      "tooltip/index": "src/tooltip/index.ts",
       "csp-provider/index": "src/csp-provider/index.ts",
     },
     platform: "neutral",

@@ -83,6 +83,14 @@ Check these before concluding a ported test has found a bug.
 | Detached-trigger reparenting while open (`keeps detached triggers clickable when reparented…`) | Pins React reparenting semantics via `setProps` wrapper swaps; Solid triggers keep their DOM node when wrappers change |
 | `keeps detached triggers clickable during Fast Refresh-like handle recreation`                 | Fast Refresh is React-only                                                                                             |
 
+### Tooltip
+
+| Base UI case                                       | Why it is deferred                                                      |
+| -------------------------------------------------- | ----------------------------------------------------------------------- |
+| Cursor tracking with `trackCursorAxis`             | Cursor-relative positioning is tracked by RUI-48                        |
+| Nested-trigger choreography and safe-polygon paths | Nested hover ownership and pointer path retention are tracked by RUI-49 |
+| `Tooltip.Viewport`                                 | The viewport part and top-left positioning mode are tracked by RUI-50   |
+
 ### Scroll Area
 
 | Base UI case                                                                                                | Why it does not apply                                                                                                                                                    |

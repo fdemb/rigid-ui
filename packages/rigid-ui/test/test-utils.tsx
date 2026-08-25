@@ -10,6 +10,14 @@ export async function flushMicrotasks() {
   await Promise.resolve();
 }
 
+/** Resets pointer state that persists between real-browser tests. */
+export async function resetBrowserPointer() {
+  if (!isJSDOM) {
+    const { userEvent } = await import("vite-plus/test/browser");
+    await userEvent.unhover(document.body);
+  }
+}
+
 /** Resolves after a single animation frame, which is when Floating UI applies a new position. */
 export function waitSingleFrame() {
   return new Promise<void>((resolve) => {

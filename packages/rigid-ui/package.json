@@ -42,6 +42,10 @@
       "types": "./dist/popover/index.d.ts",
       "import": "./dist/popover/index.js"
     },
+    "./tooltip": {
+      "types": "./dist/tooltip/index.d.ts",
+      "import": "./dist/tooltip/index.js"
+    },
     "./csp-provider": {
       "types": "./dist/csp-provider/index.d.ts",
       "import": "./dist/csp-provider/index.js"
