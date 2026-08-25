@@ -4,6 +4,7 @@ import { useDialogRootContext } from "../root/DialogRootContext";
 import { InternalBackdrop } from "../../utils/InternalBackdrop";
 import { renderElement } from "../../internals/renderElement";
 import { type PopupNativeProps } from "../../utils/domProps";
+import { DialogPortalContext } from "./DialogPortalContext";
 
 export interface DialogPortalState {}
 
@@ -32,21 +33,23 @@ export function DialogPortal(props: DialogPortalProps) {
   return (
     <Portal mount={container() as Element | undefined}>
       <Show when={context!.mounted() || props.keepMounted}>
-        <div
-          {...renderElement<HTMLDivElement>(props as Record<string, unknown>, {
-            props: [{ "data-rigid-ui-portal": "" }],
-            ref: [(element: HTMLDivElement) => context!.setPortalElement(element)],
-            exclude: ["keepMounted", "container"],
-          })}
-        >
-          {context!.mounted() && context!.modal() === true && (
-            <InternalBackdrop
-              ref={(element) => context!.setInternalBackdropElement(element)}
-              inert={!context!.open()}
-            />
-          )}
-          {props.children}
-        </div>
+        <DialogPortalContext value={props.keepMounted ?? false}>
+          <div
+            {...renderElement<HTMLDivElement>(props as Record<string, unknown>, {
+              props: [{ "data-rigid-ui-portal": "" }],
+              ref: [(element: HTMLDivElement) => context!.setPortalElement(element)],
+              exclude: ["keepMounted", "container"],
+            })}
+          >
+            {context!.mounted() && context!.modal() === true && (
+              <InternalBackdrop
+                ref={(element) => context!.setInternalBackdropElement(element)}
+                inert={!context!.open()}
+              />
+            )}
+            {props.children}
+          </div>
+        </DialogPortalContext>
       </Show>
     </Portal>
   );

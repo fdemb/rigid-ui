@@ -8,6 +8,7 @@ export type * from "./backdrop/DialogBackdrop";
 export type * from "./title/DialogTitle";
 export type * from "./description/DialogDescription";
 export type * from "./close/DialogClose";
+export type * from "./viewport/DialogViewport";
 export type * from "./store/DialogHandle";
 export type {
   DialogFocusTarget,
