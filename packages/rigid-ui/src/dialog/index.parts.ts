@@ -6,4 +6,5 @@ export { DialogBackdrop as Backdrop } from "./backdrop/DialogBackdrop";
 export { DialogTitle as Title } from "./title/DialogTitle";
 export { DialogDescription as Description } from "./description/DialogDescription";
 export { DialogClose as Close } from "./close/DialogClose";
+export { DialogViewport as Viewport } from "./viewport/DialogViewport";
 export { createDialogHandle as createHandle, DialogHandle as Handle } from "./store/DialogHandle";

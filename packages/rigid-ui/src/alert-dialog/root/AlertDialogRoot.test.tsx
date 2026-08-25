@@ -6,8 +6,7 @@ import { useDialogRootContext } from "../../dialog/root/DialogRootContext";
 import { AlertDialog } from "../index";
 
 // Ported from Base UI's `alert-dialog/root/AlertDialogRoot.test.tsx` (the jsdom-safe subset,
-// with Chromium-only clusters behind `skipIf`). The "renders a viewport" case is not ported:
-// `Dialog.Viewport` does not exist yet (RUI-46).
+// with Chromium-only clusters behind `skipIf`).
 
 function TestAlertDialog(
   props: {
@@ -120,6 +119,20 @@ describe("AlertDialog", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(trigger.getAttribute("aria-controls")).toBe(popup.getAttribute("id"));
     expect(handle.isOpen).toBe(true);
+  });
+
+  it("renders a viewport", () => {
+    render(() => (
+      <AlertDialog.Root open>
+        <AlertDialog.Portal>
+          <AlertDialog.Viewport data-testid="viewport">
+            <AlertDialog.Popup>Dialog</AlertDialog.Popup>
+          </AlertDialog.Viewport>
+        </AlertDialog.Portal>
+      </AlertDialog.Root>
+    ));
+
+    expect(screen.getByTestId("viewport")).toContainElement(screen.getByRole("alertdialog"));
   });
 
   describe("prop: onOpenChange", () => {

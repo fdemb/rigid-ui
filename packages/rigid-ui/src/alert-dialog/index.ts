@@ -4,6 +4,10 @@ export type * from "./root/AlertDialogRoot";
 export type * from "./trigger/AlertDialogTrigger";
 export type * from "./store/AlertDialogHandle";
 export type {
+  DialogViewportProps as AlertDialogViewportProps,
+  DialogViewportState as AlertDialogViewportState,
+} from "../dialog/viewport/DialogViewport";
+export type {
   DialogFocusTarget,
   DialogInteractionType,
   DialogModal,
