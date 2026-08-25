@@ -4,6 +4,7 @@ export { TooltipTrigger as Trigger } from "./trigger/TooltipTrigger";
 export { TooltipPortal as Portal } from "./portal/TooltipPortal";
 export { TooltipPositioner as Positioner } from "./positioner/TooltipPositioner";
 export { TooltipPopup as Popup } from "./popup/TooltipPopup";
+export { TooltipViewport as Viewport } from "./viewport/TooltipViewport";
 export { TooltipArrow as Arrow } from "./arrow/TooltipArrow";
 export {
   TooltipHandle as Handle,

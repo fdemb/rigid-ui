@@ -89,7 +89,6 @@ Check these before concluding a ported test has found a bug.
 | -------------------------------------------------- | ----------------------------------------------------------------------- |
 | Cursor tracking with `trackCursorAxis`             | Cursor-relative positioning is tracked by RUI-48                        |
 | Nested-trigger choreography and safe-polygon paths | Nested hover ownership and pointer path retention are tracked by RUI-49 |
-| `Tooltip.Viewport`                                 | The viewport part and top-left positioning mode are tracked by RUI-50   |
 
 ### Scroll Area
 
