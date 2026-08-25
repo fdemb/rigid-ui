@@ -77,11 +77,9 @@ describe("useButton", () => {
             const { getButtonProps, buttonRef } = useButton({
               native: false,
             });
-            let host: HTMLSpanElement | null = null;
 
             const handleRef = (node: HTMLSpanElement | null) => {
               buttonRef(node);
-              host = node;
 
               if (!node || node.shadowRoot) {
                 return;
@@ -245,7 +243,6 @@ describe("useButton", () => {
     it("returns tabIndex in getButtonProps when host component is not BUTTON", async () => {
       function TestButton() {
         const { getButtonProps, buttonRef } = useButton({ native: false });
-        let host: HTMLSpanElement | undefined;
 
         expect(getButtonProps().tabIndex).toBe(0);
 
@@ -253,7 +250,6 @@ describe("useButton", () => {
           <span
             ref={(node) => {
               buttonRef(node);
-              host = node;
             }}
             {...getButtonProps()}
           />
