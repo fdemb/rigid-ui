@@ -51,6 +51,11 @@ export interface TooltipRootContextValue<Payload = unknown> {
   portalElement: Accessor<HTMLDivElement | undefined>;
   positionerElement: Accessor<HTMLDivElement | undefined>;
   registerTrigger(trigger: RegisteredTooltipTrigger<Payload>): () => void;
+  /**
+   * True when `target` sits inside a registered, enabled trigger other than `excludeId`. Focus
+   * handlers use this to hand an already-open tooltip over to the trigger gaining focus.
+   */
+  isInsideOtherTrigger(target: EventTarget | null, excludeId: string): boolean;
   setPopupElement(element: HTMLDivElement | undefined): void;
   setPortalElement(element: HTMLDivElement | undefined): void;
   setPositionerElement(element: HTMLDivElement | undefined): void;

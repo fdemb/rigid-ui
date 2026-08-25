@@ -148,7 +148,11 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     onFocus(event: FocusEvent) {
       if (event.defaultPrevented || disabled() || sawPointerDown) return;
       const store = context();
-      if (!store || store.readState().open) return;
+      if (!store) return;
+      // Focus landing on a different trigger hands the open tooltip over instead of being
+      // ignored; Base UI's focus handling reaches the same outcome through its open timers.
+      const snapshot = store.readState();
+      if (snapshot.open && snapshot.activeTriggerId === id()) return;
       cancelPendingOpen();
       // Focus opens skip the rest delay: keyboard users should not wait out a hover timer that
       // was tuned for pointers.
@@ -160,6 +164,9 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       const store = context();
       if (!store || !openByThisTriggerSync()) return;
       if (store.openReason() === REASONS.triggerHover) return;
+      // The focus handler of the trigger gaining focus performs the handover; closing here
+      // would tear the popup down mid-switch.
+      if (store.isInsideOtherTrigger(event.relatedTarget, id())) return;
       store.requestOpen(false, REASONS.triggerFocus, event, id());
     },
     onPointerDown() {

@@ -247,6 +247,16 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
     hoverCloseTimer = undefined;
   }
 
+  function isInsideOtherTrigger(target: EventTarget | null, excludeId: string) {
+    if (!(target instanceof Element)) return false;
+    for (const trigger of triggers.values()) {
+      if (trigger.id === excludeId || trigger.disabled()) continue;
+      const element = untrack(trigger.element);
+      if (element && (element === target || element.contains(target))) return true;
+    }
+    return false;
+  }
+
   function scheduleHoverClose(triggerId: string, event: Event, delay: number) {
     cancelHoverClose();
     if (sync.activeTriggerId !== triggerId) return;
@@ -278,6 +288,7 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
     portalElement,
     positionerElement,
     registerTrigger,
+    isInsideOtherTrigger,
     setPopupElement,
     setPortalElement,
     setPositionerElement,
