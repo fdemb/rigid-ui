@@ -62,6 +62,7 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
 
   const [element, setElement] = createSignal<HTMLDivElement>();
   const [arrowElement, setArrowElement] = createSignal<Element>();
+  const [viewportCount, setViewportCount] = createSignal(0);
 
   const positioning = createAnchorPositioning({
     anchor: () => props.anchor ?? context!.activeTrigger()?.element(),
@@ -79,8 +80,7 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
     sticky: () => props.sticky ?? false,
     arrowPadding: () => props.arrowPadding ?? 5,
     disableAnchorTracking: () => props.disableAnchorTracking ?? false,
-    // No Viewport part yet (RUI-50); when it lands this flips while one is rendered.
-    useTopLeft: () => false,
+    useTopLeft: () => viewportCount() > 0,
   });
 
   const positionerContext: TooltipPositionerContextValue = {
@@ -90,6 +90,10 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
     arrowStyles: positioning.arrowStyles,
     arrowUncentered: positioning.arrowUncentered,
     setArrowElement,
+    registerViewport() {
+      setViewportCount((count) => count + 1);
+      return () => setViewportCount((count) => Math.max(0, count - 1));
+    },
   };
 
   // Until the first pass lands the positioner sits at the origin with no transform, so enabling

@@ -13,6 +13,7 @@ export interface TooltipPositionerContextValue {
   arrowStyles: Accessor<JSX.CSSProperties>;
   arrowUncentered: Accessor<boolean>;
   setArrowElement(element: Element | undefined): void;
+  registerViewport(): () => void;
 }
 
 export const TooltipPositionerContext = createContext<TooltipPositionerContextValue | null>(null);
