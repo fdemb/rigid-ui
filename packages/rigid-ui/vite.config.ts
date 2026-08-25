@@ -45,6 +45,7 @@ export default defineConfig({
     entry: {
       "scroll-area/index": "src/scroll-area/index.ts",
       "dialog/index": "src/dialog/index.ts",
+      "alert-dialog/index": "src/alert-dialog/index.ts",
       "popover/index": "src/popover/index.ts",
       "csp-provider/index": "src/csp-provider/index.ts",
     },

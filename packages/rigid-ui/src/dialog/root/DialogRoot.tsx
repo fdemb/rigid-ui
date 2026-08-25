@@ -47,7 +47,15 @@ function animationTime(animation: Animation) {
   return typeof timing?.endTime === "number" ? timing.endTime : 0;
 }
 
-export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
+/**
+ * Shared implementation behind `Dialog.Root` and `AlertDialog.Root`. The alert-dialog mode forces
+ * full modality, disables pointer dismissal (an alert dialog never closes on an outside press),
+ * and renders the popup with the `alertdialog` role.
+ */
+export function createDialogRoot<Payload = unknown>(
+  mode: "dialog" | "alert-dialog",
+  props: DialogRootProps<Payload>,
+) {
   const parentContext = useDialogRootContext(true);
   const rootId = createUniqueId().replace(/[^a-zA-Z0-9_-]/g, "");
   const popupId = `rigid-dialog-${rootId}`;
@@ -97,7 +105,8 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
     return id == null ? undefined : triggers.get(id);
   });
   const payload = () => activeTrigger()?.payload() ?? explicitPayload();
-  const modal = (): DialogModal => props.modal ?? true;
+  const modal = (): DialogModal => (mode === "alert-dialog" ? true : (props.modal ?? true));
+  const role = () => (mode === "alert-dialog" ? "alertdialog" : "dialog");
   const isTopmost = () => nestedOpenDialogCount() === 0;
 
   let completionTimer: ReturnType<typeof setTimeout> | undefined;
@@ -280,6 +289,7 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
     activeTrigger,
     payload,
     modal,
+    role,
     nested: parentContext != null,
     openReason,
     openMethod,
@@ -289,7 +299,8 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
     popupElement,
     portalElement,
     closePartCount,
-    disablePointerDismissal: () => props.disablePointerDismissal ?? false,
+    disablePointerDismissal: () =>
+      mode === "alert-dialog" || (props.disablePointerDismissal ?? false),
     nestedOpenDialogCount,
     internalBackdropElement,
     setInternalBackdropElement,
@@ -335,10 +346,12 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
 
   // Dismissal: Escape and intentional outside press (down and up on the same target). Only the
   // topmost dialog dismisses; a modal dialog dismisses only through one of its backdrops.
+  // `disablePointerDismissal` (implicit for alert dialogs) silences pointer dismissal only;
+  // Escape keeps working.
   createEffect(
-    () => [open(), props.disablePointerDismissal ?? false] as const,
+    () => [open(), mode === "alert-dialog" || (props.disablePointerDismissal ?? false)] as const,
     ([isOpen, noPointerDismissal]) => {
-      if (!isOpen || noPointerDismissal) return;
+      if (!isOpen) return;
 
       let downTarget: EventTarget | null = null;
       let downWasOutside = false;
@@ -351,6 +364,7 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
       };
 
       const handlePointerDown = (event: PointerEvent) => {
+        if (noPointerDismissal) return;
         downTarget = event.target;
         const target = event.target as Node | null;
         downWasOutside = target != null && !containsTarget(target);
@@ -371,6 +385,7 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
       };
 
       const handlePointerUp = (event: PointerEvent) => {
+        if (noPointerDismissal) return;
         if (!isTopmost() || hasOpenDescendant()) return;
         if (!downWasOutside || event.target !== downTarget) return;
         downWasOutside = false;
@@ -440,6 +455,10 @@ export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
   };
 
   return <DialogRootContext value={context}>{children()}</DialogRootContext>;
+}
+
+export function DialogRoot<Payload = unknown>(props: DialogRootProps<Payload>) {
+  return createDialogRoot("dialog", props);
 }
 
 export namespace DialogRoot {
