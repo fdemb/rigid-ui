@@ -23,6 +23,13 @@ const components = [
     examples: 3,
   },
   {
+    href: "/tooltip",
+    name: "Tooltip",
+    description:
+      "Hover and focus hints with shared delays, hoverable content, and Floating UI positioning.",
+    examples: 1,
+  },
+  {
     href: "/scroll-area",
     name: "Scroll Area",
     description:

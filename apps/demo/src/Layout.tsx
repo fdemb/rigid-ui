@@ -5,6 +5,7 @@ import type { JSX } from "@solidjs/web";
 const navItems = [
   { href: "/dialog", label: "Dialog" },
   { href: "/popover", label: "Popover" },
+  { href: "/tooltip", label: "Tooltip" },
   { href: "/scroll-area", label: "Scroll Area" },
 ];
 
