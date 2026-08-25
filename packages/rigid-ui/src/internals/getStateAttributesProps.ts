@@ -36,7 +36,7 @@ export function getStateAttributesProps<State extends Record<string, unknown>>(
       props[`data-${key.toLowerCase()}`] = "";
     } else if (value !== false && value !== undefined && value !== null) {
       // Empty-string values still render (as an empty attribute), matching DOM semantics.
-      props[`data-${key.toLowerCase()}`] = String(value);
+      props[`data-${key.toLowerCase()}`] = String(value as string | number);
     }
   }
 

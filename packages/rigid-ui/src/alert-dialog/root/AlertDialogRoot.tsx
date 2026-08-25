@@ -1,4 +1,3 @@
-import type { JSX } from "@solidjs/web";
 import { createDialogRoot, type DialogRootProps } from "../../dialog/root/DialogRoot";
 import type {
   DialogRootActions,

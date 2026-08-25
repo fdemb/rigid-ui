@@ -296,7 +296,7 @@ describe("Dialog", () => {
       return (
         <div>
           <span tabindex={0} data-testid="outside-before" />
-          <div data-testid="portal-container" ref={portalContainer} />
+          <div data-testid="portal-container" ref={(node) => (portalContainer = node)} />
           <span tabindex={0} data-testid="outside-after" />
           <Dialog.Root modal={false}>
             <Dialog.Trigger data-testid="trigger">Toggle</Dialog.Trigger>

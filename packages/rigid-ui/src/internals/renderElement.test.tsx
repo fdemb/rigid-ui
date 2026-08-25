@@ -1,6 +1,6 @@
 import { createSignal } from "solid-js";
 import { fireEvent, render } from "@solidjs/testing-library";
-import { describe, expect, it, vi } from "vite-plus/test";
+import { describe, expect, it } from "vite-plus/test";
 import type { StateAttributesMapping } from "./getStateAttributesProps";
 import { renderElement } from "./renderElement";
 

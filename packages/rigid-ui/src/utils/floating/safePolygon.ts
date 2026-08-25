@@ -23,7 +23,7 @@ export interface HandleCloseContext {
   placement: string | null;
   domReferenceElement: Element | null;
   floatingElement: HTMLElement | null;
-  onClose(): void;
+  onClose: () => void;
 }
 
 export interface HandleClose {

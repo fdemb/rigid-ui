@@ -4,7 +4,7 @@ import { REASONS } from "../../internals/reasons";
 import { contains } from "../contains";
 import { getTarget } from "../getTarget";
 import { Timeout } from "../useTimeout";
-import type { HandleClose, HandleCloseContext, HandleCloseOptions } from "./safePolygon";
+import type { HandleClose, HandleCloseContext } from "./safePolygon";
 
 export type { HandleClose, HandleCloseContext, HandleCloseOptions } from "./safePolygon";
 

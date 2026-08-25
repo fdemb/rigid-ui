@@ -44,8 +44,8 @@ export interface UseButtonParameters {
 }
 
 export interface UseButtonReturnValue {
-  getButtonProps(externalProps?: MergeableProps): MergeableProps;
-  buttonRef(element: HTMLElement | null): void;
+  getButtonProps: (externalProps?: MergeableProps) => MergeableProps;
+  buttonRef: (element: HTMLElement | null) => void;
 }
 
 export function useButton(parameters: UseButtonParameters = {}): UseButtonReturnValue {
