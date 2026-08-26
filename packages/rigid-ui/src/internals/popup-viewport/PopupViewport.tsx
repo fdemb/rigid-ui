@@ -22,11 +22,11 @@ export interface PopupViewportPositionerContext {
   registerViewport(): () => void;
 }
 
-export interface PopupViewportState<Instant extends string> {
+export type PopupViewportState<Instant extends string> = {
   activationDirection: string | undefined;
   transitioning: boolean;
   instant: Instant | undefined;
-}
+};
 
 export function createPopupViewport<Instant extends string>(
   props: PopupNativeProps<HTMLDivElement>,
@@ -34,8 +34,6 @@ export function createPopupViewport<Instant extends string>(
   positioner: PopupViewportPositionerContext,
 ) {
   // renderElement composes the user ref automatically; children/ref never reach the DOM.
-  const elementProps = renderElement<HTMLDivElement>(props);
-
   const [currentElement, setCurrentElement] = createSignal<HTMLDivElement>();
   const [previousContainerElement, setPreviousContainerElement] = createSignal<HTMLDivElement>();
   const [contentKey, setContentKey] = createSignal("initial");
@@ -49,6 +47,19 @@ export function createPopupViewport<Instant extends string>(
   // entrance animation at its `from` state until the browser has had a chance to register it —
   // see the "arm/re-arm cleanup" effect below.
   const [showStartingStyle, setShowStartingStyle] = createSignal(false);
+
+  const elementProps = renderElement<HTMLDivElement, PopupViewportState<Instant>>(props, {
+    state: () => ({
+      activationDirection: activationDirection(),
+      transitioning: Boolean(previousContent()),
+      instant: root.instantType(),
+    }),
+    stateAttributesMapping: {
+      activationDirection(value) {
+        return value === undefined ? null : { "data-activation-direction": value };
+      },
+    },
+  });
 
   let previousTrigger: HTMLElement | undefined;
   // Guards against reprocessing the same trigger twice: the effect below reads `activeTrigger`
@@ -236,12 +247,7 @@ export function createPopupViewport<Instant extends string>(
   onCleanup(() => cleanupPrevious?.());
 
   return (
-    <div
-      {...elementProps}
-      data-activation-direction={activationDirection() ?? undefined}
-      data-transitioning={previousContent() ? "" : undefined}
-      data-instant={root.instantType()}
-    >
+    <div {...elementProps}>
       <Show when={previousContent()}>
         {(_snapshot) => {
           // The container outlives individual snapshots, but not the transition itself — drop the
