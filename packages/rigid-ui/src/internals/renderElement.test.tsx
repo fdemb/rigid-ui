@@ -169,6 +169,41 @@ describe("renderElement", () => {
     expect(div.hasAttribute("data-ending-style")).toBe(true);
   });
 
+  it("lets internal props and user props override state attributes", () => {
+    const { container } = render(() => {
+      const Div = (props: Record<string, unknown>) => (
+        <div
+          {...renderElement<HTMLDivElement>(props, {
+            state: { open: true, orientation: "horizontal" },
+            props: [{ "data-orientation": "vertical" }],
+          })}
+        />
+      );
+      return <Div data-open="false" />;
+    });
+
+    const div = container.firstElementChild as HTMLElement;
+    expect(div.getAttribute("data-open")).toBe("false");
+    expect(div.getAttribute("data-orientation")).toBe("vertical");
+  });
+
+  it("removes a state attribute once the state stops producing it", async () => {
+    const [open, setOpen] = createSignal(true);
+    const { container } = render(() => {
+      const Div = (props: Record<string, unknown>) => (
+        <div {...renderElement<HTMLDivElement>(props, { state: () => ({ open: open() }) })} />
+      );
+      return <Div />;
+    });
+
+    const div = container.firstElementChild as HTMLElement;
+    expect(div.hasAttribute("data-open")).toBe(true);
+
+    setOpen(false);
+    await Promise.resolve();
+    expect(div.hasAttribute("data-open")).toBe(false);
+  });
+
   it("chains user handler before internal handler", () => {
     const log: string[] = [];
     const { container } = render(() => {

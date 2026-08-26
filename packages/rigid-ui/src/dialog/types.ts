@@ -37,4 +37,5 @@ export type DialogElementRef<T extends HTMLElement> = PopupElementRef<T>;
 export type DialogNativeProps<
   T extends HTMLElement,
   Attributes extends JSX.HTMLAttributes<T> = JSX.HTMLAttributes<T>,
-> = PopupNativeProps<T, Attributes>;
+  State = Record<string, unknown>,
+> = PopupNativeProps<T, Attributes, State>;

@@ -1,6 +1,7 @@
+import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal, Show } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
 import type { PopupNativeProps } from "../../utils/domProps";
 import type { DialogTransitionStatus } from "../types";
@@ -9,7 +10,11 @@ export interface DialogBackdropState {
   open: boolean;
   transitionStatus: DialogTransitionStatus;
 }
-export interface DialogBackdropProps extends PopupNativeProps<HTMLDivElement> {
+export interface DialogBackdropProps extends PopupNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  DialogBackdropState
+> {
   /** Whether the backdrop renders even when nested inside another dialog. */
   forceRender?: boolean;
 }
@@ -31,11 +36,10 @@ export function DialogBackdrop(props: DialogBackdropProps) {
 
   return (
     <Show when={!context!.nested || props.forceRender}>
-      <div
-        {...renderElement<
-          HTMLDivElement,
-          { open: boolean; transitionStatus: DialogTransitionStatus }
-        >(props as Record<string, unknown>, {
+      {renderPart<HTMLDivElement, { open: boolean; transitionStatus: DialogTransitionStatus }>(
+        "div",
+        props,
+        {
           props: [
             {
               get role() {
@@ -57,10 +61,8 @@ export function DialogBackdrop(props: DialogBackdropProps) {
           stateAttributesMapping: popupTransitionStateMapping,
           ref: setElement,
           exclude: ["forceRender"],
-        })}
-      >
-        {props.children}
-      </div>
+        },
+      )}
     </Show>
   );
 }

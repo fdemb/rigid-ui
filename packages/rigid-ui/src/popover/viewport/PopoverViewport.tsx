@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 import { usePopoverPositionerContext } from "../positioner/PopoverPositionerContext";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import type { PopoverInstantType, PopoverNativeProps } from "../types";
@@ -10,7 +11,11 @@ import {
 export interface PopoverViewportState extends PopupViewportState<
   Exclude<PopoverInstantType, undefined>
 > {}
-export interface PopoverViewportProps extends PopoverNativeProps<HTMLDivElement> {}
+export interface PopoverViewportProps extends PopoverNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  PopoverViewportState
+> {}
 
 export function PopoverViewport(props: PopoverViewportProps) {
   const root = usePopoverRootContext()!;

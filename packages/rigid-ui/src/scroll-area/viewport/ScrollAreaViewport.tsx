@@ -1,6 +1,7 @@
 import { createEffect, onSettled, type ParentProps } from "solid-js";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { JSX } from "@solidjs/web";
+import type { PartProps } from "../../utils/domProps";
 import { isWebKit } from "../../utils/detectBrowser";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaViewportContext } from "./ScrollAreaViewportContext";
@@ -13,7 +14,11 @@ import { styleDisableScrollbar } from "../../utils/styles";
 import { onVisible } from "../../utils/onVisible";
 import { ScrollAreaViewportCssVars } from "./ScrollAreaViewportCssVars";
 import { ScrollAreaScrollbarCssVars } from "../scrollbar/ScrollAreaScrollbarCssVars";
-import { overflowStateAttributes } from "../root/stateAttributes";
+import {
+  overflowState,
+  scrollAreaStateAttributesMapping,
+  type ScrollAreaOverflowState,
+} from "../root/stateAttributes";
 import { Timeout } from "../../utils/useTimeout";
 
 /**
@@ -73,9 +78,9 @@ function removeCSSVariableInheritance() {
   scrollAreaOverflowVarsRegistered = true;
 }
 
-export interface ScrollAreaViewportProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
-  ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
-}
+export interface ScrollAreaViewportProps extends ParentProps<
+  PartProps<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>, ScrollAreaOverflowState>
+> {}
 
 export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
   const ctx = useScrollAreaRootContext();
@@ -366,13 +371,14 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
 
   return (
     <ScrollAreaViewportContext value={{ computeThumbPosition }}>
-      <div
-        {...overflowStateAttributes(ctx)}
-        {...renderElement<HTMLDivElement>(props, {
-          ref(element) {
-            ctx.viewportRef = element;
-          },
-          props: {
+      {renderPart<HTMLDivElement, ScrollAreaOverflowState>("div", props, {
+        state: () => overflowState(ctx),
+        stateAttributesMapping: scrollAreaStateAttributesMapping,
+        ref(element) {
+          ctx.viewportRef = element;
+        },
+        props: [
+          {
             role: "presentation",
             "data-id": `${ctx.rootId}-viewport`,
             // https://accessibilityinsights.io/info-examples/web/scrollable-region-focusable/
@@ -415,10 +421,8 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
               height: "100%",
             },
           },
-        })}
-      >
-        {props.children}
-      </div>
+        ],
+      })}
     </ScrollAreaViewportContext>
   );
 }

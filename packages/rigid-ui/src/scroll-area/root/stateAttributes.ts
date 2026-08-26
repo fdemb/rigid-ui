@@ -1,48 +1,96 @@
+import type { StateAttributesMapping } from "../../internals/getStateAttributesProps";
 import { ScrollAreaRootDataAttributes as Attr } from "./ScrollAreaRootDataAttributes";
 import type { ScrollAreaRootContextValue } from "./ScrollAreaRootContext";
 
+export type ScrollAreaOrientation = "vertical" | "horizontal";
+
+export interface ScrollAreaOverflowState {
+  scrolling: boolean;
+  hasOverflowX: boolean;
+  hasOverflowY: boolean;
+  overflowXStart: boolean;
+  overflowXEnd: boolean;
+  overflowYStart: boolean;
+  overflowYEnd: boolean;
+}
+
+export interface ScrollAreaScrollbarState extends ScrollAreaOverflowState {
+  orientation: ScrollAreaOrientation;
+  hovering: boolean;
+}
+
+export interface ScrollAreaThumbState {
+  orientation: ScrollAreaOrientation;
+  scrolling: boolean;
+}
+
+function flag(attribute: string) {
+  return (value: boolean) => (value ? { [attribute]: "" } : null);
+}
+
 /**
- * The overflow state attributes shared by the root, viewport, content, and scrollbar parts.
- * Reading through the enum is what keeps the documented names and the rendered ones in sync;
- * `enumSync.test.tsx` pins the other direction.
+ * `scrolling` follows the default `data-<key>` rule. The overflow flags need a mapping because
+ * the default rule would lowercase `hasOverflowX` into `data-hasoverflowx`.
+ * `enumSync.test.tsx` pins the names against the enums.
  */
-export function overflowStateAttributes(ctx: ScrollAreaRootContextValue) {
+export const scrollAreaStateAttributesMapping = {
+  hasOverflowX: flag(Attr.hasOverflowX),
+  hasOverflowY: flag(Attr.hasOverflowY),
+  overflowXStart: flag(Attr.overflowXStart),
+  overflowXEnd: flag(Attr.overflowXEnd),
+  overflowYStart: flag(Attr.overflowYStart),
+  overflowYEnd: flag(Attr.overflowYEnd),
+} satisfies StateAttributesMapping<ScrollAreaOverflowState>;
+
+/** The overflow state shared by the root, viewport, and content parts. */
+export function overflowState(ctx: ScrollAreaRootContextValue): ScrollAreaOverflowState {
   const hidden = ctx.hiddenState();
   const edges = ctx.overflowEdges();
 
   return {
-    [Attr.scrolling]: ctx.scrollingX() || ctx.scrollingY() ? "" : undefined,
-    [Attr.hasOverflowX]: !hidden.x ? "" : undefined,
-    [Attr.hasOverflowY]: !hidden.y ? "" : undefined,
-    [Attr.overflowXStart]: edges.xStart ? "" : undefined,
-    [Attr.overflowXEnd]: edges.xEnd ? "" : undefined,
-    [Attr.overflowYStart]: edges.yStart ? "" : undefined,
-    [Attr.overflowYEnd]: edges.yEnd ? "" : undefined,
+    scrolling: ctx.scrollingX() || ctx.scrollingY(),
+    hasOverflowX: !hidden.x,
+    hasOverflowY: !hidden.y,
+    overflowXStart: edges.xStart,
+    overflowXEnd: edges.xEnd,
+    overflowYStart: edges.yStart,
+    overflowYEnd: edges.yEnd,
   };
 }
 
 /**
- * The scrollbar only exposes the axis it controls, matching Base UI: a vertical track carries no
- * horizontal overflow attributes.
+ * The scrollbar reports only the axis it controls. The inactive axis resolves to `false`, so the
+ * mapping renders no attribute for it.
  */
-export function scrollbarOverflowStateAttributes(
+export function scrollbarState(
   ctx: ScrollAreaRootContextValue,
-  orientation: "vertical" | "horizontal",
-) {
+  orientation: () => ScrollAreaOrientation,
+): ScrollAreaScrollbarState {
+  const vertical = orientation() === "vertical";
   const hidden = ctx.hiddenState();
   const edges = ctx.overflowEdges();
 
-  if (orientation === "vertical") {
-    return {
-      [Attr.hasOverflowY]: !hidden.y ? "" : undefined,
-      [Attr.overflowYStart]: edges.yStart ? "" : undefined,
-      [Attr.overflowYEnd]: edges.yEnd ? "" : undefined,
-    };
-  }
+  return {
+    orientation: orientation(),
+    hovering: ctx.hovering(),
+    scrolling: vertical ? ctx.scrollingY() : ctx.scrollingX(),
+    hasOverflowX: !vertical && !hidden.x,
+    hasOverflowY: vertical && !hidden.y,
+    overflowXStart: !vertical && edges.xStart,
+    overflowXEnd: !vertical && edges.xEnd,
+    overflowYStart: vertical && edges.yStart,
+    overflowYEnd: vertical && edges.yEnd,
+  };
+}
+
+export function thumbState(
+  ctx: ScrollAreaRootContextValue,
+  orientation: () => ScrollAreaOrientation,
+): ScrollAreaThumbState {
+  const vertical = orientation() === "vertical";
 
   return {
-    [Attr.hasOverflowX]: !hidden.x ? "" : undefined,
-    [Attr.overflowXStart]: edges.xStart ? "" : undefined,
-    [Attr.overflowXEnd]: edges.xEnd ? "" : undefined,
+    orientation: orientation(),
+    scrolling: vertical ? ctx.scrollingY() : ctx.scrollingX(),
   };
 }

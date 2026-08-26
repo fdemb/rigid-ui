@@ -3,7 +3,7 @@
  * `reference/base-ui/packages/react/src/internals/getStateAttributesProps.ts`.
  */
 
-export type StateAttributesMapping<State extends Record<string, unknown>> = {
+export type StateAttributesMapping<State extends object> = {
   [Property in keyof State]?: (value: State[Property]) => Record<string, string> | null | undefined;
 };
 
@@ -15,14 +15,14 @@ export type StateAttributesMapping<State extends Record<string, unknown>> = {
  * `customMapping` is delegated to its function instead — returning `null`/`undefined` skips the
  * attribute entirely.
  */
-export function getStateAttributesProps<State extends Record<string, unknown>>(
+export function getStateAttributesProps<State extends object>(
   state: State,
   customMapping?: StateAttributesMapping<State>,
 ): Record<string, string> {
   const props: Record<string, string> = {};
 
   for (const key of Object.keys(state)) {
-    const value = state[key];
+    const value = (state as Record<string, unknown>)[key];
 
     if (customMapping && Object.hasOwn(customMapping, key)) {
       const customProps = customMapping[key as keyof State]?.(value as never);

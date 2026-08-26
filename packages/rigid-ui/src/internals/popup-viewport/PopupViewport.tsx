@@ -1,6 +1,6 @@
 import { createEffect, createSignal, For, onCleanup, Show, untrack, type Accessor } from "solid-js";
 import type { JSX } from "@solidjs/web";
-import { renderElement } from "../renderElement";
+import { renderPart } from "../renderPart";
 import type { PopupNativeProps } from "../../utils/domProps";
 import { runOnceAnimationsFinish } from "../../utils/runOnceAnimationsFinish";
 import { createPopupAutoResize } from "../../utils/createPopupAutoResize";
@@ -29,11 +29,14 @@ export type PopupViewportState<Instant extends string> = {
 };
 
 export function createPopupViewport<Instant extends string>(
-  props: PopupNativeProps<HTMLDivElement>,
+  props: PopupNativeProps<
+    HTMLDivElement,
+    JSX.HTMLAttributes<HTMLDivElement>,
+    PopupViewportState<Instant>
+  >,
   root: PopupViewportRootContext<Instant>,
   positioner: PopupViewportPositionerContext,
 ) {
-  // renderElement composes the user ref automatically; children/ref never reach the DOM.
   const [currentElement, setCurrentElement] = createSignal<HTMLDivElement>();
   const [previousContainerElement, setPreviousContainerElement] = createSignal<HTMLDivElement>();
   const [contentKey, setContentKey] = createSignal("initial");
@@ -47,19 +50,6 @@ export function createPopupViewport<Instant extends string>(
   // entrance animation at its `from` state until the browser has had a chance to register it —
   // see the "arm/re-arm cleanup" effect below.
   const [showStartingStyle, setShowStartingStyle] = createSignal(false);
-
-  const elementProps = renderElement<HTMLDivElement, PopupViewportState<Instant>>(props, {
-    state: () => ({
-      activationDirection: activationDirection(),
-      transitioning: Boolean(previousContent()),
-      instant: root.instantType(),
-    }),
-    stateAttributesMapping: {
-      activationDirection(value) {
-        return value === undefined ? null : { "data-activation-direction": value };
-      },
-    },
-  });
 
   let previousTrigger: HTMLElement | undefined;
   // Guards against reprocessing the same trigger twice: the effect below reads `activeTrigger`
@@ -246,35 +236,47 @@ export function createPopupViewport<Instant extends string>(
 
   onCleanup(() => cleanupPrevious?.());
 
-  return (
-    <div {...elementProps}>
-      <Show when={previousContent()}>
-        {(_snapshot) => {
-          // The container outlives individual snapshots, but not the transition itself — drop the
-          // reference on unmount so the auto-resize callbacks never poke a detached node.
-          onCleanup(() => setPreviousContainerElement(undefined));
-          return (
+  return renderPart<HTMLDivElement, PopupViewportState<Instant>>("div", props, {
+    state: () => ({
+      activationDirection: activationDirection(),
+      transitioning: Boolean(previousContent()),
+      instant: root.instantType(),
+    }),
+    stateAttributesMapping: {
+      activationDirection(value) {
+        return value === undefined ? null : { "data-activation-direction": value };
+      },
+    },
+    children: () => (
+      <>
+        <Show when={previousContent()}>
+          {(_snapshot) => {
+            // The container outlives individual snapshots, but not the transition itself — drop the
+            // reference on unmount so the auto-resize callbacks never poke a detached node.
+            onCleanup(() => setPreviousContainerElement(undefined));
+            return (
+              <div
+                data-previous=""
+                inert
+                data-ending-style={showStartingStyle() ? undefined : ""}
+                style={previousContainerStyle()}
+                ref={setPreviousContainerElement}
+              />
+            );
+          }}
+        </Show>
+        <For each={[contentKey()]}>
+          {() => (
             <div
-              data-previous=""
-              inert
-              data-ending-style={showStartingStyle() ? undefined : ""}
-              style={previousContainerStyle()}
-              ref={setPreviousContainerElement}
-            />
-          );
-        }}
-      </Show>
-      <For each={[contentKey()]}>
-        {() => (
-          <div
-            data-current=""
-            data-starting-style={showStartingStyle() ? "" : undefined}
-            ref={setCurrentElement}
-          >
-            {props.children}
-          </div>
-        )}
-      </For>
-    </div>
-  );
+              data-current=""
+              data-starting-style={showStartingStyle() ? "" : undefined}
+              ref={setCurrentElement}
+            >
+              {props.children}
+            </div>
+          )}
+        </For>
+      </>
+    ),
+  });
 }

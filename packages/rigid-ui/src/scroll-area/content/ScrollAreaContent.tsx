@@ -1,13 +1,18 @@
 import { onSettled, untrack, type ParentProps } from "solid-js";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { JSX } from "@solidjs/web";
+import type { PartProps } from "../../utils/domProps";
 import { useScrollAreaViewportContext } from "../viewport/ScrollAreaViewportContext";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
-import { overflowStateAttributes } from "../root/stateAttributes";
+import {
+  overflowState,
+  scrollAreaStateAttributesMapping,
+  type ScrollAreaOverflowState,
+} from "../root/stateAttributes";
 
-export interface ScrollAreaContentProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
-  ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
-}
+export interface ScrollAreaContentProps extends ParentProps<
+  PartProps<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>, ScrollAreaOverflowState>
+> {}
 
 export function ScrollAreaContent(props: ScrollAreaContentProps) {
   const { computeThumbPosition } = useScrollAreaViewportContext();
@@ -38,20 +43,17 @@ export function ScrollAreaContent(props: ScrollAreaContentProps) {
     return () => ro.disconnect();
   });
 
-  return (
-    <div
-      {...overflowStateAttributes(ctx)}
-      {...renderElement<HTMLDivElement>(props, {
-        ref(element) {
-          contentRef = element;
-        },
-        props: {
-          role: "presentation",
-          style: { "min-width": "fit-content" },
-        },
-      })}
-    >
-      {props.children}
-    </div>
-  );
+  return renderPart<HTMLDivElement, ScrollAreaOverflowState>("div", props, {
+    state: () => overflowState(ctx),
+    stateAttributesMapping: scrollAreaStateAttributesMapping,
+    ref(element) {
+      contentRef = element;
+    },
+    props: [
+      {
+        role: "presentation",
+        style: { "min-width": "fit-content" },
+      },
+    ],
+  });
 }

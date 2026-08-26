@@ -1,6 +1,8 @@
 import Example from "../components/Example";
 import Page from "../components/Page";
 import BasicPopover from "../examples/popover/BasicPopover";
+import ComposedPopover from "../examples/popover/ComposedPopover";
+import composedSrc from "../examples/popover/ComposedPopover.tsx?raw";
 import basicSrc from "../examples/popover/BasicPopover.tsx?raw";
 import HoverPopover from "../examples/popover/HoverPopover";
 import hoverSrc from "../examples/popover/HoverPopover.tsx?raw";
@@ -22,6 +24,13 @@ export default function PopoverPage() {
         src={hoverSrc}
       >
         <HoverPopover />
+      </Example>
+      <Example
+        title="Composition with render"
+        note="render takes a tag name, a component, or a callback that receives the part's props and state. It never takes a JSX element — Solid evaluates those eagerly, and the consumer's own bindings would win."
+        src={composedSrc}
+      >
+        <ComposedPopover />
       </Example>
       <Example
         title="Shared popup with a payload"

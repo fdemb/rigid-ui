@@ -38,6 +38,21 @@ Check these before concluding a ported test has found a bug.
 - **Positioning is async**, so the positioner is `opacity: 0` until its first pass lands.
   Assertions on popup visibility must `await`. Base UI behaves the same way; their awaited
   `render` hides it.
+- **Object-spreading a getter bag freezes it.** `{...bag}` copies getter _results_, so a bag from
+  `renderElement`/`renderPart` loses its reactivity the moment it is spread into a plain object.
+  Use `merge` from `solid-js` (or pass the bag itself) wherever a bag has to become another
+  object. The same applies to destructuring a rest object out of one.
+- **Solid's `omit` freezes the key set unless the source is a Solid proxy.** Given a plain object
+  or a hand-rolled proxy it copies the descriptors it can see _once_, so a key that appears later
+  (a state attribute switching on) never shows up. Use `omitProps` from `internals/mergeProps`
+  when the source is one of our bags.
+- **`in` on a merged props proxy is an untracked read.** `"class" in props` resolves the
+  function-backed sources of a Solid `merge` proxy, which both warns (`STRICT_READ_UNTRACKED`)
+  and makes the decision once. Never branch on the presence of a prop in a component body;
+  define the getter unconditionally and let it resolve to `undefined`.
+- **A component's `render` prop must be read once, untracked.** Every read of a JSX element in a
+  prop position rebuilds it, and a component render prop is re-invoked per read. `children()`
+  does not help — outside a tracking scope it recomputes on each read.
 - **Destructuring the payload render prop** (`{({ payload }) => …}`) freezes the value, because
   the render prop receives a real props object. Ordinary "don't destructure props", and
   `solid/no-destructure`-style lints catch it. Write `{(state) => … state.payload}`.
@@ -54,11 +69,12 @@ Check these before concluding a ported test has found a bug.
 
 ### Shared
 
-| Base UI case                                         | Why it does not apply                                                                                                                                      |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `describeConformance`, `render` prop, `nativeButton` | React renderer concepts; Solid composition differs. Replaced with an explicit props/class/style/ref forwarding test per part                               |
-| React ref and lifecycle semantics                    | N/A                                                                                                                                                        |
-| `expect(...).toThrow()` on render-time errors        | An uncaught throw halts Solid's reactive system for the rest of the module. Capture with an `<Errored>` boundary instead, see `PopoverPositioner.test.tsx` |
+| Base UI case                                    | Why it does not apply                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `describeConformance`, `nativeButton`           | React renderer concepts; Solid composition differs. Replaced with an explicit props/class/style/ref forwarding test per part                                                                                                                                                                                                                                                                                 |
+| `render` given a JSX element (`render={<a />}`) | Solid evaluates a JSX element in a prop position eagerly, through a getter that rebuilds it on every read, and the consumer's own reactive bindings own the resulting attributes — a later flush overwrites anything we merge in. Under SSR it compiles to an opaque HTML string with nothing to merge into. The tag, component, and callback forms of `render` are supported; see `internals/renderPart.ts` |
+| React ref and lifecycle semantics               | N/A                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `expect(...).toThrow()` on render-time errors   | An uncaught throw halts Solid's reactive system for the rest of the module. Capture with an `<Errored>` boundary instead, see `PopoverPositioner.test.tsx`                                                                                                                                                                                                                                                   |
 
 ### Popover
 
@@ -92,11 +108,30 @@ Check these before concluding a ported test has found a bug.
 
 ### Scroll Area
 
-| Base UI case                                                                                                | Why it does not apply                                                                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `supports a custom scrollbar renderer that does not forward its ref`, `supports a custom content renderer…` | Exercises the `render` prop, which Solid composition does not have                                                                                                       |
-| `does not re-render parts on scroll when the corner size is unchanged` (`context stability`)                | Counts React commits. Solid has no re-render; the equivalent guarantee is the bail-out in the `setCornerSize` updater, which is structural rather than observable        |
-| `adds [data-hovering] when the synthetic pointer target differs from the native path`                       | Pins that Base UI reads React's synthetic `event.target` rather than `composedPath()[0]`. Solid binds `pointerenter` natively, so there is no retargeting to distinguish |
+| Base UI case                                                                                 | Why it does not apply                                                                                                                                                    |
+| -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `does not re-render parts on scroll when the corner size is unchanged` (`context stability`) | Counts React commits. Solid has no re-render; the equivalent guarantee is the bail-out in the `setCornerSize` updater, which is structural rather than observable        |
+| `adds [data-hovering] when the synthetic pointer target differs from the native path`        | Pins that Base UI reads React's synthetic `event.target` rather than `composedPath()[0]`. Solid binds `pointerenter` natively, so there is no retargeting to distinguish |
+
+## `render` prop scope
+
+`render` accepts a tag name, a component, or a callback `(props, state) => JSX.Element`
+(`internals/renderPart.ts`). One limit is deliberate:
+
+- **A tag name does not widen the part's prop types.** `<Popover.Trigger render="a" href="…">`
+  does not typecheck, because the props type still describes a `<button>`. Put the extra
+  attributes on the element the callback returns. Base UI has the same limitation.
+
+Every part that has state passes it to `renderPart` and threads its `State` type through its
+props, so the callback's second argument is typed and live. Parts whose Base UI counterpart has
+no state (`Title`, `Description`, `Portal`, `ScrollArea.Corner`) receive `{}`.
+
+`nativeButton` is wired into `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, and
+`Dialog.Close` through `useButton` — the same four parts Base UI wires. It defaults to `true`;
+set it to `false` when `render` produces something other than a `<button>`, and the part applies
+`role="button"`, a tab index, and Enter/Space activation instead of assuming native semantics.
+Leaving it `true` on a non-button logs a dev warning. `Tooltip.Trigger` does not use `useButton`,
+matching Base UI: its `disabled` prop disables the tooltip, not the button.
 
 ## Deliberate implementation differences
 
@@ -105,6 +140,12 @@ Not gaps, so they have no Linear issue.
 - `resolveInstantType` guards with `event instanceof MouseEvent` before reading `detail`, where
   Base UI casts unconditionally. Same outcome on every real path, and no `undefined === 0`
   accident.
+- `ScrollArea.Scrollbar` reports only the axis it controls. Base UI's scrollbar state carries both
+  axes, so a vertical track there also renders `data-has-overflow-x` and the horizontal edge
+  attributes. Ours resolves the inactive axis to `false`, which renders nothing. This predates the
+  `render` work; `enumSync.test.tsx` pins the current behaviour.
+- `Tooltip.Trigger` renders `data-closed` and `data-trigger-disabled`, which Base UI's trigger
+  does not. `data-trigger-disabled` is covered by `TooltipRoot.test.tsx`.
 
 <!--VITE PLUS START-->
 

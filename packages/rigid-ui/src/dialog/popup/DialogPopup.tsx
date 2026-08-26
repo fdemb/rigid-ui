@@ -1,6 +1,7 @@
+import type { JSX } from "@solidjs/web";
 import { createSignal } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
 import type { StateAttributesMapping } from "../../internals/getStateAttributesProps";
 import {
@@ -17,7 +18,11 @@ export interface DialogPopupState {
   nestedDialogOpen: boolean;
 }
 
-export interface DialogPopupProps extends PopupNativeProps<HTMLDivElement> {
+export interface DialogPopupProps extends PopupNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  DialogPopupState
+> {
   /**
    * Determines the element to focus when the dialog is opened. By default focus moves to the
    * first tabbable element inside the popup, except when the dialog is opened by touch — then
@@ -94,55 +99,51 @@ export function DialogPopup(props: DialogPopupProps) {
   return (
     <>
       {focusManager.renderBeforeGuard()}
-      <div
-        {...renderElement<
-          HTMLDivElement,
+      {renderPart<
+        HTMLDivElement,
+        {
+          open: boolean;
+          transitionStatus: DialogTransitionStatus;
+          nested: boolean;
+          nestedDialogOpen: boolean;
+        }
+      >("div", props, {
+        props: [
           {
-            open: boolean;
-            transitionStatus: DialogTransitionStatus;
-            nested: boolean;
-            nestedDialogOpen: boolean;
-          }
-        >(props as Record<string, unknown>, {
-          props: [
-            {
-              get id() {
-                return props.id ?? context!.popupId;
-              },
-              get role() {
-                return props.role ?? context!.role();
-              },
-              get tabindex() {
-                return props.tabindex ?? -1;
-              },
-              get "aria-labelledby"() {
-                return context!.titleId();
-              },
-              get "aria-describedby"() {
-                return context!.descriptionId();
-              },
-              get hidden() {
-                return !context!.mounted();
-              },
-              get style() {
-                return { "--nested-dialogs": context!.nestedOpenDialogCount() };
-              },
-              onKeyDown: handleKeyDown,
+            get id() {
+              return props.id ?? context!.popupId;
             },
-          ],
-          state: () => ({
-            open: context!.open(),
-            transitionStatus: context!.transitionStatus(),
-            nested: context!.nested,
-            nestedDialogOpen: context!.nestedOpenDialogCount() > 0,
-          }),
-          stateAttributesMapping: { ...popupTransitionStateMapping, ...nestedDialogOpenMapping },
-          ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
-          exclude: ["initialFocus", "finalFocus", "id"],
-        })}
-      >
-        {props.children}
-      </div>
+            get role() {
+              return props.role ?? context!.role();
+            },
+            get tabindex() {
+              return props.tabindex ?? -1;
+            },
+            get "aria-labelledby"() {
+              return context!.titleId();
+            },
+            get "aria-describedby"() {
+              return context!.descriptionId();
+            },
+            get hidden() {
+              return !context!.mounted();
+            },
+            get style() {
+              return { "--nested-dialogs": context!.nestedOpenDialogCount() };
+            },
+            onKeyDown: handleKeyDown,
+          },
+        ],
+        state: () => ({
+          open: context!.open(),
+          transitionStatus: context!.transitionStatus(),
+          nested: context!.nested,
+          nestedDialogOpen: context!.nestedOpenDialogCount() > 0,
+        }),
+        stateAttributesMapping: { ...popupTransitionStateMapping, ...nestedDialogOpenMapping },
+        ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
+        exclude: ["initialFocus", "finalFocus", "id"],
+      })}
       {focusManager.renderAfterGuard()}
     </>
   );

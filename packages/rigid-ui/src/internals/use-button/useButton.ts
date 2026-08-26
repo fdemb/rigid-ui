@@ -1,6 +1,6 @@
 import { createEffect } from "solid-js";
 import type { Accessor } from "solid-js";
-import { makeEventPreventable, mergeProps } from "../mergeProps";
+import { makeEventPreventable, mergeProps, omitProps } from "../mergeProps";
 import type { MergeableProps } from "../mergeProps";
 import { useCompositeRootContext } from "../composite/root/CompositeRootContext";
 import { useFocusableWhenDisabled } from "../../utils/useFocusableWhenDisabled";
@@ -129,14 +129,21 @@ export function useButton(parameters: UseButtonParameters = {}): UseButtonReturn
   }
 
   function getButtonProps(externalProps: MergeableProps = {}): MergeableProps {
-    const {
-      onClick: externalOnClick,
-      onMouseDown: externalOnMouseDown,
-      onKeyUp: externalOnKeyUp,
-      onKeyDown: externalOnKeyDown,
-      onPointerDown: externalOnPointerDown,
-      ...otherExternalProps
-    } = externalProps;
+    // Read through `externalProps` at call time and hide the handled keys with `omit`, rather
+    // than destructuring and spreading: a spread would snapshot every reactive getter in the bag.
+    const externalOnClick = (event: MouseEvent) => externalProps.onClick?.(event);
+    const externalOnMouseDown = (event: MouseEvent) => externalProps.onMouseDown?.(event);
+    const externalOnKeyUp = (event: KeyboardEvent) => externalProps.onKeyUp?.(event);
+    const externalOnKeyDown = (event: KeyboardEvent) => externalProps.onKeyDown?.(event);
+    const externalOnPointerDown = (event: PointerEvent) => externalProps.onPointerDown?.(event);
+    const otherExternalProps = omitProps(
+      externalProps,
+      "onClick",
+      "onMouseDown",
+      "onKeyUp",
+      "onKeyDown",
+      "onPointerDown",
+    );
 
     return mergeProps(
       {
@@ -145,11 +152,11 @@ export function useButton(parameters: UseButtonParameters = {}): UseButtonReturn
             event.preventDefault();
             return;
           }
-          externalOnClick?.(event);
+          externalOnClick(event);
         },
         onMouseDown(event: MouseEvent) {
           if (!isDisabled()) {
-            externalOnMouseDown?.(event);
+            externalOnMouseDown(event);
           }
         },
         onKeyDown(event: KeyboardEvent) {
@@ -158,7 +165,7 @@ export function useButton(parameters: UseButtonParameters = {}): UseButtonReturn
           }
 
           const guarded = makeEventPreventable(event);
-          externalOnKeyDown?.(guarded);
+          externalOnKeyDown(guarded);
           if (guarded.baseUIHandlerPrevented) {
             return;
           }
@@ -221,7 +228,7 @@ export function useButton(parameters: UseButtonParameters = {}): UseButtonReturn
           // calling preventDefault in keyUp on <button> will not dispatch a click event if Space is pressed
           // https://codesandbox.io/p/sandbox/button-keyup-preventdefault-dn7f0
           const guarded = makeEventPreventable(event);
-          externalOnKeyUp?.(guarded);
+          externalOnKeyUp(guarded);
 
           if (
             event.target === event.currentTarget &&
@@ -259,7 +266,7 @@ export function useButton(parameters: UseButtonParameters = {}): UseButtonReturn
             event.preventDefault();
             return;
           }
-          externalOnPointerDown?.(event);
+          externalOnPointerDown(event);
         },
       },
       isNativeButton() ? { type: "button" } : { role: "button" },

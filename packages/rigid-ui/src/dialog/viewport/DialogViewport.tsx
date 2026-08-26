@@ -1,7 +1,8 @@
+import type { JSX } from "@solidjs/web";
 import { Show } from "solid-js";
 import { useDialogPortalContext } from "../portal/DialogPortalContext";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { StateAttributesMapping } from "../../internals/getStateAttributesProps";
 import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
 import type { PopupNativeProps } from "../../utils/domProps";
@@ -14,7 +15,11 @@ export type DialogViewportState = {
   nestedDialogOpen: boolean;
 };
 
-export interface DialogViewportProps extends PopupNativeProps<HTMLDivElement> {}
+export interface DialogViewportProps extends PopupNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  DialogViewportState
+> {}
 
 const NESTED_DIALOG_OPEN_HOOK = { "data-nested-dialog-open": "" };
 
@@ -31,28 +36,24 @@ export function DialogViewport(props: DialogViewportProps) {
 
   return (
     <Show when={keepMounted || context!.mounted()}>
-      <div
-        {...renderElement<HTMLDivElement, DialogViewportState>(props, {
-          props: {
-            role: "presentation",
-            get hidden() {
-              return !context!.mounted();
-            },
-            get style() {
-              return { "pointer-events": !context!.open() ? "none" : undefined };
-            },
+      {renderPart<HTMLDivElement, DialogViewportState>("div", props, {
+        props: {
+          role: "presentation",
+          get hidden() {
+            return !context!.mounted();
           },
-          state: () => ({
-            open: context!.open(),
-            transitionStatus: context!.transitionStatus(),
-            nested: context!.nested,
-            nestedDialogOpen: context!.nestedOpenDialogCount() > 0,
-          }),
-          stateAttributesMapping: { ...popupTransitionStateMapping, ...nestedDialogOpenMapping },
-        })}
-      >
-        {props.children}
-      </div>
+          get style() {
+            return { "pointer-events": !context!.open() ? "none" : undefined };
+          },
+        },
+        state: () => ({
+          open: context!.open(),
+          transitionStatus: context!.transitionStatus(),
+          nested: context!.nested,
+          nestedDialogOpen: context!.nestedOpenDialogCount() > 0,
+        }),
+        stateAttributesMapping: { ...popupTransitionStateMapping, ...nestedDialogOpenMapping },
+      })}
     </Show>
   );
 }

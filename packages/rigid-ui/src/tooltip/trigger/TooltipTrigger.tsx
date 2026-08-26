@@ -7,7 +7,7 @@ import {
   type RegisteredTooltipTrigger,
   type TooltipRootContextValue,
 } from "../root/TooltipRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { REASONS } from "../../internals/reasons";
 import { triggerOpenStateMapping } from "../../utils/popupStateMapping";
 import { OPEN_DELAY } from "../utils/constants";
@@ -20,7 +20,8 @@ export interface TooltipTriggerState {
 
 export interface TooltipTriggerProps<Payload = unknown> extends TooltipNativeProps<
   HTMLButtonElement,
-  JSX.ButtonHTMLAttributes<HTMLButtonElement>
+  JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+  TooltipTriggerState
 > {
   handle?: TooltipHandle<Payload>;
   payload?: Payload;
@@ -107,20 +108,14 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     openTimer = undefined;
   }
 
-  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // The user's handlers are chained ahead of these by renderPart; the internal handlers only
   // observe defaultPrevented.
   const internalProps = {
     get id() {
       return id();
     },
-    get type() {
-      return props.type ?? "button";
-    },
     get disabled() {
       return props.disabled !== undefined && props.disabled !== false;
-    },
-    get "data-popup-open"() {
-      return openByThisTrigger() ? "" : undefined;
     },
     get "data-closed"() {
       return !openByThisTrigger() ? "" : undefined;
@@ -189,22 +184,13 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     },
   };
 
-  return (
-    <button
-      {...renderElement<HTMLButtonElement, { open: boolean }>(
-        props as unknown as Record<string, unknown>,
-        {
-          props: [internalProps],
-          state: () => ({ open: openByThisTrigger() }),
-          stateAttributesMapping: triggerOpenStateMapping,
-          ref: setElement,
-          exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "id"],
-        },
-      )}
-    >
-      {props.children}
-    </button>
-  );
+  return renderPart<HTMLButtonElement, TooltipTriggerState>("button", props, {
+    props: [internalProps],
+    state: () => ({ open: openByThisTrigger() }),
+    stateAttributesMapping: triggerOpenStateMapping,
+    ref: setElement,
+    exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "id"],
+  });
 }
 
 export namespace TooltipTrigger {

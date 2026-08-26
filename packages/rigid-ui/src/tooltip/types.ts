@@ -49,7 +49,8 @@ export interface TooltipRootActions {
 export type TooltipNativeProps<
   T extends HTMLElement,
   Attributes extends JSX.HTMLAttributes<T> = JSX.HTMLAttributes<T>,
-> = PopupNativeProps<T, Attributes>;
+  State = Record<string, unknown>,
+> = PopupNativeProps<T, Attributes, State>;
 
 export type TooltipOffset = Offset;
 export type TooltipCollisionAvoidance = CollisionAvoidance;

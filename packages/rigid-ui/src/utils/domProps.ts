@@ -1,13 +1,24 @@
 import type { JSX } from "@solidjs/web";
+import type { RenderProp } from "../internals/renderPart";
 
 export type PopupElementRef<T extends HTMLElement> = T | ((element: T) => void);
+
+export type PartProps<
+  T extends HTMLElement,
+  Attributes extends JSX.HTMLAttributes<T> = JSX.HTMLAttributes<T>,
+  State = Record<string, unknown>,
+> = Omit<Attributes, "ref" | "class" | "style"> & {
+  ref?: PopupElementRef<T> | Array<(element: T) => void>;
+  class?: JSX.ClassValue | ((state: State) => string | undefined);
+  style?: JSX.CSSProperties | string | ((state: State) => JSX.CSSProperties | string | undefined);
+  render?: RenderProp<State>;
+};
 
 export type PopupNativeProps<
   T extends HTMLElement,
   Attributes extends JSX.HTMLAttributes<T> = JSX.HTMLAttributes<T>,
-> = Omit<Attributes, "ref"> & {
-  ref?: PopupElementRef<T>;
-};
+  State = Record<string, unknown>,
+> = PartProps<T, Attributes, State>;
 
 export function assignRef<T extends HTMLElement>(ref: PopupElementRef<T> | undefined, element: T) {
   if (typeof ref === "function") ref(element);
