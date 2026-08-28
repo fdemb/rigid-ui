@@ -1,12 +1,5 @@
-import { merge, sharedConfig, untrack } from "solid-js";
-import {
-  MathMLElements,
-  Namespaces,
-  SVGElements,
-  getNextElement,
-  spread,
-  type JSX,
-} from "@solidjs/web";
+import { createComponent, merge, untrack } from "solid-js";
+import { dynamic, type JSX } from "@solidjs/web";
 import { renderElement, type RenderElementOptions } from "./renderElement";
 import type { MergeableProps } from "./mergeProps";
 
@@ -18,13 +11,6 @@ const TAG_DEFAULTS: Record<string, MergeableProps> = {
   button: { type: "button" },
   img: { alt: "" },
 };
-
-function createTagElement(tag: string): Element {
-  if (sharedConfig.hydrating) return getNextElement();
-  if (SVGElements.has(tag)) return document.createElementNS(Namespaces.svg, tag);
-  if (MathMLElements.has(tag)) return document.createElementNS(Namespaces.mathml, tag);
-  return document.createElement(tag);
-}
 
 export interface RenderPartOptions<
   T extends HTMLElement,
@@ -65,7 +51,6 @@ export function renderPart<T extends HTMLElement, State extends object = Record<
     return renderProp(bag, merge(() => (readState() ?? {}) as State) as State);
   }
 
-  const element = createTagElement(resolvedTag);
-  spread(element, bag);
-  return element as unknown as JSX.Element;
+  const Tag = dynamic(() => resolvedTag);
+  return createComponent(Tag, bag);
 }
