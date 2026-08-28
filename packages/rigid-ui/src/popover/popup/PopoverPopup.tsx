@@ -1,7 +1,9 @@
+import type { JSX } from "@solidjs/web";
 import { createEffect, createSignal } from "solid-js";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
 import { usePopoverPositionerContext } from "../positioner/PopoverPositionerContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
+import { popupTransitionStateMapping } from "../../utils/popupStateMapping";
 import { REASONS } from "../../internals/reasons";
 import { callEventHandler } from "../../utils/domProps";
 import type {
@@ -30,7 +32,11 @@ export interface PopoverPopupState {
   instant: PopoverInstantType;
 }
 
-export interface PopoverPopupProps extends PopoverNativeProps<HTMLDivElement> {
+export interface PopoverPopupProps extends PopoverNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  PopoverPopupState
+> {
   initialFocus?: PopoverFocusTarget;
   finalFocus?: PopoverFocusTarget;
 }
@@ -117,7 +123,7 @@ export function PopoverPopup(props: PopoverPopupProps) {
     },
   );
 
-  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // The user's handlers are chained ahead of these by renderPart; the internal handlers only
   // observe defaultPrevented.
   function handleKeyDown(event: KeyboardEvent) {
     if (
@@ -176,66 +182,47 @@ export function PopoverPopup(props: PopoverPopupProps) {
     if (event.target === event.currentTarget) callEventHandler(props.onAnimationEnd, event);
   }
 
-  return (
-    <div
-      {...renderElement<HTMLDivElement>(props as unknown as Record<string, unknown>, {
-        props: {
-          get id() {
-            return props.id ?? context!.popupId;
-          },
-          get role() {
-            return props.role ?? "dialog";
-          },
-          get tabindex() {
-            return props.tabindex ?? -1;
-          },
-          get "aria-labelledby"() {
-            return context!.titleId();
-          },
-          get "aria-describedby"() {
-            return context!.descriptionId();
-          },
-          get "data-open"() {
-            return context!.open() ? "" : undefined;
-          },
-          get "data-closed"() {
-            return !context!.open() ? "" : undefined;
-          },
-          get "data-starting-style"() {
-            return context!.transitionStatus() === "starting" ? "" : undefined;
-          },
-          get "data-ending-style"() {
-            return context!.transitionStatus() === "ending" ? "" : undefined;
-          },
-          get "data-side"() {
-            return positioner!.side();
-          },
-          get "data-align"() {
-            return positioner!.align();
-          },
-          get "data-instant"() {
-            return context!.instantType();
-          },
-          // Merged with the consumer's style by the internal mergeProps: internal values first,
-          // user overrides per property.
-          get style() {
-            return {
-              "--popup-width": `${size().width}px`,
-              "--popup-height": `${size().height}px`,
-            };
-          },
-          onKeyDown: handleKeyDown,
-          onFocusOut: handleFocusOut,
-          onTransitionEnd: handleTransitionEnd,
-          onAnimationEnd: handleAnimationEnd,
-        },
-        ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
-        exclude: ["initialFocus", "finalFocus", "onTransitionEnd", "onAnimationEnd"],
-      })}
-    >
-      {props.children}
-    </div>
-  );
+  return renderPart<HTMLDivElement, PopoverPopupState>("div", props, {
+    state: () => ({
+      open: context!.open(),
+      side: positioner!.side(),
+      align: positioner!.align(),
+      transitionStatus: context!.transitionStatus(),
+      instant: context!.instantType(),
+    }),
+    stateAttributesMapping: popupTransitionStateMapping,
+    props: {
+      get id() {
+        return props.id ?? context!.popupId;
+      },
+      get role() {
+        return props.role ?? "dialog";
+      },
+      get tabindex() {
+        return props.tabindex ?? -1;
+      },
+      get "aria-labelledby"() {
+        return context!.titleId();
+      },
+      get "aria-describedby"() {
+        return context!.descriptionId();
+      },
+      // Merged with the consumer's style by the internal mergeProps: internal values first,
+      // user overrides per property.
+      get style() {
+        return {
+          "--popup-width": `${size().width}px`,
+          "--popup-height": `${size().height}px`,
+        };
+      },
+      onKeyDown: handleKeyDown,
+      onFocusOut: handleFocusOut,
+      onTransitionEnd: handleTransitionEnd,
+      onAnimationEnd: handleAnimationEnd,
+    },
+    ref: [setElement, (node: HTMLDivElement) => context!.setPopupElement(node)],
+    exclude: ["initialFocus", "finalFocus", "onTransitionEnd", "onAnimationEnd"],
+  });
 }
 
 export namespace PopoverPopup {

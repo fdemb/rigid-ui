@@ -1,6 +1,7 @@
 import { createMemo, createSignal, createUniqueId, type ParentProps } from "solid-js";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { JSX } from "@solidjs/web";
+import type { PartProps } from "../../utils/domProps";
 import {
   ScrollAreaRootContext,
   type Coords,
@@ -9,7 +10,11 @@ import {
   type Size,
 } from "./ScrollAreaRootContext";
 import { ScrollAreaRootCssVars } from "./ScrollAreaRootCssVars";
-import { overflowStateAttributes } from "./stateAttributes";
+import {
+  overflowState,
+  scrollAreaStateAttributesMapping,
+  type ScrollAreaOverflowState,
+} from "./stateAttributes";
 import { SCROLL_TIMEOUT } from "../constants";
 import { getOffset } from "../../utils/getOffset";
 import { styleDisableScrollbar } from "../../utils/styles";
@@ -28,7 +33,9 @@ const DEFAULT_OVERFLOW_EDGES: OverflowEdges = {
 // not to overflow.
 const DEFAULT_HIDDEN_STATE: HiddenState = { x: true, y: true, corner: true };
 
-export interface ScrollAreaRootProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
+export interface ScrollAreaRootProps extends ParentProps<
+  PartProps<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>, ScrollAreaOverflowState>
+> {
   overflowEdgeThreshold?:
     | number
     | Partial<{
@@ -37,7 +44,6 @@ export interface ScrollAreaRootProps extends ParentProps<JSX.HTMLAttributes<HTML
         yStart: number;
         yEnd: number;
       }>;
-  ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
 }
 
 function normalizeOverflowEdgeThreshold(
@@ -326,14 +332,15 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
 
   return (
     <ScrollAreaRootContext value={contextValue}>
-      <div
-        {...overflowStateAttributes(contextValue)}
-        {...renderElement<HTMLDivElement>(props, {
-          ref(element) {
-            rootRef = element;
-          },
-          exclude: ["overflowEdgeThreshold"],
-          props: {
+      {renderPart<HTMLDivElement, ScrollAreaOverflowState>("div", props, {
+        state: () => overflowState(contextValue),
+        stateAttributesMapping: scrollAreaStateAttributesMapping,
+        ref(element) {
+          rootRef = element;
+        },
+        exclude: ["overflowEdgeThreshold"],
+        props: [
+          {
             role: "presentation",
             onPointerEnter: handlePointerEnterOrMove,
             onPointerMove: handlePointerEnterOrMove,
@@ -350,10 +357,8 @@ export function ScrollAreaRoot(props: ScrollAreaRootProps) {
               };
             },
           },
-        })}
-      >
-        {props.children}
-      </div>
+        ],
+      })}
     </ScrollAreaRootContext>
   );
 }

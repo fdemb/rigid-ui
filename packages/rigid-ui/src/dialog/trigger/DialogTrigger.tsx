@@ -7,7 +7,9 @@ import {
   type RegisteredDialogTrigger,
 } from "../root/DialogRootContext";
 import { type DialogInteractionType } from "../types";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
+import { useButton } from "../../internals/use-button/useButton";
+import { triggerOpenStateMapping } from "../../utils/popupStateMapping";
 import { REASONS } from "../../internals/reasons";
 import { type PopupNativeProps } from "../../utils/domProps";
 
@@ -18,8 +20,16 @@ export interface DialogTriggerState {
 
 export interface DialogTriggerProps<Payload = unknown> extends PopupNativeProps<
   HTMLButtonElement,
-  JSX.ButtonHTMLAttributes<HTMLButtonElement>
+  JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+  DialogTriggerState
 > {
+  /**
+   * Whether the rendered element is a native `<button>`. Set to `false` when `render` replaces it
+   * with something else, so button semantics are applied instead of assumed.
+   * @default true
+   */
+  nativeButton?: boolean;
+
   handle?: DialogHandle<Payload>;
   payload?: Payload;
 }
@@ -59,61 +69,57 @@ export function DialogTrigger<Payload = unknown>(props: DialogTriggerProps<Paylo
     },
   );
 
-  // The user's onClick/onPointerDown are chained ahead of the internal handlers by renderElement;
+  // The user's onClick/onPointerDown are chained ahead of the internal handlers by renderPart;
   // the internal handlers only observe defaultPrevented and derive the interaction type.
-  return (
-    <button
-      {...renderElement<HTMLButtonElement>(props as Record<string, unknown>, {
-        props: [
-          {
-            get id() {
-              return id();
-            },
-            get type() {
-              return props.type ?? "button";
-            },
-            get disabled() {
-              return disabled();
-            },
-            "aria-haspopup": "dialog",
-            get "aria-expanded"() {
-              return openByThisTrigger() ? "true" : "false";
-            },
-            get "aria-controls"() {
-              return openByThisTrigger() ? context()?.popupId : undefined;
-            },
-            get "data-popup-open"() {
-              return openByThisTrigger() ? "" : undefined;
-            },
-            onPointerDown(event: PointerEvent) {
-              lastPointerType = event.pointerType as DialogInteractionType;
-            },
-            onClick(event: MouseEvent) {
-              if (event.defaultPrevented || disabled()) return;
-              const store = context();
-              if (!store) return;
+  const { getButtonProps, buttonRef } = useButton({
+    disabled: disabled,
+    native: () => props.nativeButton ?? true,
+  });
 
-              // A click carries no pointer type, and keyboard activation reports `detail === 0`
-              // with no preceding `pointerdown`. Pair the two so the dialog knows a tap from a
-              // keypress.
-              store.setOpenMethod(event.detail === 0 ? "keyboard" : (lastPointerType ?? "mouse"));
-              lastPointerType = undefined;
+  return renderPart<HTMLButtonElement, DialogTriggerState>("button", props, {
+    state: () => ({ disabled: disabled(), open: openByThisTrigger() }),
+    stateAttributesMapping: triggerOpenStateMapping,
+    props: [
+      {
+        get id() {
+          return id();
+        },
+        get disabled() {
+          return disabled();
+        },
+        "aria-haspopup": "dialog",
+        get "aria-expanded"() {
+          return openByThisTrigger() ? "true" : "false";
+        },
+        get "aria-controls"() {
+          return openByThisTrigger() ? context()?.popupId : undefined;
+        },
+        onPointerDown(event: PointerEvent) {
+          lastPointerType = event.pointerType as DialogInteractionType;
+        },
+        onClick(event: MouseEvent) {
+          if (event.defaultPrevented || disabled()) return;
+          const store = context();
+          if (!store) return;
 
-              if (openByThisTrigger()) {
-                store.requestOpen(false, REASONS.triggerPress, event, id());
-              } else {
-                store.openByTrigger(id(), REASONS.triggerPress, event);
-              }
-            },
-          },
-        ],
-        ref: setElement,
-        exclude: ["payload", "handle", "id"],
-      })}
-    >
-      {props.children}
-    </button>
-  );
+          // A click carries no pointer type, and keyboard activation reports `detail === 0`
+          // with no preceding `pointerdown`. Pair the two so the dialog knows a tap from a
+          // keypress.
+          store.setOpenMethod(event.detail === 0 ? "keyboard" : (lastPointerType ?? "mouse"));
+          lastPointerType = undefined;
+
+          if (openByThisTrigger()) {
+            store.requestOpen(false, REASONS.triggerPress, event, id());
+          } else {
+            store.openByTrigger(id(), REASONS.triggerPress, event);
+          }
+        },
+      },
+    ],
+    propsGetter: getButtonProps,
+    ref: [buttonRef as (element: HTMLButtonElement) => void, setElement],
+    exclude: ["payload", "handle", "id", "nativeButton"],
+  });
 }
 
 export namespace DialogTrigger {

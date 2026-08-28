@@ -2,7 +2,8 @@ import { createEffect, createSignal, Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { useTooltipPortalContext } from "../portal/TooltipPortalContext";
 import { useTooltipRootContext } from "../root/TooltipRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
+import { popupStateMapping } from "../../utils/popupStateMapping";
 import type {
   TooltipAlign,
   TooltipAnchor,
@@ -31,7 +32,11 @@ export interface TooltipPositionerState {
   instant: TooltipInstantType;
 }
 
-export interface TooltipPositionerProps extends TooltipNativeProps<HTMLDivElement> {
+export interface TooltipPositionerProps extends TooltipNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  TooltipPositionerState
+> {
   /** An element to position the popup against. Defaults to the active trigger. */
   anchor?: TooltipAnchor;
   positionMethod?: "absolute" | "fixed";
@@ -129,70 +134,56 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
   return (
     <Show when={context!.mounted() || keepMounted.keepMounted}>
       <TooltipPositionerContext value={positionerContext}>
-        <div
-          {...renderElement<HTMLDivElement>(props as unknown as Record<string, unknown>, {
-            props: {
-              role: "presentation",
-              get hidden() {
-                return !context!.mounted();
-              },
-              get inert() {
-                return !context!.open() ? true : undefined;
-              },
-              get "data-open"() {
-                return context!.open() ? "" : undefined;
-              },
-              get "data-closed"() {
-                return !context!.open() ? "" : undefined;
-              },
-              get "data-side"() {
-                return positioning.side();
-              },
-              get "data-align"() {
-                return positioning.align();
-              },
-              get "data-anchor-hidden"() {
-                return positioning.anchorHidden() ? "" : undefined;
-              },
-              get "data-instant"() {
-                return context!.instantType();
-              },
-              get style(): JSX.CSSProperties | string {
-                const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
-                  ...positioning.positionerStyles(),
-                };
-                if (!transitionsReady()) {
-                  base.transition = "none";
-                }
-                // A hoverable popup lets the pointer travel onto it without closing, unless
-                // `disableHoverablePopup` opted out.
-                if (!context!.open() || context!.disableHoverablePopup()) {
-                  base["pointer-events"] = "none";
-                }
-                return base;
-              },
-              onPointerEnter: handlePointerEnter,
-              onPointerLeave: handlePointerLeave,
+        {renderPart<HTMLDivElement, TooltipPositionerState>("div", props, {
+          state: () => ({
+            open: context!.open(),
+            side: positioning.side(),
+            align: positioning.align(),
+            anchorHidden: positioning.anchorHidden(),
+            instant: context!.instantType(),
+          }),
+          stateAttributesMapping: popupStateMapping,
+          props: {
+            role: "presentation",
+            get hidden() {
+              return !context!.mounted();
             },
-            ref: [setElement, (node: HTMLDivElement) => context!.setPositionerElement(node)],
-            exclude: [
-              "anchor",
-              "positionMethod",
-              "side",
-              "sideOffset",
-              "align",
-              "alignOffset",
-              "collisionBoundary",
-              "collisionPadding",
-              "collisionAvoidance",
-              "arrowPadding",
-              "sticky",
-              "disableAnchorTracking",
-            ],
-          })}
-        >
-          {props.children}
-        </div>
+            get inert() {
+              return !context!.open() ? true : undefined;
+            },
+            get style(): JSX.CSSProperties | string {
+              const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
+                ...positioning.positionerStyles(),
+              };
+              if (!transitionsReady()) {
+                base.transition = "none";
+              }
+              // A hoverable popup lets the pointer travel onto it without closing, unless
+              // `disableHoverablePopup` opted out.
+              if (!context!.open() || context!.disableHoverablePopup()) {
+                base["pointer-events"] = "none";
+              }
+              return base;
+            },
+            onPointerEnter: handlePointerEnter,
+            onPointerLeave: handlePointerLeave,
+          },
+          ref: [setElement, (node: HTMLDivElement) => context!.setPositionerElement(node)],
+          exclude: [
+            "anchor",
+            "positionMethod",
+            "side",
+            "sideOffset",
+            "align",
+            "alignOffset",
+            "collisionBoundary",
+            "collisionPadding",
+            "collisionAvoidance",
+            "arrowPadding",
+            "sticky",
+            "disableAnchorTracking",
+          ],
+        })}
       </TooltipPositionerContext>
     </Show>
   );

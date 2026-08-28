@@ -8,15 +8,17 @@
  * `event.preventBaseUIHandler()`; the flag lives on the DOM event object itself because Solid
  * hands components native events rather than synthetic wrappers.
  *
- * Unlike a plain Object.assign, the returned object keeps reactivity: every field is a getter
- * that re-reads the source bags at access time, so spreading the result in JSX tracks the
- * underlying component props. The set of keys is fixed at merge time — a key added to a source
- * object later is not picked up.
+ * Unlike a plain Object.assign, the returned object keeps reactivity: it is a proxy that re-reads
+ * the source bags at access time, so spreading the result in JSX tracks the underlying component
+ * props. Keys are resolved on demand too, so a source that gains a key later is picked up and
+ * enumerating the result never reads a value.
  *
- * A bag may be a function ("props getter"). It is invoked once, eagerly, with the merged props
- * accumulated so far (left of it), and its return value replaces that accumulation; the getter
- * is responsible for carrying previous props forward. Handlers it returns are not automatically
- * prevention-aware — such a getter must check `event.baseUIHandlerPrevented` itself.
+ * A bag may be a function ("props getter"). It is invoked once with the props accumulated so far
+ * (left of it) and its return value replaces that accumulation; the getter is responsible for
+ * carrying previous props forward. Both the argument and the return value stay live, so a getter
+ * must read through them rather than spreading them into a plain object. Handlers it returns are
+ * not automatically prevention-aware — such a getter must check `event.baseUIHandlerPrevented`
+ * itself.
  *
  * `ref` is deliberately not given merge semantics; compose refs explicitly instead.
  */
@@ -210,8 +212,8 @@ function resolveInputs(inputs: Array<MergeableProps | PropsGetter | undefined>) 
   for (const input of inputs) {
     if (input === undefined || input === null) continue;
     if (isPropsGetter(input)) {
-      const snapshot = materialize(sources);
-      const replacement = { ...input(snapshot) };
+      const previous = createMerged([...sources]);
+      const replacement = input(previous);
       sources.length = 0;
       sources.push(replacement);
       continue;
@@ -221,43 +223,76 @@ function resolveInputs(inputs: Array<MergeableProps | PropsGetter | undefined>) 
   return sources;
 }
 
-/** Reads a merged props object into a plain static snapshot of its own keys. */
-function materialize(sources: MergeableProps[]) {
-  const merged = createMerged(sources);
-  const snapshot: MergeableProps = {};
-  for (const key of Object.keys(merged)) {
-    snapshot[key] = merged[key];
+function readMerged(sources: MergeableProps[], key: string) {
+  let value: unknown;
+  let hasValue = false;
+  for (const source of sources) {
+    if (!(key in source)) continue;
+    const nextValue = (source as MergeableProps)[key];
+    value = mergeValue(key, hasValue ? value : undefined, nextValue);
+    hasValue = true;
   }
-  return snapshot;
+  return hasValue ? value : undefined;
 }
 
 function createMerged(sources: MergeableProps[]): MergeableProps {
-  const keySet = new Set<string>();
-  for (const source of sources) {
-    for (const key of Object.keys(source)) {
-      keySet.add(key);
-    }
-  }
+  const own: MergeableProps = {};
 
-  const merged: MergeableProps = {};
-  for (const key of keySet) {
-    Object.defineProperty(merged, key, {
-      enumerable: true,
-      configurable: true,
-      get() {
-        let value: unknown;
-        let hasValue = false;
-        for (const source of sources) {
-          if (!(key in source)) continue;
-          const nextValue = (source as MergeableProps)[key];
-          value = mergeValue(key, hasValue ? value : undefined, nextValue);
-          hasValue = true;
-        }
-        return hasValue ? value : undefined;
-      },
-    });
-  }
-  return merged;
+  return new Proxy(own, {
+    get(target, key, receiver) {
+      if (typeof key !== "string") return Reflect.get(target, key, receiver);
+      if (Object.hasOwn(target, key)) return Reflect.get(target, key, receiver);
+      return readMerged(sources, key);
+    },
+    has(target, key) {
+      if (Reflect.has(target, key)) return true;
+      if (typeof key !== "string") return false;
+      return sources.some((source) => key in source);
+    },
+    ownKeys(target) {
+      const keys = new Set<string>(Object.keys(target));
+      for (const source of sources) {
+        for (const key of Object.keys(source)) keys.add(key);
+      }
+      return [...keys];
+    },
+    getOwnPropertyDescriptor(target, key) {
+      if (Object.hasOwn(target, key)) return Reflect.getOwnPropertyDescriptor(target, key);
+      if (typeof key !== "string") return undefined;
+      if (!sources.some((source) => key in source)) return undefined;
+      return {
+        enumerable: true,
+        configurable: true,
+        get: () => readMerged(sources, key),
+      };
+    },
+  });
+}
+
+/**
+ * A view of `source` with `keys` hidden. Unlike Solid's `omit`, the key set is resolved on every
+ * read, so a key that appears later (a state attribute switching on) is picked up.
+ */
+export function omitProps(source: MergeableProps, ...keys: string[]): MergeableProps {
+  const blocked = new Set(keys);
+  const visible = (key: string | symbol): key is string =>
+    typeof key === "string" && !blocked.has(key);
+
+  return new Proxy({} as MergeableProps, {
+    get(_target, key) {
+      return visible(key) ? source[key] : undefined;
+    },
+    has(_target, key) {
+      return visible(key) && key in source;
+    },
+    ownKeys() {
+      return Object.keys(source).filter((key) => !blocked.has(key));
+    },
+    getOwnPropertyDescriptor(_target, key) {
+      if (!visible(key) || !(key in source)) return undefined;
+      return { enumerable: true, configurable: true, get: () => source[key] };
+    },
+  });
 }
 
 export function mergeProps(

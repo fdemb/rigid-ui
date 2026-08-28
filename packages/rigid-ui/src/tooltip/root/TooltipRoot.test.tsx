@@ -22,6 +22,7 @@ function TestTooltip(
     delay?: number;
     closeDelay?: number;
     disabled?: boolean;
+    triggerDisabled?: boolean;
     disableHoverablePopup?: boolean;
     closeOnClick?: boolean;
     onOpenChange?: (open: boolean, details: Tooltip.Root.ChangeEventDetails) => void;
@@ -37,6 +38,7 @@ function TestTooltip(
     >
       <Tooltip.Trigger
         data-testid="trigger"
+        disabled={props.triggerDisabled}
         closeOnClick={props.closeOnClick}
         delay={props.delay ?? DELAY}
         closeDelay={props.closeDelay ?? CLOSE_DELAY}
@@ -69,6 +71,7 @@ describe("Tooltip", () => {
 
       const trigger = screen.getByText("Toggle");
       expect(screen.queryByText("Content")).toBeNull();
+      expect(trigger).not.toHaveAttribute("data-closed");
 
       hoverTrigger(trigger);
       // The tooltip must not open before the pointer rests.
@@ -85,6 +88,7 @@ describe("Tooltip", () => {
 
       await waitFor(() => expect(screen.queryByText("Content")).toBeNull());
       expect(trigger).not.toHaveAttribute("data-popup-open");
+      expect(trigger).not.toHaveAttribute("data-closed");
     });
 
     it("respects a custom delay before opening", async () => {
@@ -272,6 +276,7 @@ describe("Tooltip", () => {
       render(() => <TestTooltip disabled />);
       const trigger = screen.getByText("Toggle");
       expect(trigger).toHaveAttribute("data-trigger-disabled");
+      expect(trigger).not.toHaveAttribute("disabled");
 
       hoverTrigger(trigger);
       await sleep(DELAY + 20);
@@ -280,6 +285,25 @@ describe("Tooltip", () => {
       fireEvent.focus(trigger);
       await sleep(5);
       expect(screen.queryByText("Content")).toBeNull();
+    });
+
+    it("stays disabled when the root is disabled and the trigger opts back in", async () => {
+      render(() => <TestTooltip disabled triggerDisabled={false} delay={0} />);
+      const trigger = screen.getByText("Toggle");
+
+      expect(trigger).not.toHaveAttribute("data-trigger-disabled");
+
+      hoverTrigger(trigger);
+      await sleep(20);
+      expect(screen.queryByText("Content")).toBeNull();
+    });
+
+    it("disables the tooltip without disabling the trigger element", async () => {
+      render(() => <TestTooltip triggerDisabled />);
+      const trigger = screen.getByText("Toggle");
+
+      expect(trigger).toHaveAttribute("data-trigger-disabled");
+      expect(trigger).not.toHaveAttribute("disabled");
     });
 
     it("closes an open tooltip when it becomes disabled", async () => {

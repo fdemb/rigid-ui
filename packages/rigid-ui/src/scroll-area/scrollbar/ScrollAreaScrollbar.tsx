@@ -1,6 +1,7 @@
 import { createEffect, Show, type ParentProps } from "solid-js";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { JSX } from "@solidjs/web";
+import type { PartProps } from "../../utils/domProps";
 import { useScrollAreaRootContext } from "../root/ScrollAreaRootContext";
 import { ScrollAreaScrollbarContext } from "./ScrollAreaScrollbarContext";
 import { contains } from "../../utils/contains";
@@ -9,10 +10,15 @@ import { getTarget } from "../../utils/getTarget";
 import { getOffset } from "../../utils/getOffset";
 import { ScrollAreaRootCssVars } from "../root/ScrollAreaRootCssVars";
 import { ScrollAreaScrollbarCssVars } from "./ScrollAreaScrollbarCssVars";
-import { ScrollAreaScrollbarDataAttributes } from "./ScrollAreaScrollbarDataAttributes";
-import { scrollbarOverflowStateAttributes } from "../root/stateAttributes";
+import {
+  scrollAreaStateAttributesMapping,
+  scrollbarState,
+  type ScrollAreaScrollbarState,
+} from "../root/stateAttributes";
 
-export interface ScrollAreaScrollbarProps extends ParentProps<JSX.HTMLAttributes<HTMLDivElement>> {
+export interface ScrollAreaScrollbarProps extends ParentProps<
+  PartProps<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>, ScrollAreaScrollbarState>
+> {
   /**
    * Whether the scrollbar controls vertical or horizontal scroll.
    * @default 'vertical'
@@ -23,7 +29,6 @@ export interface ScrollAreaScrollbarProps extends ParentProps<JSX.HTMLAttributes
    * @default false
    */
   keepMounted?: boolean;
-  ref?: HTMLDivElement | ((el: HTMLDivElement) => void);
 }
 
 export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
@@ -156,27 +161,19 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
   return (
     <Show when={shouldRender()}>
       <ScrollAreaScrollbarContext value={{ orientation: orientation() }}>
-        <div
-          {...{
-            [ScrollAreaScrollbarDataAttributes.orientation]: orientation(),
-            [ScrollAreaScrollbarDataAttributes.hovering]: ctx.hovering() ? "" : undefined,
-            [ScrollAreaScrollbarDataAttributes.scrolling]: (
-              vertical() ? ctx.scrollingY() : ctx.scrollingX()
-            )
-              ? ""
-              : undefined,
-          }}
-          {...scrollbarOverflowStateAttributes(ctx, orientation())}
-          {...renderElement<HTMLDivElement>(props, {
-            ref(element) {
-              if (vertical()) {
-                ctx.scrollbarYRef = element;
-              } else {
-                ctx.scrollbarXRef = element;
-              }
-            },
-            exclude: ["orientation", "keepMounted"],
-            props: {
+        {renderPart<HTMLDivElement, ScrollAreaScrollbarState>("div", props, {
+          state: () => scrollbarState(ctx, orientation),
+          stateAttributesMapping: scrollAreaStateAttributesMapping,
+          ref(element) {
+            if (vertical()) {
+              ctx.scrollbarYRef = element;
+            } else {
+              ctx.scrollbarXRef = element;
+            }
+          },
+          exclude: ["orientation", "keepMounted"],
+          props: [
+            {
               "data-id": `${ctx.rootId}-scrollbar`,
               onPointerDown: handleScrollbarPointerDown,
               // Native scrollbars don't move focus when pressed, whichever button is used. Handled
@@ -214,10 +211,8 @@ export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps) {
                 return base;
               },
             },
-          })}
-        >
-          {props.children}
-        </div>
+          ],
+        })}
       </ScrollAreaScrollbarContext>
     </Show>
   );

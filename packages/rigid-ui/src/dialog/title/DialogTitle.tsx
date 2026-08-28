@@ -1,6 +1,6 @@
 import { createEffect, createUniqueId } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { type PopupNativeProps } from "../../utils/domProps";
 
 export interface DialogTitleState {}
@@ -17,22 +17,16 @@ export function DialogTitle(props: DialogTitleProps) {
     (currentId) => context!.registerTitle(currentId),
   );
 
-  return (
-    <h2
-      {...renderElement<HTMLHeadingElement>(props, {
-        props: [
-          {
-            get id() {
-              return id();
-            },
-          },
-        ],
-        exclude: ["id"],
-      })}
-    >
-      {props.children}
-    </h2>
-  );
+  return renderPart<HTMLHeadingElement>("h2", props, {
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+    ],
+    exclude: ["id"],
+  });
 }
 
 export namespace DialogTitle {

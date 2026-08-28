@@ -60,7 +60,8 @@ export type PopoverFocusTarget =
 export type PopoverNativeProps<
   T extends HTMLElement,
   Attributes extends JSX.HTMLAttributes<T> = JSX.HTMLAttributes<T>,
-> = PopupNativeProps<T, Attributes>;
+  State = Record<string, unknown>,
+> = PopupNativeProps<T, Attributes, State>;
 
 export type PopoverOffsetData = OffsetData;
 export type PopoverOffset = Offset;

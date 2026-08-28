@@ -9,7 +9,12 @@ import { ScrollAreaScrollbarCssVars } from "./scrollbar/ScrollAreaScrollbarCssVa
 import { ScrollAreaScrollbarDataAttributes } from "./scrollbar/ScrollAreaScrollbarDataAttributes";
 import { ScrollAreaThumbDataAttributes } from "./thumb/ScrollAreaThumbDataAttributes";
 import { ScrollAreaViewportCssVars } from "./viewport/ScrollAreaViewportCssVars";
-import { overflowStateAttributes, scrollbarOverflowStateAttributes } from "./root/stateAttributes";
+import {
+  overflowState,
+  scrollAreaStateAttributesMapping,
+  scrollbarState,
+} from "./root/stateAttributes";
+import { getStateAttributesProps } from "../internals/getStateAttributesProps";
 import { SCROLLABLE_CONTENT_SIZE, VIEWPORT_SIZE } from "../../test/ScrollAreaFixture";
 import { isJSDOM, render } from "../../test/test-utils";
 
@@ -32,12 +37,15 @@ describe("ScrollArea enum sync", () => {
 
   it("names every overflow attribute the shared serializer emits per the enums", () => {
     const emitted = Object.keys(
-      overflowStateAttributes({
-        scrollingX: () => true,
-        scrollingY: () => false,
-        hiddenState: () => ({ x: false, y: false, corner: false }),
-        overflowEdges: () => ({ xStart: true, xEnd: true, yStart: true, yEnd: true }),
-      } as never),
+      getStateAttributesProps(
+        overflowState({
+          scrollingX: () => true,
+          scrollingY: () => false,
+          hiddenState: () => ({ x: false, y: false, corner: false }),
+          overflowEdges: () => ({ xStart: true, xEnd: true, yStart: true, yEnd: true }),
+        } as never),
+        scrollAreaStateAttributesMapping,
+      ),
     );
 
     expect(emitted).toEqual([
@@ -53,20 +61,37 @@ describe("ScrollArea enum sync", () => {
 
   it("names the per-axis scrollbar attributes per the enums", () => {
     const ctx = {
+      hovering: () => true,
+      scrollingX: () => true,
+      scrollingY: () => true,
       hiddenState: () => ({ x: false, y: false, corner: false }),
       overflowEdges: () => ({ xStart: true, xEnd: true, yStart: true, yEnd: true }),
     } as never;
 
-    expect(Object.keys(scrollbarOverflowStateAttributes(ctx, "vertical"))).toEqual([
-      ScrollAreaScrollbarDataAttributes.hasOverflowY,
-      ScrollAreaScrollbarDataAttributes.overflowYStart,
-      ScrollAreaScrollbarDataAttributes.overflowYEnd,
-    ]);
-    expect(Object.keys(scrollbarOverflowStateAttributes(ctx, "horizontal"))).toEqual([
+    const overflowAttributes = [
       ScrollAreaScrollbarDataAttributes.hasOverflowX,
+      ScrollAreaScrollbarDataAttributes.hasOverflowY,
       ScrollAreaScrollbarDataAttributes.overflowXStart,
       ScrollAreaScrollbarDataAttributes.overflowXEnd,
-    ]);
+      ScrollAreaScrollbarDataAttributes.overflowYStart,
+      ScrollAreaScrollbarDataAttributes.overflowYEnd,
+    ];
+    const shared = [
+      ScrollAreaScrollbarDataAttributes.orientation,
+      ScrollAreaScrollbarDataAttributes.hovering,
+      ScrollAreaScrollbarDataAttributes.scrolling,
+    ];
+
+    const emitted = (orientation: "vertical" | "horizontal") =>
+      Object.keys(
+        getStateAttributesProps(
+          scrollbarState(ctx, () => orientation),
+          scrollAreaStateAttributesMapping,
+        ),
+      );
+
+    expect(emitted("vertical")).toEqual([...shared, ...overflowAttributes]);
+    expect(emitted("horizontal")).toEqual([...shared, ...overflowAttributes]);
   });
 
   it("names the orientation attributes per the scrollbar and thumb enums", () => {

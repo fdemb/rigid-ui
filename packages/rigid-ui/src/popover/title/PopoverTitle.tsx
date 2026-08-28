@@ -1,6 +1,6 @@
 import { createEffect, createUniqueId } from "solid-js";
 import { usePopoverRootContext } from "../root/PopoverRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import type { PopoverNativeProps } from "../types";
 
 export interface PopoverTitleState {}
@@ -17,19 +17,13 @@ export function PopoverTitle(props: PopoverTitleProps) {
     (currentId) => context!.registerTitle(currentId),
   );
 
-  return (
-    <h2
-      {...renderElement<HTMLHeadingElement>(props, {
-        props: {
-          get id() {
-            return id();
-          },
-        },
-      })}
-    >
-      {props.children}
-    </h2>
-  );
+  return renderPart<HTMLHeadingElement>("h2", props, {
+    props: {
+      get id() {
+        return id();
+      },
+    },
+  });
 }
 
 export namespace PopoverTitle {

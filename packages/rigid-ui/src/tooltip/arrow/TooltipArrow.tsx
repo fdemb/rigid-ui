@@ -1,7 +1,9 @@
+import type { JSX } from "@solidjs/web";
 import { onCleanup } from "solid-js";
 import { useTooltipRootContext } from "../root/TooltipRootContext";
 import { useTooltipPositionerContext } from "../positioner/TooltipPositionerContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
+import { popupStateMapping } from "../../utils/popupStateMapping";
 import type { TooltipAlign, TooltipNativeProps, TooltipSide } from "../types";
 
 export interface TooltipArrowState {
@@ -10,7 +12,11 @@ export interface TooltipArrowState {
   align: TooltipAlign;
   uncentered: boolean;
 }
-export interface TooltipArrowProps extends TooltipNativeProps<HTMLDivElement> {}
+export interface TooltipArrowProps extends TooltipNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  TooltipArrowState
+> {}
 
 export function TooltipArrow(props: TooltipArrowProps) {
   const context = useTooltipRootContext();
@@ -18,38 +24,24 @@ export function TooltipArrow(props: TooltipArrowProps) {
 
   onCleanup(() => positioner!.setArrowElement(undefined));
 
-  return (
-    <div
-      {...renderElement<HTMLDivElement>(props, {
-        props: {
-          "aria-hidden": "true",
-          get "data-open"() {
-            return context!.open() ? "" : undefined;
-          },
-          get "data-closed"() {
-            return !context!.open() ? "" : undefined;
-          },
-          get "data-side"() {
-            return positioner!.side();
-          },
-          get "data-align"() {
-            return positioner!.align();
-          },
-          get "data-uncentered"() {
-            return positioner!.arrowUncentered() ? "" : undefined;
-          },
-          // Merged with the consumer's style by the internal mergeProps: internal values first,
-          // user overrides per property.
-          get style() {
-            return { ...positioner!.arrowStyles() };
-          },
-        },
-        ref: (element: HTMLDivElement) => positioner!.setArrowElement(element),
-      })}
-    >
-      {props.children}
-    </div>
-  );
+  return renderPart<HTMLDivElement, TooltipArrowState>("div", props, {
+    state: () => ({
+      open: context!.open(),
+      side: positioner!.side(),
+      align: positioner!.align(),
+      uncentered: positioner!.arrowUncentered(),
+    }),
+    stateAttributesMapping: popupStateMapping,
+    props: {
+      "aria-hidden": "true",
+      // Merged with the consumer's style by the internal mergeProps: internal values first,
+      // user overrides per property.
+      get style() {
+        return { ...positioner!.arrowStyles() };
+      },
+    },
+    ref: (element: HTMLDivElement) => positioner!.setArrowElement(element),
+  });
 }
 
 export namespace TooltipArrow {

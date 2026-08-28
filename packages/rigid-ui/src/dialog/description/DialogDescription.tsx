@@ -1,6 +1,6 @@
 import { createEffect, createUniqueId } from "solid-js";
 import { useDialogRootContext } from "../root/DialogRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { type PopupNativeProps } from "../../utils/domProps";
 
 export interface DialogDescriptionState {}
@@ -17,22 +17,16 @@ export function DialogDescription(props: DialogDescriptionProps) {
     (currentId) => context!.registerDescription(currentId),
   );
 
-  return (
-    <p
-      {...renderElement<HTMLParagraphElement>(props, {
-        props: [
-          {
-            get id() {
-              return id();
-            },
-          },
-        ],
-        exclude: ["id"],
-      })}
-    >
-      {props.children}
-    </p>
-  );
+  return renderPart<HTMLParagraphElement>("p", props, {
+    props: [
+      {
+        get id() {
+          return id();
+        },
+      },
+    ],
+    exclude: ["id"],
+  });
 }
 
 export namespace DialogDescription {

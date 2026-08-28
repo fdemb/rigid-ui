@@ -7,7 +7,7 @@ import {
   type RegisteredTooltipTrigger,
   type TooltipRootContextValue,
 } from "../root/TooltipRootContext";
-import { renderElement } from "../../internals/renderElement";
+import { renderPart } from "../../internals/renderPart";
 import { REASONS } from "../../internals/reasons";
 import { triggerOpenStateMapping } from "../../utils/popupStateMapping";
 import { OPEN_DELAY } from "../utils/constants";
@@ -20,7 +20,8 @@ export interface TooltipTriggerState {
 
 export interface TooltipTriggerProps<Payload = unknown> extends TooltipNativeProps<
   HTMLButtonElement,
-  JSX.ButtonHTMLAttributes<HTMLButtonElement>
+  JSX.ButtonHTMLAttributes<HTMLButtonElement>,
+  TooltipTriggerState
 > {
   handle?: TooltipHandle<Payload>;
   payload?: Payload;
@@ -34,8 +35,8 @@ export interface TooltipTriggerProps<Payload = unknown> extends TooltipNativePro
   /** How long to wait before closing after the pointer leaves, in milliseconds. @default 0 */
   closeDelay?: number;
   /**
-   * If true, the tooltip will not open from this trigger. Does not apply the native `disabled`
-   * attribute; pass it separately to disable the button itself.
+   * If true, the tooltip will not open from this trigger. This does not apply the native
+   * `disabled` attribute; pass it to the element returned by `render` to disable the element.
    * @default false
    */
   disabled?: boolean;
@@ -54,9 +55,7 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
   const id = (): string =>
     typeof props.id === "string" ? props.id : `rigid-tooltip-trigger-${generatedId}`;
   const context = () => localContext ?? props.handle?.context();
-  // The root-level disabled flag wins over an opt-in per trigger; a trigger can only disable
-  // itself, never re-enable a tooltip whose root is disabled.
-  const disabled = () => (localContext?.disabled() ?? false) || props.disabled === true;
+  const disabled = () => props.disabled ?? context()?.disabled() ?? false;
   const [element, setElement] = createSignal<HTMLButtonElement>();
   // Reactive view for rendered attributes…
   const openByThisTrigger = () => {
@@ -107,23 +106,12 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     openTimer = undefined;
   }
 
-  // The user's handlers are chained ahead of these by renderElement; the internal handlers only
+  // The user's handlers are chained ahead of these by renderPart; the internal handlers only
   // observe defaultPrevented.
   const internalProps = {
+    type: "button",
     get id() {
       return id();
-    },
-    get type() {
-      return props.type ?? "button";
-    },
-    get disabled() {
-      return props.disabled !== undefined && props.disabled !== false;
-    },
-    get "data-popup-open"() {
-      return openByThisTrigger() ? "" : undefined;
-    },
-    get "data-closed"() {
-      return !openByThisTrigger() ? "" : undefined;
     },
     get "data-trigger-disabled"() {
       return disabled() ? "" : undefined;
@@ -189,22 +177,13 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     },
   };
 
-  return (
-    <button
-      {...renderElement<HTMLButtonElement, { open: boolean }>(
-        props as unknown as Record<string, unknown>,
-        {
-          props: [internalProps],
-          state: () => ({ open: openByThisTrigger() }),
-          stateAttributesMapping: triggerOpenStateMapping,
-          ref: setElement,
-          exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "id"],
-        },
-      )}
-    >
-      {props.children}
-    </button>
-  );
+  return renderPart<HTMLButtonElement, TooltipTriggerState>("button", props, {
+    props: [internalProps],
+    state: () => ({ open: openByThisTrigger() }),
+    stateAttributesMapping: triggerOpenStateMapping,
+    ref: setElement,
+    exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "disabled", "id"],
+  });
 }
 
 export namespace TooltipTrigger {

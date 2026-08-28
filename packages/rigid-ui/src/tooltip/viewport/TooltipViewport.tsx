@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 import { useTooltipPositionerContext } from "../positioner/TooltipPositionerContext";
 import { useTooltipRootContext } from "../root/TooltipRootContext";
 import type { TooltipInstantType, TooltipNativeProps } from "../types";
@@ -10,7 +11,11 @@ import {
 export interface TooltipViewportState extends PopupViewportState<
   Exclude<TooltipInstantType, undefined>
 > {}
-export interface TooltipViewportProps extends TooltipNativeProps<HTMLDivElement> {}
+export interface TooltipViewportProps extends TooltipNativeProps<
+  HTMLDivElement,
+  JSX.HTMLAttributes<HTMLDivElement>,
+  TooltipViewportState
+> {}
 
 export function TooltipViewport(props: TooltipViewportProps) {
   const root = useTooltipRootContext()!;
