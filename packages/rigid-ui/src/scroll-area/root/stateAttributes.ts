@@ -58,10 +58,6 @@ export function overflowState(ctx: ScrollAreaRootContextValue): ScrollAreaOverfl
   };
 }
 
-/**
- * The scrollbar reports only the axis it controls. The inactive axis resolves to `false`, so the
- * mapping renders no attribute for it.
- */
 export function scrollbarState(
   ctx: ScrollAreaRootContextValue,
   orientation: () => ScrollAreaOrientation,
@@ -74,12 +70,12 @@ export function scrollbarState(
     orientation: orientation(),
     hovering: ctx.hovering(),
     scrolling: vertical ? ctx.scrollingY() : ctx.scrollingX(),
-    hasOverflowX: !vertical && !hidden.x,
-    hasOverflowY: vertical && !hidden.y,
-    overflowXStart: !vertical && edges.xStart,
-    overflowXEnd: !vertical && edges.xEnd,
-    overflowYStart: vertical && edges.yStart,
-    overflowYEnd: vertical && edges.yEnd,
+    hasOverflowX: !hidden.x,
+    hasOverflowY: !hidden.y,
+    overflowXStart: edges.xStart,
+    overflowXEnd: edges.xEnd,
+    overflowYStart: edges.yStart,
+    overflowYEnd: edges.yEnd,
   };
 }
 

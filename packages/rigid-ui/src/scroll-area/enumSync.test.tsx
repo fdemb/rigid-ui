@@ -68,15 +68,13 @@ describe("ScrollArea enum sync", () => {
       overflowEdges: () => ({ xStart: true, xEnd: true, yStart: true, yEnd: true }),
     } as never;
 
-    const verticalAxis = [
-      ScrollAreaScrollbarDataAttributes.hasOverflowY,
-      ScrollAreaScrollbarDataAttributes.overflowYStart,
-      ScrollAreaScrollbarDataAttributes.overflowYEnd,
-    ];
-    const horizontalAxis = [
+    const overflowAttributes = [
       ScrollAreaScrollbarDataAttributes.hasOverflowX,
+      ScrollAreaScrollbarDataAttributes.hasOverflowY,
       ScrollAreaScrollbarDataAttributes.overflowXStart,
       ScrollAreaScrollbarDataAttributes.overflowXEnd,
+      ScrollAreaScrollbarDataAttributes.overflowYStart,
+      ScrollAreaScrollbarDataAttributes.overflowYEnd,
     ];
     const shared = [
       ScrollAreaScrollbarDataAttributes.orientation,
@@ -92,8 +90,8 @@ describe("ScrollArea enum sync", () => {
         ),
       );
 
-    expect(emitted("vertical")).toEqual([...shared, ...verticalAxis]);
-    expect(emitted("horizontal")).toEqual([...shared, ...horizontalAxis]);
+    expect(emitted("vertical")).toEqual([...shared, ...overflowAttributes]);
+    expect(emitted("horizontal")).toEqual([...shared, ...overflowAttributes]);
   });
 
   it("names the orientation attributes per the scrollbar and thumb enums", () => {

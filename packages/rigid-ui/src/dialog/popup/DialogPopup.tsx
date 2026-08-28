@@ -99,15 +99,7 @@ export function DialogPopup(props: DialogPopupProps) {
   return (
     <>
       {focusManager.renderBeforeGuard()}
-      {renderPart<
-        HTMLDivElement,
-        {
-          open: boolean;
-          transitionStatus: DialogTransitionStatus;
-          nested: boolean;
-          nestedDialogOpen: boolean;
-        }
-      >("div", props, {
+      {renderPart<HTMLDivElement, DialogPopupState>("div", props, {
         props: [
           {
             get id() {

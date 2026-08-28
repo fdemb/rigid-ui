@@ -654,7 +654,7 @@ describe("<ScrollArea.Root />", () => {
       const vScrollbar = screen.getByTestId("scrollbar-vertical");
       const hScrollbar = screen.getByTestId("scrollbar-horizontal");
 
-      for (const part of [root, viewport, content]) {
+      for (const part of [root, viewport, content, vScrollbar, hScrollbar]) {
         expect(part).toHaveAttribute("data-has-overflow-x");
         expect(part).toHaveAttribute("data-has-overflow-y");
         expect(part).not.toHaveAttribute("data-overflow-x-start");
@@ -663,49 +663,30 @@ describe("<ScrollArea.Root />", () => {
         expect(part).toHaveAttribute("data-overflow-y-end");
       }
 
-      // A scrollbar only carries the axis it controls.
-      expect(vScrollbar).toHaveAttribute("data-has-overflow-y");
-      expect(vScrollbar).not.toHaveAttribute("data-has-overflow-x");
-      expect(vScrollbar).not.toHaveAttribute("data-overflow-y-start");
-      expect(vScrollbar).toHaveAttribute("data-overflow-y-end");
-      expect(hScrollbar).toHaveAttribute("data-has-overflow-x");
-      expect(hScrollbar).not.toHaveAttribute("data-has-overflow-y");
-      expect(hScrollbar).not.toHaveAttribute("data-overflow-x-start");
-      expect(hScrollbar).toHaveAttribute("data-overflow-x-end");
-
       // Scroll to the middle: both edges are past.
       viewport.scrollTop = (viewport.scrollHeight - viewport.clientHeight) / 2;
       viewport.scrollLeft = (viewport.scrollWidth - viewport.clientWidth) / 2;
       fireEvent.scroll(viewport);
       await flushMicrotasks();
 
-      for (const part of [root, viewport, content]) {
+      for (const part of [root, viewport, content, vScrollbar, hScrollbar]) {
         expect(part).toHaveAttribute("data-overflow-y-start");
         expect(part).toHaveAttribute("data-overflow-y-end");
         expect(part).toHaveAttribute("data-overflow-x-start");
         expect(part).toHaveAttribute("data-overflow-x-end");
       }
-      expect(vScrollbar).toHaveAttribute("data-overflow-y-start");
-      expect(vScrollbar).toHaveAttribute("data-overflow-y-end");
-      expect(hScrollbar).toHaveAttribute("data-overflow-x-start");
-      expect(hScrollbar).toHaveAttribute("data-overflow-x-end");
-
       // Scroll to the end: the end edges clear.
       viewport.scrollTop = viewport.scrollHeight - viewport.clientHeight;
       viewport.scrollLeft = viewport.scrollWidth - viewport.clientWidth;
       fireEvent.scroll(viewport);
       await flushMicrotasks();
 
-      for (const part of [root, viewport, content]) {
+      for (const part of [root, viewport, content, vScrollbar, hScrollbar]) {
         expect(part).toHaveAttribute("data-overflow-y-start");
         expect(part).not.toHaveAttribute("data-overflow-y-end");
         expect(part).toHaveAttribute("data-overflow-x-start");
         expect(part).not.toHaveAttribute("data-overflow-x-end");
       }
-      expect(vScrollbar).toHaveAttribute("data-overflow-y-start");
-      expect(vScrollbar).not.toHaveAttribute("data-overflow-y-end");
-      expect(hScrollbar).toHaveAttribute("data-overflow-x-start");
-      expect(hScrollbar).not.toHaveAttribute("data-overflow-x-end");
     });
 
     it("treats near-edge scroll offsets as fully scrolled", async () => {

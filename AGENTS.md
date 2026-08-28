@@ -140,12 +140,6 @@ Not gaps, so they have no Linear issue.
 - `resolveInstantType` guards with `event instanceof MouseEvent` before reading `detail`, where
   Base UI casts unconditionally. Same outcome on every real path, and no `undefined === 0`
   accident.
-- `ScrollArea.Scrollbar` reports only the axis it controls. Base UI's scrollbar state carries both
-  axes, so a vertical track there also renders `data-has-overflow-x` and the horizontal edge
-  attributes. Ours resolves the inactive axis to `false`, which renders nothing. This predates the
-  `render` work; `enumSync.test.tsx` pins the current behaviour.
-- `Tooltip.Trigger` renders `data-closed` and `data-trigger-disabled`, which Base UI's trigger
-  does not. `data-trigger-disabled` is covered by `TooltipRoot.test.tsx`.
 
 <!--VITE PLUS START-->
 

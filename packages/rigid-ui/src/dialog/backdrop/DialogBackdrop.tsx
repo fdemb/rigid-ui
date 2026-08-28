@@ -36,33 +36,29 @@ export function DialogBackdrop(props: DialogBackdropProps) {
 
   return (
     <Show when={!context!.nested || props.forceRender}>
-      {renderPart<HTMLDivElement, { open: boolean; transitionStatus: DialogTransitionStatus }>(
-        "div",
-        props,
-        {
-          props: [
-            {
-              get role() {
-                return props.role ?? "presentation";
-              },
-              get hidden() {
-                return !context!.mounted();
-              },
-              style: {
-                "user-select": "none",
-                "-webkit-user-select": "none",
-              },
+      {renderPart<HTMLDivElement, DialogBackdropState>("div", props, {
+        props: [
+          {
+            get role() {
+              return props.role ?? "presentation";
             },
-          ],
-          state: () => ({
-            open: context!.open(),
-            transitionStatus: context!.transitionStatus(),
-          }),
-          stateAttributesMapping: popupTransitionStateMapping,
-          ref: setElement,
-          exclude: ["forceRender"],
-        },
-      )}
+            get hidden() {
+              return !context!.mounted();
+            },
+            style: {
+              "user-select": "none",
+              "-webkit-user-select": "none",
+            },
+          },
+        ],
+        state: () => ({
+          open: context!.open(),
+          transitionStatus: context!.transitionStatus(),
+        }),
+        stateAttributesMapping: popupTransitionStateMapping,
+        ref: setElement,
+        exclude: ["forceRender"],
+      })}
     </Show>
   );
 }

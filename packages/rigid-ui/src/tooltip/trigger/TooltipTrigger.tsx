@@ -35,8 +35,8 @@ export interface TooltipTriggerProps<Payload = unknown> extends TooltipNativePro
   /** How long to wait before closing after the pointer leaves, in milliseconds. @default 0 */
   closeDelay?: number;
   /**
-   * If true, the tooltip will not open from this trigger. Does not apply the native `disabled`
-   * attribute; pass it separately to disable the button itself.
+   * If true, the tooltip will not open from this trigger. This does not apply the native
+   * `disabled` attribute; pass it to the element returned by `render` to disable the element.
    * @default false
    */
   disabled?: boolean;
@@ -55,9 +55,7 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
   const id = (): string =>
     typeof props.id === "string" ? props.id : `rigid-tooltip-trigger-${generatedId}`;
   const context = () => localContext ?? props.handle?.context();
-  // The root-level disabled flag wins over an opt-in per trigger; a trigger can only disable
-  // itself, never re-enable a tooltip whose root is disabled.
-  const disabled = () => (localContext?.disabled() ?? false) || props.disabled === true;
+  const disabled = () => props.disabled ?? context()?.disabled() ?? false;
   const [element, setElement] = createSignal<HTMLButtonElement>();
   // Reactive view for rendered attributes…
   const openByThisTrigger = () => {
@@ -111,14 +109,9 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
   // The user's handlers are chained ahead of these by renderPart; the internal handlers only
   // observe defaultPrevented.
   const internalProps = {
+    type: "button",
     get id() {
       return id();
-    },
-    get disabled() {
-      return props.disabled !== undefined && props.disabled !== false;
-    },
-    get "data-closed"() {
-      return !openByThisTrigger() ? "" : undefined;
     },
     get "data-trigger-disabled"() {
       return disabled() ? "" : undefined;
@@ -189,7 +182,7 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     state: () => ({ open: openByThisTrigger() }),
     stateAttributesMapping: triggerOpenStateMapping,
     ref: setElement,
-    exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "id"],
+    exclude: ["payload", "handle", "delay", "closeDelay", "closeOnClick", "disabled", "id"],
   });
 }
 
