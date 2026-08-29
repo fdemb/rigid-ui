@@ -22,8 +22,10 @@ import type {
   TooltipRootActions,
   TooltipRootChangeEventDetails,
   TooltipRootChangeEventReason,
+  TooltipTrackCursorAxis,
   TooltipTransitionStatus,
 } from "../types";
+import { createTooltipCursorTracking } from "./createTooltipCursorTracking";
 
 export interface TooltipRootProps<Payload = unknown> {
   defaultOpen?: boolean;
@@ -38,6 +40,8 @@ export interface TooltipRootProps<Payload = unknown> {
    * @default false
    */
   disableHoverablePopup?: boolean;
+  /** Determines which axis the tooltip follows the cursor on. @default 'none' */
+  trackCursorAxis?: TooltipTrackCursorAxis;
   triggerId?: string | null;
   defaultTriggerId?: string | null;
   handle?: TooltipHandle<Payload>;
@@ -134,6 +138,15 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
   });
   const payload = () => activeTrigger()?.payload();
 
+  const cursorTracking = createTooltipCursorTracking({
+    axis: () => props.trackCursorAxis ?? "none",
+    activeTrigger,
+    mounted,
+    positionerElement,
+    disableHoverablePopup: () => props.disableHoverablePopup ?? false,
+    readState: () => sync,
+  });
+
   let hoverCloseTimer: ReturnType<typeof setTimeout> | undefined;
   let completionTimer: ReturnType<typeof setTimeout> | undefined;
   let transitionFrame: number | undefined;
@@ -219,6 +232,11 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
     setOpenReason(reason);
     setInstantType(resolveInstantType(nextOpen, reason));
     if (props.open === undefined) setUncontrolledOpen(nextOpen);
+    if (nextOpen && reason === REASONS.triggerHover && sync.open && proposedTrigger) {
+      cursorTracking.activate(proposedTrigger);
+    } else if (nextOpen) {
+      cursorTracking.clear();
+    }
     return true;
   }
 
@@ -280,6 +298,8 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
     payload,
     disabled: () => props.disabled ?? false,
     disableHoverablePopup: () => props.disableHoverablePopup ?? false,
+    trackCursorAxis: () => props.trackCursorAxis ?? "none",
+    cursorTracking,
     openReason,
     instantType,
     setInstantType,
@@ -297,6 +317,7 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
     finishTransition,
     forceUnmount() {
       preventCurrentUnmount = false;
+      cursorTracking.clear();
       setMounted(false);
       setTransitionStatus(undefined);
     },
@@ -317,6 +338,16 @@ export function TooltipRoot<Payload = unknown>(props: TooltipRootProps<Payload>)
         setTransitionStatus("ending");
       }
       scheduleTransitionCompletion(isOpen);
+    },
+  );
+
+  createEffect(
+    () => [open(), openReason(), activeTriggerId()] as const,
+    ([isOpen, reason, triggerId]) => {
+      if (isOpen && reason === REASONS.triggerHover && triggerId !== null) {
+        const trigger = untrack(activeTrigger);
+        if (trigger) cursorTracking.activate(trigger);
+      }
     },
   );
 

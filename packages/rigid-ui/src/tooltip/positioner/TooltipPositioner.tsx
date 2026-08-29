@@ -29,7 +29,7 @@ export interface TooltipPositionerState {
   side: TooltipSide;
   align: TooltipAlign;
   anchorHidden: boolean;
-  instant: TooltipInstantType;
+  instant: TooltipInstantType | "tracking-cursor";
 }
 
 export interface TooltipPositionerProps extends TooltipNativeProps<
@@ -69,8 +69,14 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
   const [arrowElement, setArrowElement] = createSignal<Element>();
   const [viewportCount, setViewportCount] = createSignal(0);
 
+  const resolvedAnchor = () => {
+    if (props.anchor != null) return props.anchor;
+    const tracking = context!.cursorTracking.view();
+    return tracking.kind === "active" ? tracking.anchor : context!.activeTrigger()?.element();
+  };
+
   const positioning = createAnchorPositioning({
-    anchor: () => props.anchor ?? context!.activeTrigger()?.element(),
+    anchor: resolvedAnchor,
     positioner: element,
     arrow: arrowElement,
     mounted: () => context!.mounted() || keepMounted.keepMounted,
@@ -140,7 +146,8 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
             side: positioning.side(),
             align: positioning.align(),
             anchorHidden: positioning.anchorHidden(),
-            instant: context!.instantType(),
+            instant:
+              context!.trackCursorAxis() === "none" ? context!.instantType() : "tracking-cursor",
           }),
           stateAttributesMapping: popupStateMapping,
           props: {
@@ -149,7 +156,11 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
               return !context!.mounted();
             },
             get inert() {
-              return !context!.open() ? true : undefined;
+              return !context!.open() ||
+                context!.trackCursorAxis() === "both" ||
+                context!.disableHoverablePopup()
+                ? true
+                : undefined;
             },
             get style(): JSX.CSSProperties | string {
               const base: JSX.CSSProperties & Record<string, string | number | undefined> = {
@@ -160,7 +171,11 @@ export function TooltipPositioner(props: TooltipPositionerProps) {
               }
               // A hoverable popup lets the pointer travel onto it without closing, unless
               // `disableHoverablePopup` opted out.
-              if (!context!.open() || context!.disableHoverablePopup()) {
+              if (
+                !context!.open() ||
+                context!.trackCursorAxis() === "both" ||
+                context!.disableHoverablePopup()
+              ) {
                 base["pointer-events"] = "none";
               }
               return base;

@@ -4,8 +4,10 @@ import type {
   TooltipRootChangeEventDetails,
   TooltipRootChangeEventReason,
   TooltipSide,
+  TooltipTrackCursorAxis,
   TooltipTransitionStatus,
 } from "../types";
+import type { TooltipCursorTrackingContext } from "./createTooltipCursorTracking";
 
 export interface RegisteredTooltipTrigger<Payload = unknown> {
   id: string;
@@ -38,6 +40,8 @@ export interface TooltipRootContextValue<Payload = unknown> {
   payload: Accessor<Payload | undefined>;
   disabled: Accessor<boolean>;
   disableHoverablePopup: Accessor<boolean>;
+  trackCursorAxis: Accessor<TooltipTrackCursorAxis>;
+  cursorTracking: TooltipCursorTrackingContext;
   openReason: Accessor<TooltipRootChangeEventReason>;
   /** Why transitions should be skipped for the current change, or `undefined` to allow them. */
   instantType: Accessor<TooltipInstantType>;
