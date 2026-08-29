@@ -119,6 +119,7 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     onPointerEnter(event: PointerEvent) {
       if (event.defaultPrevented || disabled() || event.pointerType === "touch") return;
       const store = context();
+      store?.cursorTracking.observeCursor(id(), event);
       if (!store || store.readState().open) return;
       cancelPendingOpen();
       openTimer = setTimeout(() => {
@@ -157,11 +158,20 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       if (store.isInsideOtherTrigger(event.relatedTarget, id())) return;
       store.requestOpen(false, REASONS.triggerFocus, event, id());
     },
-    onPointerDown() {
+    onPointerDown(event: PointerEvent) {
       sawPointerDown = true;
       const store = context();
+      store?.cursorTracking.observeCursor(id(), event);
       // A press means deliberate interaction; a pending hover reveal would fight it.
       if (store && !store.open()) cancelPendingOpen();
+    },
+    onMouseEnter(event: MouseEvent) {
+      if (event.defaultPrevented || disabled()) return;
+      context()?.cursorTracking.observeCursor(id(), event);
+    },
+    onMouseMove(event: MouseEvent) {
+      if (event.defaultPrevented || disabled()) return;
+      context()?.cursorTracking.observeCursor(id(), event);
     },
     onClick(event: MouseEvent) {
       sawPointerDown = false;

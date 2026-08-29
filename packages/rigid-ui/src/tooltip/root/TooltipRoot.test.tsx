@@ -2,10 +2,10 @@ import { createSignal } from "solid-js";
 import { fireEvent, screen, waitFor } from "@testing-library/dom";
 import { beforeEach, describe, expect, it, vi } from "vite-plus/test";
 import { isJSDOM, render, resetBrowserPointer } from "../../../test/test-utils";
-import { Tooltip } from "../index";
+import { Tooltip, type TooltipTrackCursorAxis } from "../index";
 
 // Ported from Base UI's `tooltip/root/TooltipRoot.test.tsx` (single-tooltip subset; the
-// nested-trigger choreography and cursor-tracking clusters are tracked as RUI-49 and RUI-48).
+// nested-trigger choreography is tracked as RUI-49).
 // Hover timing runs on real timers with small delays so positioning frames stay real.
 
 const DELAY = 5;
@@ -24,6 +24,7 @@ function TestTooltip(
     disabled?: boolean;
     triggerDisabled?: boolean;
     disableHoverablePopup?: boolean;
+    trackCursorAxis?: TooltipTrackCursorAxis;
     closeOnClick?: boolean;
     onOpenChange?: (open: boolean, details: Tooltip.Root.ChangeEventDetails) => void;
   } = {},
@@ -34,6 +35,7 @@ function TestTooltip(
       defaultOpen={props.defaultOpen}
       disabled={props.disabled}
       disableHoverablePopup={props.disableHoverablePopup}
+      trackCursorAxis={props.trackCursorAxis}
       onOpenChange={props.onOpenChange}
     >
       <Tooltip.Trigger
@@ -46,7 +48,7 @@ function TestTooltip(
         Toggle
       </Tooltip.Trigger>
       <Tooltip.Portal>
-        <Tooltip.Positioner>
+        <Tooltip.Positioner data-testid="positioner">
           <Tooltip.Popup data-testid="popup">Content</Tooltip.Popup>
         </Tooltip.Positioner>
       </Tooltip.Portal>
@@ -356,6 +358,52 @@ describe("Tooltip", () => {
         expect(positioner.style.pointerEvents).toBe("none");
       });
     });
+
+    describe("prop: trackCursorAxis", () => {
+      it("makes the positioner inert when tracking both axes", async () => {
+        render(() => <TestTooltip trackCursorAxis="both" delay={0} />);
+
+        const trigger = screen.getByRole("button", { name: "Toggle" });
+        fireEvent.pointerDown(trigger, {
+          pointerType: "mouse",
+          clientX: 20,
+          clientY: 20,
+        });
+        fireEvent.pointerEnter(trigger, {
+          pointerType: "mouse",
+          clientX: 20,
+          clientY: 20,
+        });
+        fireEvent.mouseMove(trigger, { clientX: 20, clientY: 20 });
+
+        const positioner = await screen.findByTestId("positioner");
+        expect(positioner.style.pointerEvents).toBe("none");
+        expect(positioner).toHaveAttribute("inert");
+        expect(positioner).toHaveAttribute("data-instant", "tracking-cursor");
+      });
+
+      it("keeps the positioner hoverable when tracking a single axis", async () => {
+        render(() => <TestTooltip trackCursorAxis="x" delay={0} />);
+
+        const trigger = screen.getByRole("button", { name: "Toggle" });
+        fireEvent.pointerDown(trigger, {
+          pointerType: "mouse",
+          clientX: 20,
+          clientY: 20,
+        });
+        fireEvent.pointerEnter(trigger, {
+          pointerType: "mouse",
+          clientX: 20,
+          clientY: 20,
+        });
+        fireEvent.mouseMove(trigger, { clientX: 20, clientY: 20 });
+
+        const positioner = await screen.findByTestId("positioner");
+        expect(positioner.style.pointerEvents).toBe("");
+        expect(positioner).not.toHaveAttribute("inert");
+        expect(positioner).toHaveAttribute("data-instant", "tracking-cursor");
+      });
+    });
   });
 
   describe.skipIf(isJSDOM)("positioning", () => {
@@ -372,6 +420,190 @@ describe("Tooltip", () => {
         expect(positioner.style.opacity).not.toBe("0");
       });
       expect(popup.getAttribute("data-side")).toBe("top");
+    });
+
+    it("tracks the cursor on the first delayed hover when trackCursorAxis is x", async () => {
+      render(() => (
+        <div style={{ "padding-top": "100px", "padding-left": "40px" }}>
+          <Tooltip.Root trackCursorAxis="x">
+            <Tooltip.Trigger delay={100} style={{ width: "300px", height: "40px" }}>
+              Trigger
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Positioner data-testid="tracked-positioner" side="bottom">
+                <Tooltip.Popup style={{ width: "40px", height: "20px" }}>Tooltip</Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </div>
+      ));
+
+      const trigger = screen.getByRole("button", { name: "Trigger" });
+      const triggerRect = trigger.getBoundingClientRect();
+      const cursorX = triggerRect.left + 240;
+      const cursorY = triggerRect.top + 20;
+
+      fireEvent.pointerDown(trigger, { pointerType: "mouse", clientX: cursorX, clientY: cursorY });
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: cursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: cursorX, clientY: cursorY });
+
+      const positioner = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = positioner.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - cursorX)).toBeLessThanOrEqual(2);
+      });
+    });
+
+    it("follows mouse movement while open", async () => {
+      render(() => (
+        <div style={{ "padding-top": "100px", "padding-left": "40px" }}>
+          <Tooltip.Root trackCursorAxis="x">
+            <Tooltip.Trigger delay={0} style={{ width: "300px", height: "40px" }}>
+              Trigger
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Positioner data-testid="tracked-positioner" side="bottom">
+                <Tooltip.Popup style={{ width: "40px", height: "20px" }}>Tooltip</Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </div>
+      ));
+
+      const trigger = screen.getByRole("button", { name: "Trigger" });
+      const triggerRect = trigger.getBoundingClientRect();
+      const firstCursorX = triggerRect.left + 60;
+      const secondCursorX = triggerRect.left + 240;
+      const cursorY = triggerRect.top + 20;
+
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: firstCursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: firstCursorX, clientY: cursorY });
+
+      const positioner = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = positioner.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - firstCursorX)).toBeLessThanOrEqual(2);
+      });
+
+      fireEvent.mouseMove(window, { clientX: secondCursorX, clientY: cursorY });
+      await waitFor(() => {
+        const rect = positioner.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - secondCursorX)).toBeLessThanOrEqual(2);
+      });
+    });
+
+    it("stops tracking the cursor after trackCursorAxis is disabled while closed", async () => {
+      function TestCase() {
+        const [trackCursorAxis, setTrackCursorAxis] = createSignal<TooltipTrackCursorAxis>("x");
+        return (
+          <div style={{ "padding-top": "100px", "padding-left": "40px" }}>
+            <button onClick={() => setTrackCursorAxis("none")}>Disable tracking</button>
+            <Tooltip.Root trackCursorAxis={trackCursorAxis()}>
+              <Tooltip.Trigger delay={20} closeDelay={0} style={{ width: "300px", height: "40px" }}>
+                Trigger
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner data-testid="tracked-positioner" side="bottom">
+                  <Tooltip.Popup style={{ width: "40px", height: "20px" }}>Tooltip</Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </div>
+        );
+      }
+
+      render(() => <TestCase />);
+      const trigger = screen.getByRole("button", { name: "Trigger" });
+      const triggerRect = trigger.getBoundingClientRect();
+      const cursorX = triggerRect.left + 240;
+      const cursorY = triggerRect.top + 20;
+
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: cursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: cursorX, clientY: cursorY });
+      const tracked = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = tracked.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - cursorX)).toBeLessThanOrEqual(2);
+      });
+
+      fireEvent.pointerLeave(trigger, { pointerType: "mouse" });
+      await waitFor(() => expect(screen.queryByTestId("tracked-positioner")).toBeNull());
+      fireEvent.click(screen.getByRole("button", { name: "Disable tracking" }));
+
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: cursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: cursorX, clientY: cursorY });
+      const untracked = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = untracked.getBoundingClientRect();
+        const triggerCenterX = triggerRect.left + triggerRect.width / 2;
+        expect(Math.abs(rect.left + rect.width / 2 - triggerCenterX)).toBeLessThanOrEqual(2);
+      });
+    });
+
+    it("updates the tracked cursor position after closing and reopening", async () => {
+      render(() => (
+        <div style={{ "padding-top": "100px", "padding-left": "40px" }}>
+          <Tooltip.Root trackCursorAxis="x">
+            <Tooltip.Trigger delay={20} closeDelay={0} style={{ width: "300px", height: "40px" }}>
+              Trigger
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Positioner data-testid="tracked-positioner" side="bottom">
+                <Tooltip.Popup style={{ width: "40px", height: "20px" }}>Tooltip</Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </div>
+      ));
+
+      const trigger = screen.getByRole("button", { name: "Trigger" });
+      const triggerRect = trigger.getBoundingClientRect();
+      const firstCursorX = triggerRect.left + 240;
+      const secondCursorX = triggerRect.left + 60;
+      const cursorY = triggerRect.top + 20;
+
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: firstCursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: firstCursorX, clientY: cursorY });
+      const first = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = first.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - firstCursorX)).toBeLessThanOrEqual(2);
+      });
+
+      fireEvent.pointerLeave(trigger, { pointerType: "mouse" });
+      await waitFor(() => expect(screen.queryByTestId("tracked-positioner")).toBeNull());
+
+      fireEvent.pointerEnter(trigger, {
+        pointerType: "mouse",
+        clientX: secondCursorX,
+        clientY: cursorY,
+      });
+      fireEvent.mouseMove(trigger, { clientX: secondCursorX, clientY: cursorY });
+      const second = await screen.findByTestId("tracked-positioner");
+      await waitFor(() => {
+        const rect = second.getBoundingClientRect();
+        expect(Math.abs(rect.left + rect.width / 2 - secondCursorX)).toBeLessThanOrEqual(2);
+      });
     });
   });
 
