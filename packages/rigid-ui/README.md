@@ -1,26 +1,85 @@
-# rigid-ui
+# Rigid UI
 
-Unstyled UI components for Solid 2. Based on [Base UI](https://base-ui.com/).
+[![npm](https://img.shields.io/npm/v/rigid-ui)](https://www.npmjs.com/package/rigid-ui)
+[![license](https://img.shields.io/npm/l/rigid-ui)](./LICENSE)
 
-## Components ported
+Unstyled, accessible UI components for Solid 2. Rigid UI follows the compound component APIs of [Base UI](https://base-ui.com/) while using Solid's reactivity and native browser behavior.
 
-- **ScrollArea** — a container with native scroll and stylable scrollbars.
+[View the examples](https://fdemb.github.io/rigid-ui/)
 
-## Components not ported
+> [!NOTE]
+> Rigid UI targets the Solid 2 release candidate. APIs may change before the first stable release.
 
-- Anything else from BaseUI. I just needed the ScrollArea, but maybe I'll add more later.
+## Install
 
-## Usage
-
-```typescript
-import { ScrollArea } from "rigid-ui/scroll-area";
+```bash
+pnpm add rigid-ui
 ```
 
-## Notes
+Rigid UI requires `solid-js` and `@solidjs/web` version `^2.0.0-rc.0`.
 
-- I didn't port the `useRender` utility for polymorphic components. The scroll area components are just divs.
-- Requires Solid 2 RC (`solid-js` and `@solidjs/web` `^2.0.0-rc.0`).
+## Use a component
+
+Import each component from its package entry point. Components have no default styles, so you retain control over the markup and CSS.
+
+```tsx
+import { Popover } from "rigid-ui/popover";
+
+export function Notifications() {
+  return (
+    <Popover.Root>
+      <Popover.Trigger>Notifications</Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={8}>
+          <Popover.Popup>
+            <Popover.Title>Notifications</Popover.Title>
+            <Popover.Description>You are all caught up.</Popover.Description>
+            <Popover.Close>Close</Popover.Close>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+```
+
+Parts that render DOM elements accept `class` and `style`. State attributes such as `data-open`, `data-closed`, `data-starting-style`, and `data-ending-style` let CSS respond to component state and transitions.
+
+Use the `render` prop to replace a DOM part's default element with a tag, a component, or a callback. The callback receives the props that Rigid UI needs you to forward.
+
+## Components
+
+| Component    | Import                  | Purpose                                                    |
+| ------------ | ----------------------- | ---------------------------------------------------------- |
+| Alert Dialog | `rigid-ui/alert-dialog` | Interrupts the user to confirm a consequential action.     |
+| Dialog       | `rigid-ui/dialog`       | Displays modal or non-modal content above the page.        |
+| Popover      | `rigid-ui/popover`      | Positions interactive content next to a trigger.           |
+| Scroll Area  | `rigid-ui/scroll-area`  | Keeps native scrolling while exposing stylable scrollbars. |
+| Tooltip      | `rigid-ui/tooltip`      | Shows contextual information on hover or keyboard focus.   |
+
+The package also exports `CSPProvider` from `rigid-ui/csp-provider` and `mergeProps` from `rigid-ui/merge-props`.
+
+## Develop locally
+
+This repository uses [Vite+](https://viteplus.dev/) and pnpm.
+
+```bash
+vp install
+pnpm dev
+```
+
+Run the full check before submitting a change:
+
+```bash
+pnpm ready
+```
+
+`pnpm ready` builds the library, checks formatting and types, runs the JSDOM and Chromium test suites, and builds the demo. The demo imports through the published `exports` map, so the library build must exist before you run the demo or its type check.
 
 ## Credits
 
-This project tries to port some of great code from [Base UI](https://base-ui.com/), an unstyled React component library.
+Rigid UI adapts APIs and behavioral tests from [Base UI](https://base-ui.com/), an unstyled React component library maintained by MUI.
+
+## License
+
+[MIT](./LICENSE)
