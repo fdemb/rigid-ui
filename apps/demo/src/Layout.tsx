@@ -1,6 +1,7 @@
 import { For, Loading, Show, createSignal } from "solid-js";
-import { useLinkState } from "@solidjs/router";
 import type { JSX } from "@solidjs/web";
+
+import Link from "./components/Link";
 
 const navItems = [
   { href: "/dialog", label: "Dialog" },
@@ -10,15 +11,13 @@ const navItems = [
 ];
 
 function NavLink(props: { href: string; label: string }) {
-  const link = useLinkState(() => props.href);
   return (
-    <a
+    <Link
       href={props.href}
-      aria-current={link.current() ? "page" : undefined}
       class="rounded-md px-3 py-1.5 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 data-active:bg-zinc-100 data-active:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50 dark:data-active:bg-zinc-800 dark:data-active:text-zinc-50"
     >
       {props.label}
-    </a>
+    </Link>
   );
 }
 
@@ -64,9 +63,9 @@ export default function Layout(props: { children?: JSX.Element }) {
     <div class="min-h-screen bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
       <header class="sticky top-0 z-10 border-b border-zinc-200 bg-white/80 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/80">
         <div class="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-          <a href="/" class="font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <Link href="/" class="font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
             rigid-ui
-          </a>
+          </Link>
           <nav class="-mr-2 flex items-center gap-0.5">
             <For each={navItems}>{(item) => <NavLink {...item} />}</For>
             <ThemeToggle />

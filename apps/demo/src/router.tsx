@@ -2,8 +2,11 @@ import { lazy } from "solid-js";
 import { createRouter } from "@solidjs/router";
 
 export const Router = createRouter({
-  // `BASE_URL` is "/" locally and "/rigid-ui/" in CI, matching the Pages project site.
-  base: import.meta.env.BASE_URL,
+  // `BASE_URL` is "/" locally and "/rigid-ui/" in CI, matching the Pages project
+  // site. The router joins base and path with a separator of its own and only
+  // trims repeated trailing slashes, so the trailing one has to go here or every
+  // link resolves to "/rigid-ui//dialog".
+  base: import.meta.env.BASE_URL.replace(/\/$/, ""),
   routes: [
     { path: "/", component: lazy(() => import("./pages/Home")) },
     { path: "/dialog", component: lazy(() => import("./pages/DialogPage")) },
