@@ -1080,6 +1080,61 @@ describe("nested tooltips", () => {
     expect(screen.getByTestId("outer-popup")).not.toBeNull();
   });
 
+  it("keeps nested-hover state through mousemove events", async () => {
+    const delay = 30;
+
+    render(() => (
+      <Tooltip.Provider delay={delay}>
+        <Tooltip.Root>
+          <Tooltip.Trigger data-testid="outer-trigger" render="span">
+            <span data-testid="outer-area">Outer</span>
+            <Tooltip.Root>
+              <Tooltip.Trigger data-testid="inner-trigger" delay={delay * 10}>
+                Inner
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner>
+                  <Tooltip.Popup data-testid="inner-popup">Inner tooltip</Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Positioner>
+              <Tooltip.Popup data-testid="outer-popup">Outer tooltip</Tooltip.Popup>
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      </Tooltip.Provider>
+    ));
+
+    const outerTrigger = screen.getByTestId("outer-trigger");
+    const innerTrigger = screen.getByTestId("inner-trigger");
+    const outerArea = screen.getByTestId("outer-area");
+
+    fireEvent.pointerEnter(outerTrigger, { pointerType: "mouse", clientX: 10, clientY: 10 });
+    fireEvent.mouseEnter(outerTrigger);
+    fireEvent.pointerEnter(innerTrigger, { pointerType: "mouse", clientX: 50, clientY: 10 });
+    fireEvent.mouseEnter(innerTrigger);
+    fireEvent.mouseOver(innerTrigger);
+
+    // Mouseover owns the crossing; mousemove only feeds cursor tracking. A mousemove that
+    // rewrote nested-hover state would skip the handover asserted below.
+    fireEvent.mouseMove(outerArea, { clientX: 10, clientY: 10 });
+    fireEvent.mouseMove(outerTrigger, { clientX: 10, clientY: 10 });
+
+    await sleep(delay + 10);
+    await flushMicrotasks();
+    expect(screen.queryByTestId("outer-popup")).toBeNull();
+
+    fireEvent.mouseOut(innerTrigger, { relatedTarget: outerArea });
+    fireEvent.mouseOver(outerArea);
+
+    await sleep(delay + 10);
+    await flushMicrotasks();
+    expect(screen.getByTestId("outer-popup")).not.toBeNull();
+  });
+
   it("does not re-announce an open outer tooltip when the pending reopen fires", async () => {
     const delay = 30;
     const onOpenChange = vi.fn();
