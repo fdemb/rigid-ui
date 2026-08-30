@@ -10,8 +10,46 @@ import {
 import { renderPart } from "../../internals/renderPart";
 import { REASONS } from "../../internals/reasons";
 import { triggerOpenStateMapping } from "../../utils/popupStateMapping";
+import { contains } from "../../utils/contains";
 import { OPEN_DELAY } from "../utils/constants";
 import type { TooltipNativeProps } from "../types";
+
+const TOOLTIP_TRIGGER_IDENTIFIER = "data-rigid-ui-tooltip-trigger";
+
+interface NestedHoverState {
+  nestedTriggerHovered: boolean;
+  pointerType: string | undefined;
+}
+
+function getTargetElement(event: Event): Element | null {
+  if (typeof event.composedPath === "function") {
+    for (const target of event.composedPath()) {
+      if (target instanceof Element) return target;
+    }
+  }
+  return event.target instanceof Element ? event.target : null;
+}
+
+function closestEnabledTooltipTrigger(element: Element | null): Element | null {
+  let current = element;
+  while (current) {
+    const trigger = current.closest(`[${TOOLTIP_TRIGGER_IDENTIFIER}]`);
+    if (trigger) return trigger;
+
+    const root = current.getRootNode();
+    current = root instanceof ShadowRoot && root.host instanceof Element ? root.host : null;
+  }
+  return null;
+}
+
+function isMouseLikePointerType(pointerType: string | undefined) {
+  return (
+    pointerType === undefined ||
+    pointerType === "" ||
+    pointerType === "mouse" ||
+    pointerType === "pen"
+  );
+}
 
 export interface TooltipTriggerState {
   /** Whether the tooltip is currently open and was opened by this trigger. */
@@ -72,6 +110,11 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
   };
 
   let openTimer: ReturnType<typeof setTimeout> | undefined;
+  let nestedOpenTimer: ReturnType<typeof setTimeout> | undefined;
+  const nestedHover: NestedHoverState = {
+    nestedTriggerHovered: false,
+    pointerType: undefined,
+  };
   // Set between pointerdown and click so the focus event a press generates is not mistaken for
   // keyboard focus; only real keyboard focus should open the tooltip instantly.
   let sawPointerDown = false;
@@ -92,7 +135,10 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     },
   );
 
-  onCleanup(() => clearTimeout(openTimer));
+  onCleanup(() => {
+    clearTimeout(openTimer);
+    clearTimeout(nestedOpenTimer);
+  });
 
   const resolvedCloseDelay = () => props.closeDelay ?? provider?.closeDelay ?? 0;
   const resolvedOpenDelay = (): number => {
@@ -106,6 +152,75 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     openTimer = undefined;
   }
 
+  function isEnabledNestedTriggerTarget(target: Element | null) {
+    const triggerElement = element();
+    if (!triggerElement || !target) return false;
+
+    const nearestTrigger = closestEnabledTooltipTrigger(target);
+    return (
+      nearestTrigger !== null &&
+      nearestTrigger !== triggerElement &&
+      contains(triggerElement, nearestTrigger)
+    );
+  }
+
+  function detectNestedTriggerHover(target: Element | null) {
+    const nestedTriggerHovered = isEnabledNestedTriggerTarget(target);
+    nestedHover.nestedTriggerHovered = nestedTriggerHovered;
+    if (nestedTriggerHovered) {
+      cancelPendingOpen();
+      clearTimeout(nestedOpenTimer);
+      nestedOpenTimer = undefined;
+    }
+    return nestedTriggerHovered;
+  }
+
+  function handleNestedTriggerHover(event: MouseEvent) {
+    const wasNestedTriggerHovered = nestedHover.nestedTriggerHovered;
+    const nestedTriggerHovered = detectNestedTriggerHover(getTargetElement(event));
+    const triggerElement = element();
+    const target = getTargetElement(event);
+    const targetInsideTrigger =
+      triggerElement !== undefined && target !== null && contains(triggerElement, target);
+    const store = context();
+
+    if (
+      nestedTriggerHovered &&
+      store?.readState().open === true &&
+      store.readState().reason === REASONS.triggerHover
+    ) {
+      store.cancelHoverClose();
+      store.requestOpen(false, REASONS.triggerHover, event, id());
+      return;
+    }
+
+    if (
+      wasNestedTriggerHovered &&
+      !nestedTriggerHovered &&
+      targetInsideTrigger &&
+      !disabled() &&
+      store?.readState().open === false &&
+      isMouseLikePointerType(nestedHover.pointerType)
+    ) {
+      const open = () => {
+        nestedOpenTimer = undefined;
+        const latestStore = context();
+        if (
+          !nestedHover.nestedTriggerHovered &&
+          !disabled() &&
+          latestStore?.readState().open === false &&
+          triggerElement
+        ) {
+          latestStore.openByTrigger(id(), REASONS.triggerHover, event);
+        }
+      };
+      const openDelay = resolvedOpenDelay();
+      clearTimeout(nestedOpenTimer);
+      if (openDelay === 0) open();
+      else nestedOpenTimer = setTimeout(open, openDelay);
+    }
+  }
+
   // The user's handlers are chained ahead of these by renderPart; the internal handlers only
   // observe defaultPrevented.
   const internalProps = {
@@ -117,14 +232,15 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       return disabled() ? "" : undefined;
     },
     onPointerEnter(event: PointerEvent) {
+      nestedHover.pointerType = event.pointerType;
       if (event.defaultPrevented || disabled() || event.pointerType === "touch") return;
       const store = context();
       store?.cursorTracking.observeCursor(id(), event);
-      if (!store || store.readState().open) return;
+      if (!store || store.readState().open || nestedHover.nestedTriggerHovered) return;
       cancelPendingOpen();
       openTimer = setTimeout(() => {
         const latestStore = context();
-        if (!latestStore || disabled()) return;
+        if (!latestStore || disabled() || nestedHover.nestedTriggerHovered) return;
         latestStore.openByTrigger(id(), REASONS.triggerHover, event);
       }, resolvedOpenDelay());
     },
@@ -134,8 +250,21 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       if (!store || !openByThisTriggerSync()) return;
       store.scheduleHoverClose(id(), event, resolvedCloseDelay());
     },
+    onMouseLeave() {
+      nestedHover.nestedTriggerHovered = false;
+      clearTimeout(nestedOpenTimer);
+      nestedOpenTimer = undefined;
+      nestedHover.pointerType = undefined;
+    },
     onFocus(event: FocusEvent) {
-      if (event.defaultPrevented || disabled() || sawPointerDown) return;
+      if (
+        event.defaultPrevented ||
+        disabled() ||
+        sawPointerDown ||
+        isEnabledNestedTriggerTarget(getTargetElement(event))
+      ) {
+        return;
+      }
       const store = context();
       if (!store) return;
       // Focus landing on a different trigger hands the open tooltip over instead of being
@@ -159,6 +288,7 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       store.requestOpen(false, REASONS.triggerFocus, event, id());
     },
     onPointerDown(event: PointerEvent) {
+      nestedHover.pointerType = event.pointerType;
       sawPointerDown = true;
       const store = context();
       store?.cursorTracking.observeCursor(id(), event);
@@ -169,9 +299,19 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
       if (event.defaultPrevented || disabled()) return;
       context()?.cursorTracking.observeCursor(id(), event);
     },
+    onMouseOver(event: MouseEvent) {
+      if (event.defaultPrevented || disabled()) return;
+      handleNestedTriggerHover(event);
+    },
     onMouseMove(event: MouseEvent) {
       if (event.defaultPrevented || disabled()) return;
+      if (isEnabledNestedTriggerTarget(getTargetElement(event))) {
+        detectNestedTriggerHover(getTargetElement(event));
+      }
       context()?.cursorTracking.observeCursor(id(), event);
+    },
+    get [TOOLTIP_TRIGGER_IDENTIFIER]() {
+      return disabled() ? undefined : "";
     },
     onClick(event: MouseEvent) {
       sawPointerDown = false;
