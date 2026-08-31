@@ -3,6 +3,7 @@ import type { Accessor } from "solid-js";
 import { REASONS } from "../../internals/reasons";
 import { contains } from "../contains";
 import { getTarget } from "../getTarget";
+import { isMouseLikePointerType } from "../pointerType";
 import { Timeout } from "../useTimeout";
 import type { HandleClose, HandleCloseContext } from "./safePolygon";
 
@@ -72,10 +73,6 @@ export interface UseHoverProps {
    * event required. @default true
    */
   move?: boolean | undefined;
-}
-
-function isMouseLikePointerType(pointerType: string | undefined) {
-  return pointerType === "mouse" || pointerType === "pen" || pointerType == null;
 }
 
 function resolveValue<T>(value: T | (() => T) | undefined, pointerType?: string): T | undefined {

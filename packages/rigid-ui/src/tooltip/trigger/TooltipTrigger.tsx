@@ -1,4 +1,4 @@
-import { createEffect, createSignal, createUniqueId, onCleanup, untrack } from "solid-js";
+import { createEffect, createSignal, createUniqueId, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import type { TooltipHandle } from "../store/TooltipHandle";
 import { useTooltipProviderContext } from "../provider/TooltipProviderContext";
@@ -7,8 +7,8 @@ import {
   type RegisteredTooltipTrigger,
   type TooltipRootContextValue,
 } from "../root/TooltipRootContext";
+import { createTooltipTriggerInteractions } from "./createTooltipTriggerInteractions";
 import { renderPart } from "../../internals/renderPart";
-import { REASONS } from "../../internals/reasons";
 import { triggerOpenStateMapping } from "../../utils/popupStateMapping";
 import { OPEN_DELAY } from "../utils/constants";
 import type { TooltipNativeProps } from "../types";
@@ -56,25 +56,12 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     typeof props.id === "string" ? props.id : `rigid-tooltip-trigger-${generatedId}`;
   const context = () => localContext ?? props.handle?.context();
   const disabled = () => props.disabled ?? context()?.disabled() ?? false;
+  const closeOnClick = () => props.closeOnClick ?? true;
   const [element, setElement] = createSignal<HTMLButtonElement>();
-  // Reactive view for rendered attributes…
   const openByThisTrigger = () => {
     const store = context();
     return store?.open() === true && store.activeTriggerId() === id();
   };
-  // …and the synchronous mirror for decisions inside handlers, where signal writes from a
-  // sibling handler in the same tick (focus opening before click) are not visible yet.
-  const openByThisTriggerSync = () => {
-    const store = context();
-    if (!store) return false;
-    const snapshot = store.readState();
-    return snapshot.open && snapshot.activeTriggerId === id();
-  };
-
-  let openTimer: ReturnType<typeof setTimeout> | undefined;
-  // Set between pointerdown and click so the focus event a press generates is not mistaken for
-  // keyboard focus; only real keyboard focus should open the tooltip instantly.
-  let sawPointerDown = false;
 
   createEffect(
     () => [context(), id()] as const,
@@ -85,14 +72,12 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
         element,
         payload: () => props.payload,
         disabled,
-        closeOnClick: () => props.closeOnClick ?? true,
+        closeOnClick,
         closeDelay: () => resolvedCloseDelay(),
       };
       return store.registerTrigger(registration);
     },
   );
-
-  onCleanup(() => clearTimeout(openTimer));
 
   const resolvedCloseDelay = () => props.closeDelay ?? provider?.closeDelay ?? 0;
   const resolvedOpenDelay = (): number => {
@@ -101,14 +86,17 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     return props.delay ?? provider?.delay ?? OPEN_DELAY;
   };
 
-  function cancelPendingOpen() {
-    clearTimeout(openTimer);
-    openTimer = undefined;
-  }
+  const interactionProps = createTooltipTriggerInteractions({
+    id,
+    element,
+    context,
+    disabled,
+    openDelay: resolvedOpenDelay,
+    closeDelay: resolvedCloseDelay,
+    closeOnClick,
+  });
 
-  // The user's handlers are chained ahead of these by renderPart; the internal handlers only
-  // observe defaultPrevented.
-  const internalProps = {
+  const identityProps = {
     type: "button",
     get id() {
       return id();
@@ -116,79 +104,10 @@ export function TooltipTrigger<Payload = unknown>(props: TooltipTriggerProps<Pay
     get "data-trigger-disabled"() {
       return disabled() ? "" : undefined;
     },
-    onPointerEnter(event: PointerEvent) {
-      if (event.defaultPrevented || disabled() || event.pointerType === "touch") return;
-      const store = context();
-      store?.cursorTracking.observeCursor(id(), event);
-      if (!store || store.readState().open) return;
-      cancelPendingOpen();
-      openTimer = setTimeout(() => {
-        const latestStore = context();
-        if (!latestStore || disabled()) return;
-        latestStore.openByTrigger(id(), REASONS.triggerHover, event);
-      }, resolvedOpenDelay());
-    },
-    onPointerLeave(event: PointerEvent) {
-      cancelPendingOpen();
-      const store = context();
-      if (!store || !openByThisTriggerSync()) return;
-      store.scheduleHoverClose(id(), event, resolvedCloseDelay());
-    },
-    onFocus(event: FocusEvent) {
-      if (event.defaultPrevented || disabled() || sawPointerDown) return;
-      const store = context();
-      if (!store) return;
-      // Focus landing on a different trigger hands the open tooltip over instead of being
-      // ignored; Base UI's focus handling reaches the same outcome through its open timers.
-      const snapshot = store.readState();
-      if (snapshot.open && snapshot.activeTriggerId === id()) return;
-      cancelPendingOpen();
-      // Focus opens skip the rest delay: keyboard users should not wait out a hover timer that
-      // was tuned for pointers.
-      store.openByTrigger(id(), REASONS.triggerFocus, event);
-    },
-    onBlur(event: FocusEvent) {
-      if (event.defaultPrevented) return;
-      cancelPendingOpen();
-      const store = context();
-      if (!store || !openByThisTriggerSync()) return;
-      if (store.openReason() === REASONS.triggerHover) return;
-      // The focus handler of the trigger gaining focus performs the handover; closing here
-      // would tear the popup down mid-switch.
-      if (store.isInsideOtherTrigger(event.relatedTarget, id())) return;
-      store.requestOpen(false, REASONS.triggerFocus, event, id());
-    },
-    onPointerDown(event: PointerEvent) {
-      sawPointerDown = true;
-      const store = context();
-      store?.cursorTracking.observeCursor(id(), event);
-      // A press means deliberate interaction; a pending hover reveal would fight it.
-      if (store && !store.open()) cancelPendingOpen();
-    },
-    onMouseEnter(event: MouseEvent) {
-      if (event.defaultPrevented || disabled()) return;
-      context()?.cursorTracking.observeCursor(id(), event);
-    },
-    onMouseMove(event: MouseEvent) {
-      if (event.defaultPrevented || disabled()) return;
-      context()?.cursorTracking.observeCursor(id(), event);
-    },
-    onClick(event: MouseEvent) {
-      sawPointerDown = false;
-      if (event.defaultPrevented || disabled()) return;
-      cancelPendingOpen();
-      const store = context();
-      if (!store) return;
-      if (props.closeOnClick ?? true) {
-        if (openByThisTriggerSync()) {
-          store.requestOpen(false, REASONS.triggerPress, event, id());
-        }
-      }
-    },
   };
 
   return renderPart<HTMLButtonElement, TooltipTriggerState>("button", props, {
-    props: [internalProps],
+    props: [interactionProps, identityProps],
     state: () => ({ open: openByThisTrigger() }),
     stateAttributesMapping: triggerOpenStateMapping,
     ref: setElement,

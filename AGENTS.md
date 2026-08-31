@@ -101,10 +101,9 @@ Check these before concluding a ported test has found a bug.
 
 ### Tooltip
 
-| Base UI case                                       | Why it is deferred                                                      |
-| -------------------------------------------------- | ----------------------------------------------------------------------- |
-| Cursor tracking with `trackCursorAxis`             | Cursor-relative positioning is tracked by RUI-48                        |
-| Nested-trigger choreography and safe-polygon paths | Nested hover ownership and pointer path retention are tracked by RUI-49 |
+| Base UI case                           | Why it is deferred                               |
+| -------------------------------------- | ------------------------------------------------ |
+| Cursor tracking with `trackCursorAxis` | Cursor-relative positioning is tracked by RUI-48 |
 
 ### Scroll Area
 

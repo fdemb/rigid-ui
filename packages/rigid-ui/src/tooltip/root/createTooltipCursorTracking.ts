@@ -2,6 +2,7 @@ import { createEffect, createMemo, createSignal, untrack, type Accessor } from "
 import type { VirtualAnchorElement } from "../../utils/createAnchorPositioning";
 import type { TooltipTrackCursorAxis } from "../types";
 import type { TooltipSyncState } from "./TooltipRootContext";
+import { isMouseLikePointerType } from "../../utils/pointerType";
 
 type TrackedAxis = Exclude<TooltipTrackCursorAxis, "none">;
 
@@ -67,15 +68,6 @@ function cursorRect(axis: TrackedAxis, point: CursorPoint, triggerRect: DOMRect)
     bottom: y + height,
     left: x,
   };
-}
-
-function isMouseLikePointerType(pointerType: string | undefined) {
-  return (
-    pointerType === undefined ||
-    pointerType === "" ||
-    pointerType === "mouse" ||
-    pointerType === "pen"
-  );
 }
 
 export function createTooltipCursorTracking(

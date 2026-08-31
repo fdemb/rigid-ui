@@ -8,3 +8,12 @@ export function getTarget(event: Event): EventTarget | null {
   }
   return event.target;
 }
+
+/**
+ * Narrows {@link getTarget} to an `Element`, for the callers that classify the target by its
+ * position in the tree. Non-element targets (`document`, `window`) become `null`.
+ */
+export function getTargetElement(event: Event): Element | null {
+  const target = getTarget(event);
+  return target instanceof Element ? target : null;
+}
