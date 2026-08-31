@@ -13,7 +13,6 @@ import { Badge } from "../components/ui/Badge";
 export default function PopoverPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Popover"
       meta={<Badge mono>rigid-ui/primitives/popover</Badge>}
       lede="Anchored, non-blocking content positioned with Floating UI. Placement is reported back to JS as it resolves."

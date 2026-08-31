@@ -22,6 +22,10 @@ export const fieldStyles = stylex.create({
     transitionDuration: tokens.durationFast,
     transitionProperty: "border-color, box-shadow, background-color",
     transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
     width: "100%",
     "::placeholder": { color: tokens.textSubtle },
     ":focus-visible": {
@@ -47,8 +51,8 @@ export const fieldStyles = stylex.create({
 });
 
 const styles = stylex.create({
-  sm: { minHeight: "2rem", paddingBlock: "0.3rem", paddingInline: "0.55rem" },
-  md: { minHeight: "2.5rem", paddingBlock: "0.5rem", paddingInline: "0.7rem" },
+  sm: { minHeight: "2.5rem", paddingBlock: "0.3rem", paddingInline: "0.55rem" },
+  md: { minHeight: "2.75rem", paddingBlock: "0.5rem", paddingInline: "0.7rem" },
 });
 
 export interface InputProps

@@ -7,7 +7,6 @@ import { Badge } from "../components/ui/Badge";
 export default function TooltipPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Tooltip"
       meta={<Badge mono>rigid-ui/primitives/tooltip</Badge>}
       lede="A short label or description that appears after a pointer rests on its trigger, or immediately on keyboard focus."

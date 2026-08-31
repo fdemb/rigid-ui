@@ -3,7 +3,6 @@ import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import { tokens } from "../styles/tokens.stylex";
-import { Badge } from "./ui/Badge";
 
 const styles = stylex.create({
   root: {
@@ -46,8 +45,6 @@ const styles = stylex.create({
   preview: {
     alignItems: "center",
     backgroundColor: tokens.canvasMuted,
-    backgroundImage: `radial-gradient(${tokens.borderStrong} 0.7px, transparent 0.7px)`,
-    backgroundSize: "14px 14px",
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
@@ -70,6 +67,10 @@ const styles = stylex.create({
     paddingInline: "0.85rem",
     transition: `color ${tokens.durationFast} ${tokens.easing}`,
     userSelect: "none",
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   source: {
     backgroundColor: tokens.codeBackground,
@@ -97,7 +98,6 @@ export default function Example(props: ExampleProps) {
     <section {...stylex.attrs(styles.root)}>
       <div {...stylex.attrs(styles.header)}>
         <h2 {...stylex.attrs(styles.title)}>{props.title}</h2>
-        <Badge mono>StyleX</Badge>
       </div>
       <Show when={props.note}>
         <p {...stylex.attrs(styles.note)}>{props.note}</p>

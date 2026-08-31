@@ -33,6 +33,10 @@ const styles = stylex.create({
     transitionDuration: tokens.durationFast,
     transitionProperty: "opacity, transform",
     transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
 });
 

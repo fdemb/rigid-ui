@@ -7,7 +7,6 @@ import { Badge } from "../components/ui/Badge";
 export default function AlertDialogPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Alert dialog"
       meta={<Badge mono>rigid-ui/primitives/alert-dialog</Badge>}
       lede="A modal dialog that interrupts the task. Clicking outside never dismisses it, and the popup carries the alertdialog role."

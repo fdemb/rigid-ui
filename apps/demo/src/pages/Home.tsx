@@ -147,9 +147,6 @@ export default function Home() {
   return (
     <div {...stylex.attrs(styles.root)}>
       <section {...stylex.attrs(styles.hero)}>
-        <Badge tone="accent" mono>
-          Solid 2 · unstyled
-        </Badge>
         <h1 {...stylex.attrs(styles.title)}>
           Component behavior for Solid, and a design layer you own.
         </h1>

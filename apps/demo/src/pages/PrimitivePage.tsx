@@ -33,7 +33,6 @@ export default function PrimitivePage() {
     <Show when={primitive()} fallback={<NotFound />}>
       {(entry) => (
         <Page
-          eyebrow="Primitive"
           title={entry().name}
           meta={<Badge mono>{entry().importPath}</Badge>}
           lede={entry().description}

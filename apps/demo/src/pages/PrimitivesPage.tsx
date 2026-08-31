@@ -47,7 +47,6 @@ const styles = stylex.create({
 export default function PrimitivesPage() {
   return (
     <Page
-      eyebrow="Package reference"
       title="Primitives"
       meta={<Badge mono>rigid-ui/primitives</Badge>}
       lede="Behavior with no visual opinion. Each primitive is a separate subpath import, so you only pull in what you use."

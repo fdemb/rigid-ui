@@ -9,7 +9,6 @@ import { Badge } from "../components/ui/Badge";
 export default function DialogPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Dialog"
       meta={<Badge mono>rigid-ui/primitives/dialog</Badge>}
       lede="A window overlaid on the page. Modal dialogs trap focus and lock scroll; non-modal ones leave the page interactive."

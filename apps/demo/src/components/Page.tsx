@@ -1,5 +1,4 @@
 import * as stylex from "@stylexjs/stylex";
-import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import { tokens } from "../styles/tokens.stylex";
@@ -10,14 +9,6 @@ const styles = stylex.create({
     maxWidth: tokens.contentWidth,
     paddingBlock: "2.5rem 6rem",
     paddingInline: "clamp(1.25rem, 4vw, 2rem)",
-  },
-  eyebrow: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
-    fontSize: "0.6875rem",
-    letterSpacing: "0.08em",
-    margin: 0,
-    textTransform: "uppercase",
   },
   headline: {
     alignItems: "baseline",
@@ -53,7 +44,6 @@ const styles = stylex.create({
 });
 
 export default function Page(props: {
-  eyebrow?: string;
   title: string;
   lede: string;
   /** Badges or controls that sit on the title's baseline. */
@@ -62,9 +52,6 @@ export default function Page(props: {
 }) {
   return (
     <div {...stylex.attrs(styles.root)}>
-      <Show when={props.eyebrow}>
-        <p {...stylex.attrs(styles.eyebrow)}>{props.eyebrow}</p>
-      </Show>
       <div {...stylex.attrs(styles.headline)}>
         <h1 {...stylex.attrs(styles.title)}>{props.title}</h1>
         {props.meta}

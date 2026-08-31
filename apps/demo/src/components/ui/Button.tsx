@@ -25,6 +25,10 @@ const styles = stylex.create({
     transitionProperty: "background-color, border-color, color, box-shadow, transform",
     transitionTimingFunction: tokens.easing,
     userSelect: "none",
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
     ":active": {
       transform: "scale(0.975)",
     },
@@ -91,32 +95,34 @@ const styles = stylex.create({
   xs: {
     borderRadius: tokens.radiusSm,
     fontSize: "0.75rem",
-    minHeight: "1.65rem",
+    minHeight: "2.25rem",
     paddingInline: "0.5rem",
+    "@media (pointer: coarse)": { minHeight: "2.75rem" },
   },
   sm: {
     borderRadius: tokens.radiusSm,
     fontSize: "0.8125rem",
-    minHeight: "2rem",
+    minHeight: "2.5rem",
     paddingInline: "0.7rem",
+    "@media (pointer: coarse)": { minHeight: "2.75rem" },
   },
   md: {
     borderRadius: tokens.radiusMd,
     fontSize: "0.875rem",
-    minHeight: "2.5rem",
+    minHeight: "2.75rem",
     paddingInline: "1rem",
   },
   lg: {
     borderRadius: tokens.radiusMd,
     fontSize: "0.95rem",
-    minHeight: "2.875rem",
+    minHeight: "3rem",
     paddingInline: "1.2rem",
   },
   icon: {
     borderRadius: tokens.radiusMd,
-    height: "2.25rem",
+    height: "2.75rem",
     padding: 0,
-    width: "2.25rem",
+    width: "2.75rem",
   },
   block: { width: "100%" },
 });

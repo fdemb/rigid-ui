@@ -23,8 +23,7 @@ const styles = stylex.create({
     minHeight: "100vh",
   },
   header: {
-    backdropFilter: "blur(18px)",
-    backgroundColor: `color-mix(in srgb, ${tokens.canvas} 84%, transparent)`,
+    backgroundColor: tokens.canvas,
     borderBottomColor: tokens.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
@@ -35,11 +34,13 @@ const styles = stylex.create({
   headerInner: {
     alignItems: "center",
     display: "flex",
+    flexWrap: "wrap",
     gap: "1rem",
-    height: "3.25rem",
+    minHeight: "3.25rem",
     justifyContent: "space-between",
     marginInline: "auto",
     maxWidth: tokens.contentWidth,
+    paddingBlock: "0.5rem",
     paddingInline: "clamp(1.25rem, 4vw, 2rem)",
   },
   brand: {
@@ -58,13 +59,14 @@ const styles = stylex.create({
       ":hover": tokens.text,
       ":is([data-active])": tokens.text,
     },
-    display: {
-      default: "none",
-      "@media (min-width: 38rem)": "inline-flex",
-    },
+    display: "inline-flex",
     fontSize: "0.8125rem",
     fontWeight: 500,
     padding: "0.4rem 0.6rem",
+    "@media (pointer: coarse)": {
+      alignItems: "center",
+      minHeight: "2.75rem",
+    },
     textDecoration: "none",
   },
   themeButton: {
@@ -76,7 +78,8 @@ const styles = stylex.create({
 
 function initialTheme(): ThemeName {
   const saved = localStorage.getItem("rigid-ui-theme");
-  return themeNames.includes(saved as ThemeName) ? (saved as ThemeName) : "light";
+  if (saved === "light" || saved === "dark" || saved === "grove") return saved;
+  return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export default function Layout(props: { children?: JSX.Element }) {

@@ -41,6 +41,10 @@ const styles = stylex.create({
     },
     transitionDuration: tokens.durationNormal,
     transitionProperty: "opacity",
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   vertical: {
     backgroundColor: tokens.canvasMuted,

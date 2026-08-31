@@ -9,7 +9,6 @@ import { Badge } from "../components/ui/Badge";
 export default function ScrollAreaPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Scroll area"
       meta={<Badge mono>rigid-ui/primitives/scroll-area</Badge>}
       lede="Custom scrollbars over native scrolling. The viewport keeps native momentum, keyboard, and accessibility behavior."

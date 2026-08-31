@@ -43,7 +43,6 @@ const styles = stylex.create({
 export default function ComponentsPage() {
   return (
     <Page
-      eyebrow="Registry"
       title="Components"
       meta={<Badge mono>{`${primitives.length} entries`}</Badge>}
       lede="Opinionated StyleX source composed over the primitives. Every example ships the source that produced it; copy it and change the tokens."

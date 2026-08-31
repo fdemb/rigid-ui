@@ -36,6 +36,10 @@ const styles = stylex.create({
     transitionDuration: tokens.durationNormal,
     transitionProperty: "opacity, transform",
     transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   title: {
     fontSize: "0.875rem",

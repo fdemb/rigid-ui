@@ -1,5 +1,5 @@
 import * as stylex from "@stylexjs/stylex";
-import { omit } from "solid-js";
+import { createContext, omit, useContext, type Accessor } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { AlertDialog as AlertDialogPrimitive } from "rigid-ui/primitives/alert-dialog";
 import { Dialog as DialogPrimitive } from "rigid-ui/primitives/dialog";
@@ -22,6 +22,10 @@ const styles = stylex.create({
     transitionDuration: tokens.durationNormal,
     transitionProperty: "opacity",
     transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   popup: {
     backgroundColor: tokens.surfaceRaised,
@@ -34,8 +38,7 @@ const styles = stylex.create({
     display: "flex",
     flexDirection: "column",
     gap: "0.7rem",
-    inset: 0,
-    margin: "auto",
+    left: "50%",
     maxHeight: "min(42rem, calc(100vh - 2rem))",
     maxWidth: "calc(100vw - 2rem)",
     opacity: {
@@ -47,14 +50,19 @@ const styles = stylex.create({
     overflow: "auto",
     padding: "1.25rem",
     position: "fixed",
+    top: "50%",
     transform: {
-      default: "scale(1) translateY(0)",
-      ":is([data-starting-style])": "scale(0.97) translateY(0.4rem)",
-      ":is([data-ending-style])": "scale(0.97) translateY(0.4rem)",
+      default: "translate(-50%, -50%) scale(1)",
+      ":is([data-starting-style])": "translate(-50%, calc(-50% + 0.4rem)) scale(0.97)",
+      ":is([data-ending-style])": "translate(-50%, calc(-50% + 0.4rem)) scale(0.97)",
     },
     transitionDuration: tokens.durationNormal,
     transitionProperty: "opacity, transform",
     transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   sm: { width: "24rem" },
   md: { width: "31rem" },
@@ -83,6 +91,7 @@ const styles = stylex.create({
 });
 
 type DialogTriggerProps = Parameters<typeof DialogPrimitive.Trigger>[0];
+type DialogRootProps = Parameters<typeof DialogPrimitive.Root>[0];
 type DialogCloseProps = Parameters<typeof DialogPrimitive.Close>[0];
 type DialogPopupProps = Parameters<typeof DialogPrimitive.Popup>[0];
 type DialogTitleProps = Parameters<typeof DialogPrimitive.Title>[0];
@@ -103,6 +112,19 @@ type DialogContentProps = Omit<DialogPopupProps, "class" | "style"> & ContentOpt
 type AlertDialogContentProps = Omit<AlertDialogPopupProps, "class" | "style"> & ContentOptions;
 
 const sizes = { sm: styles.sm, md: styles.md, lg: styles.lg };
+
+type DialogModal = NonNullable<DialogRootProps["modal"]>;
+
+const DialogModalContext = createContext<Accessor<DialogModal>>();
+
+function DialogRoot(props: DialogRootProps) {
+  const modal = () => props.modal ?? true;
+  return (
+    <DialogModalContext value={modal}>
+      <DialogPrimitive.Root {...props} />
+    </DialogModalContext>
+  );
+}
 
 function DialogTrigger(
   props: DialogTriggerProps & ButtonAppearance & { xstyle?: stylex.StyleXStyles },
@@ -131,13 +153,14 @@ function DialogClose(props: DialogCloseProps & ButtonAppearance) {
 }
 
 function DialogContent(props: DialogContentProps) {
+  const modal = useContext(DialogModalContext);
   const popupProps = omit(props, "size", "xstyle");
   const popupStyles = reactiveStyleAttributes(() =>
     stylex.attrs(styles.popup, sizes[props.size ?? "md"], props.xstyle),
   );
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Backdrop {...stylex.attrs(styles.backdrop)} />
+      {modal?.() !== false && <DialogPrimitive.Backdrop {...stylex.attrs(styles.backdrop)} />}
       <DialogPrimitive.Popup {...mergeProps(popupStyles, popupProps)} />
     </DialogPrimitive.Portal>
   );
@@ -203,7 +226,7 @@ export function DialogFooter(props: JSX.HTMLAttributes<HTMLDivElement>) {
 }
 
 export const Dialog = {
-  Root: DialogPrimitive.Root,
+  Root: DialogRoot,
   Trigger: DialogTrigger,
   Content: DialogContent,
   Title: DialogTitle,

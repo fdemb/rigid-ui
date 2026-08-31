@@ -106,7 +106,6 @@ const badgeTones = ["neutral", "accent", "success", "warning", "danger"] as cons
 export default function ElementsPage() {
   return (
     <Page
-      eyebrow="Design language"
       title="Elements"
       meta={<Badge mono>8 components</Badge>}
       lede="The styled layer the registry components are built from. Each one is plain StyleX over the token set, so switching themes moves all of them at once."
