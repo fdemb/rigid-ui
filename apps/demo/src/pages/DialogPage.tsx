@@ -4,11 +4,14 @@ import ConfirmationDialog from "../examples/dialog/ConfirmationDialog";
 import confirmationSrc from "../examples/dialog/ConfirmationDialog.tsx?raw";
 import NonModalDialog from "../examples/dialog/NonModalDialog";
 import nonModalSrc from "../examples/dialog/NonModalDialog.tsx?raw";
+import { Badge } from "../components/ui/Badge";
 
 export default function DialogPage() {
   return (
     <Page
+      eyebrow="Registry"
       title="Dialog"
+      meta={<Badge mono>rigid-ui/primitives/dialog</Badge>}
       lede="A window overlaid on the page. Modal dialogs trap focus and lock scroll; non-modal ones leave the page interactive."
     >
       <Example title="Modal confirmation" src={confirmationSrc}>

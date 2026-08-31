@@ -1,26 +1,23 @@
+import * as stylex from "@stylexjs/stylex";
 import { useHref, useResolvedPath } from "@solidjs/router";
+import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
+import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-interface LinkProps {
-  /** A route path, written without the base — `/dialog`, not `/rigid-ui/dialog`. */
+import { reactiveStyleAttributes, type StyleProps } from "./ui/styleProps";
+
+interface LinkProps
+  extends
+    Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, "class" | "href" | "style">,
+    StyleProps {
   href: string;
-  class?: string;
-  children: JSX.Element;
 }
 
-/**
- * An anchor whose `href` is resolved against the router's base. The Pages
- * project site serves the demo from `/rigid-ui/`, and the router only claims
- * anchors whose href already starts with that base — a bare `/dialog` is left
- * to the browser, which walks off the site entirely. Resolving here is what
- * keeps both the click interception and the `aria-current`/`data-active`
- * decoration working, so the state attributes need no wiring of their own.
- */
+/** Resolve internal links against the demo's deployment base path. */
 export default function Link(props: LinkProps) {
+  const anchorProps = omit(props, "href", "xstyle");
   const href = useHref(useResolvedPath(() => props.href));
-  return (
-    <a href={href()} class={props.class}>
-      {props.children}
-    </a>
-  );
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(props.xstyle));
+
+  return <a href={href()} {...mergeProps(attrs, anchorProps)} />;
 }

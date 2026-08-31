@@ -5,7 +5,7 @@
 
 Unstyled, accessible UI components for Solid 2. Rigid UI follows the compound component APIs of [Base UI](https://base-ui.com/) while using Solid's reactivity and native browser behavior.
 
-[View the examples](https://fdemb.github.io/rigid-ui/)
+[Read the primitive docs](https://fdemb.github.io/rigid-ui/primitives)
 
 > [!NOTE]
 > Rigid UI targets the Solid 2 release candidate. APIs may change before the first stable release.
@@ -18,12 +18,12 @@ pnpm add rigid-ui
 
 Rigid UI requires `solid-js` and `@solidjs/web` version `^2.0.0-rc.0`.
 
-## Use a component
+## Use a primitive
 
-Import each component from its package entry point. Components have no default styles, so you retain control over the markup and CSS.
+Import each primitive from its explicit subpath. Primitives have no default styles, so you retain control over the markup and CSS.
 
 ```tsx
-import { Popover } from "rigid-ui/popover";
+import { Popover } from "rigid-ui/primitives/popover";
 
 export function Notifications() {
   return (
@@ -47,17 +47,17 @@ Parts that render DOM elements accept `class` and `style`. State attributes such
 
 Use the `render` prop to replace a DOM part's default element with a tag, a component, or a callback. The callback receives the props that Rigid UI needs you to forward.
 
-## Components
+## Primitives
 
-| Component    | Import                  | Purpose                                                    |
-| ------------ | ----------------------- | ---------------------------------------------------------- |
-| Alert Dialog | `rigid-ui/alert-dialog` | Interrupts the user to confirm a consequential action.     |
-| Dialog       | `rigid-ui/dialog`       | Displays modal or non-modal content above the page.        |
-| Popover      | `rigid-ui/popover`      | Positions interactive content next to a trigger.           |
-| Scroll Area  | `rigid-ui/scroll-area`  | Keeps native scrolling while exposing stylable scrollbars. |
-| Tooltip      | `rigid-ui/tooltip`      | Shows contextual information on hover or keyboard focus.   |
+| Component    | Import                             | Purpose                                                    |
+| ------------ | ---------------------------------- | ---------------------------------------------------------- |
+| Alert Dialog | `rigid-ui/primitives/alert-dialog` | Interrupts the user to confirm a consequential action.     |
+| Dialog       | `rigid-ui/primitives/dialog`       | Displays modal or non-modal content above the page.        |
+| Popover      | `rigid-ui/primitives/popover`      | Positions interactive content next to a trigger.           |
+| Scroll Area  | `rigid-ui/primitives/scroll-area`  | Keeps native scrolling while exposing stylable scrollbars. |
+| Tooltip      | `rigid-ui/primitives/tooltip`      | Shows contextual information on hover or keyboard focus.   |
 
-The package also exports `CSPProvider` from `rigid-ui/csp-provider` and `mergeProps` from `rigid-ui/merge-props`.
+The package also exports `CSPProvider`, `DirectionProvider`, and `mergeProps` from their respective `rigid-ui/primitives/*` subpaths.
 
 ## Develop locally
 

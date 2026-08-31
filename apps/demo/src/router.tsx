@@ -9,11 +9,21 @@ export const Router = createRouter({
   base: import.meta.env.BASE_URL.replace(/\/$/, ""),
   routes: [
     { path: "/", component: lazy(() => import("./pages/Home")) },
-    { path: "/dialog", component: lazy(() => import("./pages/DialogPage")) },
-    { path: "/alert-dialog", component: lazy(() => import("./pages/AlertDialogPage")) },
-    { path: "/popover", component: lazy(() => import("./pages/PopoverPage")) },
-    { path: "/tooltip", component: lazy(() => import("./pages/TooltipPage")) },
-    { path: "/scroll-area", component: lazy(() => import("./pages/ScrollAreaPage")) },
+    { path: "/elements", component: lazy(() => import("./pages/ElementsPage")) },
+    { path: "/components", component: lazy(() => import("./pages/ComponentsPage")) },
+    { path: "/components/dialog", component: lazy(() => import("./pages/DialogPage")) },
+    {
+      path: "/components/alert-dialog",
+      component: lazy(() => import("./pages/AlertDialogPage")),
+    },
+    { path: "/components/popover", component: lazy(() => import("./pages/PopoverPage")) },
+    { path: "/components/tooltip", component: lazy(() => import("./pages/TooltipPage")) },
+    {
+      path: "/components/scroll-area",
+      component: lazy(() => import("./pages/ScrollAreaPage")),
+    },
+    { path: "/primitives", component: lazy(() => import("./pages/PrimitivesPage")) },
+    { path: "/primitives/:primitive", component: lazy(() => import("./pages/PrimitivePage")) },
     { path: "*404", component: lazy(() => import("./pages/NotFound")) },
   ],
 });

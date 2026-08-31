@@ -49,6 +49,7 @@ export default defineConfig({
       "popover/index": "src/popover/index.ts",
       "tooltip/index": "src/tooltip/index.ts",
       "csp-provider/index": "src/csp-provider/index.ts",
+      "direction-provider/index": "src/direction-provider/index.ts",
       "merge-props/index": "src/merge-props/index.ts",
     },
     platform: "neutral",

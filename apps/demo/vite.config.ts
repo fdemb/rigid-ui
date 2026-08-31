@@ -1,8 +1,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import tailwindcss from "@tailwindcss/vite";
 import solidPlugin from "@solidjs/vite-plugin";
+import stylex from "@stylexjs/unplugin";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -34,7 +34,16 @@ function spaFallback(): Plugin {
 }
 
 export default defineConfig({
-  plugins: lazyPlugins(() => [solidPlugin(), tailwindcss(), spaFallback()]),
+  plugins: lazyPlugins(() => [
+    stylex.vite({
+      dev: process.env.NODE_ENV !== "production",
+      runtimeInjection: false,
+      sxPropName: false,
+      useCSSLayers: true,
+    }),
+    solidPlugin(),
+    spaFallback(),
+  ]),
   base: process.env.GITHUB_ACTIONS ? "/rigid-ui/" : "/",
   server: {
     port: 3333,

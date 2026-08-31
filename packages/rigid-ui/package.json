@@ -26,31 +26,35 @@
   ],
   "type": "module",
   "exports": {
-    "./scroll-area": {
+    "./primitives/scroll-area": {
       "types": "./dist/scroll-area/index.d.ts",
       "import": "./dist/scroll-area/index.js"
     },
-    "./dialog": {
+    "./primitives/dialog": {
       "types": "./dist/dialog/index.d.ts",
       "import": "./dist/dialog/index.js"
     },
-    "./alert-dialog": {
+    "./primitives/alert-dialog": {
       "types": "./dist/alert-dialog/index.d.ts",
       "import": "./dist/alert-dialog/index.js"
     },
-    "./popover": {
+    "./primitives/popover": {
       "types": "./dist/popover/index.d.ts",
       "import": "./dist/popover/index.js"
     },
-    "./tooltip": {
+    "./primitives/tooltip": {
       "types": "./dist/tooltip/index.d.ts",
       "import": "./dist/tooltip/index.js"
     },
-    "./csp-provider": {
+    "./primitives/csp-provider": {
       "types": "./dist/csp-provider/index.d.ts",
       "import": "./dist/csp-provider/index.js"
     },
-    "./merge-props": {
+    "./primitives/direction-provider": {
+      "types": "./dist/direction-provider/index.d.ts",
+      "import": "./dist/direction-provider/index.js"
+    },
+    "./primitives/merge-props": {
       "types": "./dist/merge-props/index.d.ts",
       "import": "./dist/merge-props/index.js"
     }

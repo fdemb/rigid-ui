@@ -6,13 +6,13 @@
   "dependencies": {
     "@solidjs/router": "catalog:",
     "@solidjs/web": "catalog:",
+    "@stylexjs/stylex": "catalog:",
     "rigid-ui": "workspace:*",
     "solid-js": "catalog:"
   },
   "devDependencies": {
     "@solidjs/vite-plugin": "catalog:",
-    "@tailwindcss/vite": "catalog:",
-    "tailwindcss": "catalog:",
+    "@stylexjs/unplugin": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

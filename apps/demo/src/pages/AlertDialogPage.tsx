@@ -2,11 +2,14 @@ import Example from "../components/Example";
 import Page from "../components/Page";
 import DeletionAlert from "../examples/alert-dialog/DeletionAlert";
 import deletionSrc from "../examples/alert-dialog/DeletionAlert.tsx?raw";
+import { Badge } from "../components/ui/Badge";
 
 export default function AlertDialogPage() {
   return (
     <Page
+      eyebrow="Registry"
       title="Alert dialog"
+      meta={<Badge mono>rigid-ui/primitives/alert-dialog</Badge>}
       lede="A modal dialog that interrupts the task. Clicking outside never dismisses it, and the popup carries the alertdialog role."
     >
       <Example
