@@ -28,28 +28,26 @@ const styles = stylex.create({
     display: "block",
     flexShrink: 0,
   },
+});
+
+/** The shape axis. `block` is the base rectangle, so it adds nothing. */
+const shapeStyles = stylex.create({
+  block: {},
   text: { height: "0.7em", marginBlock: "0.25em" },
   circle: { borderRadius: tokens.radiusFull },
 });
 
 export interface SkeletonProps
   extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "style">, StyleProps {
-  shape?: "block" | "text" | "circle";
+  shape?: keyof typeof shapeStyles;
   width?: string;
   height?: string;
 }
 
 export function Skeleton(props: SkeletonProps) {
   const elementProps = omit(props, "shape", "width", "height", "xstyle");
-  // StyleX evaluates the arguments to `attrs` at build time, so the conditions
-  // have to read props directly; a local accessor is not analyzable.
   const styleAttributes = reactiveStyleAttributes(() =>
-    stylex.attrs(
-      styles.root,
-      props.shape === "text" && styles.text,
-      props.shape === "circle" && styles.circle,
-      props.xstyle,
-    ),
+    stylex.attrs(styles.root, shapeStyles[props.shape ?? "block"], props.xstyle),
   );
 
   const size = {

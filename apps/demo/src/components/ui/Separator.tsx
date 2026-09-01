@@ -13,13 +13,17 @@ const styles = stylex.create({
     flexShrink: 0,
     margin: 0,
   },
+});
+
+/** The orientation axis. */
+const orientationStyles = stylex.create({
   horizontal: { height: 1, width: "100%" },
   vertical: { alignSelf: "stretch", minHeight: "1rem", width: 1 },
 });
 
 export interface SeparatorProps
   extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "style">, StyleProps {
-  orientation?: "horizontal" | "vertical";
+  orientation?: keyof typeof orientationStyles;
   /**
    * Separators that only group visually should stay out of the accessibility
    * tree; leave this off when the rule carries meaning of its own.
@@ -30,12 +34,10 @@ export interface SeparatorProps
 export function Separator(props: SeparatorProps) {
   const elementProps = omit(props, "orientation", "decorative", "xstyle");
   const orientation = () => props.orientation ?? "horizontal";
+  // StyleX resolves the arguments to `attrs` at build time, so the variant key
+  // has to be a prop read. Indexing with `orientation()` fails to compile.
   const styleAttributes = reactiveStyleAttributes(() =>
-    stylex.attrs(
-      styles.root,
-      orientation() === "vertical" ? styles.vertical : styles.horizontal,
-      props.xstyle,
-    ),
+    stylex.attrs(styles.root, orientationStyles[props.orientation ?? "horizontal"], props.xstyle),
   );
 
   return (

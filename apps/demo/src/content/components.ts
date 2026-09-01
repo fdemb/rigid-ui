@@ -1,0 +1,106 @@
+export const components = [
+  {
+    slug: "button",
+    name: "Button",
+    description: "Displays an action or a control that looks like one.",
+    sourcePath: "components/ui/Button.tsx",
+    group: "Inputs",
+  },
+  {
+    slug: "input",
+    name: "Input",
+    description: "A text field with sizes, invalid styling, and an optional monospace value.",
+    sourcePath: "components/ui/Input.tsx",
+    group: "Inputs",
+  },
+  {
+    slug: "label",
+    name: "Label",
+    description: "A compact, accessible label for a form control.",
+    sourcePath: "components/ui/Label.tsx",
+    group: "Inputs",
+  },
+  {
+    slug: "textarea",
+    name: "Textarea",
+    description: "A multiline field that shares its visual language with Input.",
+    sourcePath: "components/ui/Textarea.tsx",
+    group: "Inputs",
+  },
+  {
+    slug: "dialog",
+    name: "Dialog",
+    description: "A styled modal or non-modal window built on the Dialog primitive.",
+    sourcePath: "components/ui/Dialog.tsx",
+    group: "Overlays",
+  },
+  {
+    slug: "alert-dialog",
+    name: "Alert dialog",
+    description: "A confirmation window for actions that need an explicit response.",
+    sourcePath: "components/ui/Dialog.tsx",
+    group: "Overlays",
+  },
+  {
+    slug: "popover",
+    name: "Popover",
+    description: "A styled floating panel anchored to a trigger.",
+    sourcePath: "components/ui/Popover.tsx",
+    group: "Overlays",
+  },
+  {
+    slug: "tooltip",
+    name: "Tooltip",
+    description: "A short contextual label with coordinated open delays.",
+    sourcePath: "components/ui/Tooltip.tsx",
+    group: "Overlays",
+  },
+  {
+    slug: "scroll-area",
+    name: "Scroll area",
+    description: "Native scrolling with custom, theme-aware scrollbars.",
+    sourcePath: "components/ui/ScrollArea.tsx",
+    group: "Layout",
+  },
+  {
+    slug: "card",
+    name: "Card",
+    description: "A structured container with header, body, and footer sections.",
+    sourcePath: "components/ui/Card.tsx",
+    group: "Layout",
+  },
+  {
+    slug: "separator",
+    name: "Separator",
+    description: "A semantic or decorative rule between related content.",
+    sourcePath: "components/ui/Separator.tsx",
+    group: "Layout",
+  },
+  {
+    slug: "badge",
+    name: "Badge",
+    description: "A small status or category label with semantic tones.",
+    sourcePath: "components/ui/Badge.tsx",
+    group: "Feedback",
+  },
+  {
+    slug: "skeleton",
+    name: "Skeleton",
+    description: "A reduced-motion-aware placeholder for loading content.",
+    sourcePath: "components/ui/Skeleton.tsx",
+    group: "Feedback",
+  },
+] as const;
+
+export type ComponentEntry = (typeof components)[number];
+
+export const componentCatalog = {
+  button: components[0],
+  input: components[1],
+  label: components[2],
+  textarea: components[3],
+  card: components[9],
+  separator: components[10],
+  badge: components[11],
+  skeleton: components[12],
+} as const;

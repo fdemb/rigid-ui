@@ -8,7 +8,7 @@ export default function AlertDialogPage() {
   return (
     <Page
       title="Alert dialog"
-      meta={<Badge mono>rigid-ui/primitives/alert-dialog</Badge>}
+      meta={<Badge mono>components/ui/Dialog.tsx</Badge>}
       lede="A modal dialog that interrupts the task. Clicking outside never dismisses it, and the popup carries the alertdialog role."
     >
       <Example

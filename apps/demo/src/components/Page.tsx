@@ -5,41 +5,40 @@ import { tokens } from "../styles/tokens.stylex";
 
 const styles = stylex.create({
   root: {
-    marginInline: "auto",
-    maxWidth: tokens.contentWidth,
-    paddingBlock: "2.5rem 6rem",
-    paddingInline: "clamp(1.25rem, 4vw, 2rem)",
+    maxWidth: "68rem",
+    paddingBlock: "clamp(2.5rem, 7vw, 5.5rem) 7rem",
+    paddingInline: "clamp(1rem, 5vw, 5rem)",
   },
   headline: {
     alignItems: "baseline",
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
-    marginBlockStart: "0.5rem",
+    marginBlockStart: 0,
   },
   title: {
-    fontSize: "1.5rem",
-    fontWeight: 650,
+    fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
+    fontWeight: 680,
     letterSpacing: "-0.03em",
-    lineHeight: 1.15,
+    lineHeight: 1.02,
     margin: 0,
   },
   lede: {
     color: tokens.textMuted,
-    fontSize: "0.9375rem",
-    lineHeight: 1.6,
-    marginBlock: "0.6rem 0",
-    maxWidth: "46rem",
+    fontSize: "1rem",
+    lineHeight: 1.7,
+    marginBlock: "1rem 0 0",
+    maxWidth: "42rem",
   },
   rule: {
     backgroundColor: tokens.border,
     height: 1,
-    marginBlock: "1.75rem",
+    marginBlock: "2.5rem",
   },
   content: {
     display: "flex",
     flexDirection: "column",
-    gap: "1.25rem",
+    gap: "2rem",
   },
 });
 

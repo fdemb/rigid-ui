@@ -39,7 +39,12 @@ export default defineConfig({
       dev: process.env.NODE_ENV !== "production",
       runtimeInjection: false,
       sxPropName: false,
-      useCSSLayers: true,
+      // StyleX writes a layer-order statement at the top of its own stylesheet,
+      // so repeating the two layer names globals.css uses puts them ahead of
+      // the priority layers even when the StyleX sheet loads first. It does
+      // load first in dev: `virtual:stylex.css` is a <link> in the head, while
+      // globals.css only arrives once the module graph evaluates.
+      useCSSLayers: { before: ["reset", "base"] },
     }),
     solidPlugin(),
     spaFallback(),

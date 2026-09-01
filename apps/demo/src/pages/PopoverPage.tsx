@@ -14,7 +14,7 @@ export default function PopoverPage() {
   return (
     <Page
       title="Popover"
-      meta={<Badge mono>rigid-ui/primitives/popover</Badge>}
+      meta={<Badge mono>components/ui/Popover.tsx</Badge>}
       lede="Anchored, non-blocking content positioned with Floating UI. Placement is reported back to JS as it resolves."
     >
       <Example title="Basic" src={basicSrc}>

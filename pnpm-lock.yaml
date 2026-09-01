@@ -247,6 +247,9 @@ catalogs:
     jsdom:
       specifier: 27.4.0
       version: 27.4.0
+    modern-normalize:
+      specifier: ^3.0.1
+      version: 3.0.1
     playwright:
       specifier: 1.62.1
       version: 1.62.1
@@ -288,6 +291,9 @@ importers:
       '@stylexjs/stylex':
         specifier: 'catalog:'
         version: 0.19.0
+      modern-normalize:
+        specifier: 'catalog:'
+        version: 3.0.1
       rigid-ui:
         specifier: workspace:*
         version: link:../../packages/rigid-ui
@@ -1730,6 +1736,10 @@ packages:
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
+
+  modern-normalize@3.0.1:
+    resolution: {integrity: sha512-VqlMdYi59Uch6fnUPxnpijWUQe+TW6zeWCvyr6Mb7JibheHzSuAAoJi2c71ZwIaWKpECpGpYHoaaBp6rBRr+/g==}
+    engines: {node: '>=6'}
 
   mrmime@2.0.1:
     resolution: {integrity: sha512-Y3wQdFg2Va6etvQ5I82yUhGdsKrcYox6p7FfL1LbK2J4V01F9TGlepTIhnK24t7koZibmg82KGglhA1XK5IsLQ==}
@@ -3187,6 +3197,8 @@ snapshots:
       is-what: 4.1.16
 
   min-indent@1.0.1: {}
+
+  modern-normalize@3.0.1: {}
 
   mrmime@2.0.1: {}
 

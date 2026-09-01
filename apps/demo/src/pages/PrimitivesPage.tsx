@@ -3,24 +3,14 @@ import { For } from "solid-js";
 
 import Link from "../components/Link";
 import Page from "../components/Page";
-import { Badge } from "../components/ui/Badge";
 import { primitives } from "../content/primitives";
 import { tokens } from "../styles/tokens.stylex";
 
 const styles = stylex.create({
-  list: {
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
-    borderStyle: "solid",
-    borderWidth: 1,
-    overflow: "hidden",
-  },
+  list: { borderTopColor: tokens.border, borderTopStyle: "solid", borderTopWidth: 1 },
   row: {
     alignItems: "center",
-    backgroundColor: {
-      default: tokens.surface,
-      ":hover": tokens.surfaceInteractive,
-    },
+    backgroundColor: { default: "transparent", ":hover": tokens.surfaceInteractive },
     borderTopColor: tokens.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
@@ -28,10 +18,10 @@ const styles = stylex.create({
     gap: "0.5rem",
     gridTemplateColumns: {
       default: "1fr",
-      "@media (min-width: 44rem)": "11rem 1fr auto",
+      "@media (min-width: 44rem)": "11rem 1fr",
     },
-    paddingBlock: "0.8rem",
-    paddingInline: "0.9rem",
+    paddingBlock: "1rem",
+    paddingInline: "0.65rem",
     textDecoration: "none",
     transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
     ":first-of-type": { borderTopWidth: 0 },
@@ -48,8 +38,7 @@ export default function PrimitivesPage() {
   return (
     <Page
       title="Primitives"
-      meta={<Badge mono>rigid-ui/primitives</Badge>}
-      lede="Behavior with no visual opinion. Each primitive is a separate subpath import, so you only pull in what you use."
+      lede="Unstyled behavior, focus management, and positioning. Primitive pages document anatomy and package imports without prescribing how the result should look."
     >
       <div {...stylex.attrs(styles.list)}>
         <For each={primitives}>
@@ -57,7 +46,6 @@ export default function PrimitivesPage() {
             <Link href={`/primitives/${primitive.slug}`} xstyle={styles.row}>
               <span {...stylex.attrs(styles.name)}>{primitive.name}</span>
               <span {...stylex.attrs(styles.path)}>{primitive.importPath}</span>
-              <Badge mono>{`${primitive.anatomy.length} parts`}</Badge>
             </Link>
           )}
         </For>

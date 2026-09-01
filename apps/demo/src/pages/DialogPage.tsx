@@ -10,7 +10,7 @@ export default function DialogPage() {
   return (
     <Page
       title="Dialog"
-      meta={<Badge mono>rigid-ui/primitives/dialog</Badge>}
+      meta={<Badge mono>components/ui/Dialog.tsx</Badge>}
       lede="A window overlaid on the page. Modal dialogs trap focus and lock scroll; non-modal ones leave the page interactive."
     >
       <Example title="Modal confirmation" src={confirmationSrc}>

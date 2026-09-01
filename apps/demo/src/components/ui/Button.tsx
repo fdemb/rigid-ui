@@ -43,6 +43,11 @@ const styles = stylex.create({
       opacity: 0.52,
     },
   },
+  block: { width: "100%" },
+});
+
+/** The colour axis. One `create` per axis is the StyleX variants recipe. */
+const variantStyles = stylex.create({
   primary: {
     backgroundColor: {
       default: tokens.accent,
@@ -92,6 +97,10 @@ const styles = stylex.create({
     color: tokens.dangerText,
     boxShadow: tokens.shadowSm,
   },
+});
+
+/** The dimension axis. Every entry sets the same properties, so they compose. */
+const sizeStyles = stylex.create({
   xs: {
     borderRadius: tokens.radiusSm,
     fontSize: "0.75rem",
@@ -124,35 +133,18 @@ const styles = stylex.create({
     padding: 0,
     width: "2.75rem",
   },
-  block: { width: "100%" },
 });
 
 export interface ButtonProps
   extends Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "class" | "style">, StyleProps {
-  variant?: "primary" | "secondary" | "outline" | "ghost" | "danger";
-  size?: "xs" | "sm" | "md" | "lg" | "icon";
+  variant?: keyof typeof variantStyles;
+  size?: keyof typeof sizeStyles;
   /** Stretch to the width of the containing block. */
   block?: boolean;
 }
 
 /** The appearance knobs a primitive-backed trigger forwards to its Button. */
 export type ButtonAppearance = Pick<ButtonProps, "variant" | "size">;
-
-const variants = {
-  primary: styles.primary,
-  secondary: styles.secondary,
-  outline: styles.outline,
-  ghost: styles.ghost,
-  danger: styles.danger,
-};
-
-const sizes = {
-  xs: styles.xs,
-  sm: styles.sm,
-  md: styles.md,
-  lg: styles.lg,
-  icon: styles.icon,
-};
 
 /**
  * The button recipe as bare styles, for elements that must not be a `<button>`.
@@ -161,8 +153,8 @@ const sizes = {
 export function buttonStyle(appearance: ButtonAppearance = {}) {
   return [
     styles.root,
-    variants[appearance.variant ?? "secondary"],
-    sizes[appearance.size ?? "md"],
+    variantStyles[appearance.variant ?? "secondary"],
+    sizeStyles[appearance.size ?? "md"],
   ] as const;
 }
 
@@ -171,8 +163,8 @@ export function Button(props: ButtonProps) {
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
       styles.root,
-      variants[props.variant ?? "secondary"],
-      sizes[props.size ?? "md"],
+      variantStyles[props.variant ?? "secondary"],
+      sizeStyles[props.size ?? "md"],
       props.block && styles.block,
       props.xstyle,
     ),

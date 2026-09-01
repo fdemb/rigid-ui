@@ -10,7 +10,7 @@ export default function ScrollAreaPage() {
   return (
     <Page
       title="Scroll area"
-      meta={<Badge mono>rigid-ui/primitives/scroll-area</Badge>}
+      meta={<Badge mono>components/ui/ScrollArea.tsx</Badge>}
       lede="Custom scrollbars over native scrolling. The viewport keeps native momentum, keyboard, and accessibility behavior."
     >
       <Example title="Vertical" src={verticalSrc}>

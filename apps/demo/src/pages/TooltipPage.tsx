@@ -8,7 +8,7 @@ export default function TooltipPage() {
   return (
     <Page
       title="Tooltip"
-      meta={<Badge mono>rigid-ui/primitives/tooltip</Badge>}
+      meta={<Badge mono>components/ui/Tooltip.tsx</Badge>}
       lede="A short label or description that appears after a pointer rests on its trigger, or immediately on keyboard focus."
     >
       <Example

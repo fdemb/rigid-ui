@@ -3,6 +3,7 @@ import { For } from "solid-js";
 import { Popover } from "rigid-ui/primitives/popover";
 
 import { Button } from "../../components/ui/Button";
+import { popoverArrowStyle } from "../../components/ui/Popover";
 import { tokens } from "../../styles/tokens.stylex";
 
 interface Member {
@@ -38,6 +39,20 @@ const styles = stylex.create({
     maxWidth: "min(20rem, var(--available-width))",
     outline: "none",
     padding: "0.9rem",
+    // The arrow positions itself against this element.
+    position: "relative",
+  },
+  // The positioner glides between triggers, so the arrow has to glide with it.
+  // Its offset along the popup's edge arrives as an inline `left`, which would
+  // otherwise snap to the new trigger while the popup was still moving.
+  arrow: {
+    transitionDuration: tokens.durationNormal,
+    transitionProperty: "left",
+    transitionTimingFunction: tokens.easing,
+    "@media (prefers-reduced-motion: reduce)": {
+      transitionDuration: 0,
+      transitionProperty: "none",
+    },
   },
   title: { fontSize: "0.875rem", fontWeight: 700, margin: 0 },
   copy: { color: tokens.textMuted, fontSize: "0.8rem", margin: 0 },
@@ -61,6 +76,7 @@ export default function SharedTriggerPopover() {
           <Popover.Portal>
             <Popover.Positioner {...stylex.attrs(styles.positioner)} align="start" sideOffset={8}>
               <Popover.Popup {...stylex.attrs(styles.popup)}>
+                <Popover.Arrow {...stylex.attrs(popoverArrowStyle, styles.arrow)} />
                 <Popover.Title {...stylex.attrs(styles.title)}>{state.payload?.name}</Popover.Title>
                 <Popover.Description {...stylex.attrs(styles.copy)}>
                   {state.payload?.role}

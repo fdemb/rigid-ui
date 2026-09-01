@@ -50,27 +50,26 @@ export const fieldStyles = stylex.create({
   mono: { fontFamily: tokens.fontMono, fontSize: "0.8125rem" },
 });
 
-const styles = stylex.create({
+/** The size axis. Textarea sets its own metrics, so this stays local to Input. */
+const sizeStyles = stylex.create({
   sm: { minHeight: "2.5rem", paddingBlock: "0.3rem", paddingInline: "0.55rem" },
   md: { minHeight: "2.75rem", paddingBlock: "0.5rem", paddingInline: "0.7rem" },
 });
 
 export interface InputProps
   extends Omit<JSX.InputHTMLAttributes<HTMLInputElement>, "class" | "size" | "style">, StyleProps {
-  size?: "sm" | "md";
+  size?: keyof typeof sizeStyles;
   /** Render the value in the monospace stack, for tokens, keys, and paths. */
   mono?: boolean;
   invalid?: boolean;
 }
-
-const sizes = { sm: styles.sm, md: styles.md };
 
 export function Input(props: InputProps) {
   const elementProps = omit(props, "size", "mono", "invalid", "xstyle");
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
       fieldStyles.root,
-      sizes[props.size ?? "md"],
+      sizeStyles[props.size ?? "md"],
       props.mono && fieldStyles.mono,
       props.invalid && fieldStyles.invalid,
       props.xstyle,

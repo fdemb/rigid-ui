@@ -4,7 +4,6 @@ import { For, Show } from "solid-js";
 
 import Link from "../components/Link";
 import Page from "../components/Page";
-import { Badge } from "../components/ui/Badge";
 import { buttonStyle } from "../components/ui/Button";
 import { Card, CardBody, CardHeader, CardTitle } from "../components/ui/Card";
 import { primitives } from "../content/primitives";
@@ -19,9 +18,23 @@ const styles = stylex.create({
     display: "block",
     fontSize: "0.8125rem",
     overflowX: "auto",
-    padding: "0.85rem",
+    lineHeight: 1.7,
+    padding: "1rem",
   },
-  parts: { display: "flex", flexWrap: "wrap", gap: "0.4rem" },
+  parts: {
+    borderTopColor: tokens.border,
+    borderTopStyle: "solid",
+    borderTopWidth: 1,
+    display: "grid",
+  },
+  part: {
+    borderBottomColor: tokens.border,
+    borderBottomStyle: "solid",
+    borderBottomWidth: 1,
+    fontFamily: tokens.fontMono,
+    fontSize: "0.8125rem",
+    paddingBlock: "0.65rem",
+  },
   actions: { display: "flex", gap: "0.5rem", flexWrap: "wrap" },
 });
 
@@ -32,11 +45,7 @@ export default function PrimitivePage() {
   return (
     <Show when={primitive()} fallback={<NotFound />}>
       {(entry) => (
-        <Page
-          title={entry().name}
-          meta={<Badge mono>{entry().importPath}</Badge>}
-          lede={entry().description}
-        >
+        <Page title={entry().name} lede={entry().description}>
           <Card>
             <CardHeader divided>
               <CardTitle>Import</CardTitle>
@@ -51,11 +60,16 @@ export default function PrimitivePage() {
           <Card>
             <CardHeader divided>
               <CardTitle>Anatomy</CardTitle>
-              <Badge mono>{`${entry().anatomy.length} parts`}</Badge>
             </CardHeader>
             <CardBody>
               <div {...stylex.attrs(styles.parts)}>
-                <For each={entry().anatomy}>{(part) => <Badge mono>{part}</Badge>}</For>
+                <For each={entry().anatomy}>
+                  {(part) => (
+                    <span
+                      {...stylex.attrs(styles.part)}
+                    >{`${entry().name.replace(" ", "")}.${part}`}</span>
+                  )}
+                </For>
               </div>
             </CardBody>
           </Card>

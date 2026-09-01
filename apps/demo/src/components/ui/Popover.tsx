@@ -27,6 +27,10 @@ const styles = stylex.create({
     },
     outline: "none",
     padding: "0.9rem",
+    // The arrow positions itself against this element, so it has to be the
+    // containing block. The transform below already makes it one; saying so
+    // explicitly keeps that true if the animation is ever dropped.
+    position: "relative",
     transform: {
       default: "scale(1) translateY(0)",
       ":is([data-starting-style])": "scale(0.97) translateY(0.35rem)",
@@ -39,6 +43,49 @@ const styles = stylex.create({
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
+    },
+  },
+  /*
+   * A square rotated 45 degrees, cropped by this box down to the two edges that
+   * face away from the popup, so the arrow picks up the popup's border. The
+   * positioner writes the cross-axis offset inline (`left` on a top or bottom
+   * side, `top` on a left or right one), which is why each offset below is
+   * scoped to the sides that leave its property alone. Quarter-turning the
+   * 12x6 box swaps its width and height, so the left and right sides sit 3px
+   * further out to stay flush.
+   */
+  arrow: {
+    borderColor: "inherit",
+    bottom: { default: null, ":is([data-side=top])": "-0.375rem" },
+    display: "block",
+    height: "0.375rem",
+    left: { default: null, ":is([data-side=right])": "-0.5625rem" },
+    overflow: "clip",
+    right: { default: null, ":is([data-side=left])": "-0.5625rem" },
+    top: { default: null, ":is([data-side=bottom])": "-0.375rem" },
+    transform: {
+      default: "rotate(0deg)",
+      ":is([data-side=top])": "rotate(180deg)",
+      ":is([data-side=left])": "rotate(90deg)",
+      ":is([data-side=right])": "rotate(-90deg)",
+    },
+    width: "0.75rem",
+    "::before": {
+      backgroundColor: tokens.surfaceRaised,
+      // Inherited from the popup through the arrow, so an `xstyle` that
+      // recolors the popup's border recolors the arrow's edges with it.
+      borderColor: "inherit",
+      borderStyle: "solid",
+      borderWidth: 1,
+      bottom: 0,
+      boxSizing: "border-box",
+      content: "",
+      display: "block",
+      height: "calc(0.375rem * sqrt(2))",
+      left: "50%",
+      position: "absolute",
+      transform: "translate(-50%, 50%) rotate(45deg)",
+      width: "calc(0.375rem * sqrt(2))",
     },
   },
   title: {
@@ -79,7 +126,7 @@ function PopoverTrigger(props: TriggerProps & ButtonAppearance & { xstyle?: styl
 }
 
 function PopoverContent(props: PopoverContentProps) {
-  const popupProps = omit(props, "align", "sideOffset", "xstyle");
+  const popupProps = omit(props, "align", "children", "sideOffset", "xstyle");
   const popupStyles = reactiveStyleAttributes(() => stylex.attrs(styles.popup, props.xstyle));
   return (
     <PopoverPrimitive.Portal>
@@ -87,7 +134,10 @@ function PopoverContent(props: PopoverContentProps) {
         align={props.align ?? "center"}
         sideOffset={props.sideOffset ?? 8}
       >
-        <PopoverPrimitive.Popup {...mergeProps(popupStyles, popupProps)} />
+        <PopoverPrimitive.Popup {...mergeProps(popupStyles, popupProps)}>
+          <PopoverPrimitive.Arrow {...stylex.attrs(styles.arrow)} />
+          {props.children}
+        </PopoverPrimitive.Popup>
       </PopoverPrimitive.Positioner>
     </PopoverPrimitive.Portal>
   );
@@ -112,6 +162,13 @@ function PopoverClose(props: CloseProps & ButtonAppearance) {
     />
   );
 }
+
+/**
+ * The arrow recipe as a bare style, for popups composed straight from the
+ * primitive rather than through `Popover.Content`. The popup it points at needs
+ * the same surface and border tokens, and a containing block of its own.
+ */
+export const popoverArrowStyle = styles.arrow;
 
 export const Popover = {
   Root: PopoverPrimitive.Root,
