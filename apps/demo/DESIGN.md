@@ -21,6 +21,7 @@ colors:
   focus: "#0f766e"
   code-background: "#171717"
   code-text: "#f5f5f1"
+  code-text-muted: "#b6b6b1"
   dark-canvas: "#111110"
   dark-surface: "#191918"
   dark-text: "#f5f5f0"
@@ -55,6 +56,11 @@ typography:
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.7
+  entry:
+    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
+    fontSize: "0.9375rem"
+    fontWeight: 620
+    lineHeight: 1.45
   body:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif"
     fontSize: "0.875rem"
@@ -130,10 +136,11 @@ The styled Components catalog and unstyled Primitives catalog share one shell bu
 
 **Key Characteristics:**
 
+- A single ruled grid: two rails, hairline bands, and no space between them
 - Warm neutral canvases with near-black text and actions
 - Dense, persistent desktop navigation with a compact mobile catalog switcher
 - Large editorial page titles set against small technical labels and monospace code
-- Border-led structure, restrained elevation, and short state transitions
+- Square page structure, restrained elevation, and short state transitions
 - First-class light and dark themes with the same hierarchy in both
 
 ## Colors
@@ -163,7 +170,7 @@ The palette is almost monochrome. Semantic green, amber, red, and teal appear on
 - **Subtle Graphite:** Version text, metadata, and the least prominent labels.
 - **Hairline:** The default divider and container border.
 - **Strong Hairline:** Hovered borders and understated link underlines.
-- **Code Ink:** Dark source blocks paired with warm-white code text.
+- **Code Ink:** Dark source blocks paired with warm-white code text, plus a muted variant for asides on that surface.
 
 **The Ink Is Earned Rule.** Use the near-black accent for primary actions and decisive state. Do not spread it across decorative regions.
 
@@ -184,6 +191,7 @@ The palette is almost monochrome. Semantic green, amber, red, and teal appear on
 - **Display:** Heavy, tightly tracked type for the home hero only. Keep the line short, about 11 characters wide at most.
 - **Headline:** Large page titles for component and primitive documentation.
 - **Title:** Compact section headings and card titles. Use weight before size to establish hierarchy.
+- **Entry:** The name in a catalog row or list item, a step above body so a scannable list of links keeps its own weight.
 - **Body:** Supporting documentation copy with a relaxed line height and a practical maximum width around 42 to 46rem.
 - **Label:** Navigation, button text, preview headings, badges, and metadata.
 - **Mono:** Imports, code, file paths, package names, version strings, and source disclosure.
@@ -192,11 +200,28 @@ The palette is almost monochrome. Semantic green, amber, red, and teal appear on
 
 ## Layout
 
-The site sits inside an 88rem maximum-width frame. The sticky header is 3.75rem tall. Catalog pages add a 13.5rem sidebar at 64rem and wider, with the documentation content occupying the remaining column. The sidebar stays fixed below the header and scrolls independently.
+The site is drawn on one structural grid. Two vertical rails mark the edges of an 80rem content
+column and run unbroken from the header to the footer; the space outside them is bare canvas. Every
+region between the rails is a band: full column width, separated from its neighbours by a single
+hairline, and carrying its padding on the inside. Nothing in the frame has an outer margin, which is
+what keeps the rails continuous — a `gap` or a `margin` in the stack shows up as a break in a line.
 
-Below 64rem, remove the sidebar and show a horizontally scrollable Components and Primitives switcher directly below the header. The primary header navigation appears at 42rem. Page content uses fluid inline padding and a narrower 68rem reading area. Documentation pages place the title and lede above a hairline, then stack sections with 2rem gaps.
+The sticky header is 3.75rem tall and its cells are parted by the same hairlines. The first header
+cell is 14rem wide, so its trailing rule is the top of the sidebar rail: one line runs from the top
+of the page to the bottom of the documentation column. Catalog pages add that 14rem sidebar at 64rem
+and wider; the sidebar is fixed below the header and scrolls independently. Below 64rem the sidebar
+is replaced by a horizontally scrollable Components and Primitives switcher in its own band. The
+primary header navigation appears at 42rem.
 
-The home page is deliberately broader. Its hero becomes a two-column composition at 58rem, and the two catalog lanes split at 48rem. Component previews center specimens in a generous stage with at least 18rem of height. Primitive pages use compact stacked cards for import and anatomy.
+Bands set their own internal rhythm. The home hero splits into two cells at 58rem and the two
+catalog lanes split at 48rem, each split drawn as a vertical rule rather than a gutter. Documentation
+pages open with a masthead band holding the title and lede, then stack one band per section. Component
+previews centre their specimen in a stage at least 18rem tall. Where a grid has to rule between cells
+whose count varies, draw the rules as 1px gaps over a hairline-coloured container rather than as
+per-cell borders, so no cell has to know whether it sits in the last row or column.
+
+**The Unbroken Rail Rule.** The two vertical rails and the hairlines between bands are the layout.
+Space belongs inside a cell, never between two of them.
 
 **The Two Catalogs Rule.** Components and Primitives remain visible as separate routes and navigation groups. Never collapse their content into an ambiguous single list.
 
@@ -204,7 +229,8 @@ The home page is deliberately broader. Its hero becomes a two-column composition
 
 ## Elevation & Depth
 
-The system is flat at page level. Borders, canvas changes, and sunken fills define most structure. A small 1px shadow supports buttons and cards. Medium and large shadows belong to floating popovers, tooltips, and modal dialogs, where the layer must separate from the document.
+The system is flat at page level. The grid's hairlines, canvas changes, and sunken fills define all
+page structure. A small 1px shadow supports buttons and cards. Medium and large shadows belong to floating popovers, tooltips, and modal dialogs, where the layer must separate from the document.
 
 ### Shadow Vocabulary
 
@@ -216,9 +242,14 @@ The system is flat at page level. Borders, canvas changes, and sunken fills defi
 
 ## Shapes
 
-Corners are gently rounded and scale with the object. Compact controls and badges use the small radius. Inputs and normal buttons use the medium radius. Cards and floating panels use the large radius. Example frames use the extra-large radius. Pills are reserved for genuinely circular or capsule-shaped elements.
+Page structure is square. Bands, previews, source regions, catalog rows, and the header and sidebar
+cells all meet at right angles, because a radius would put a gap between two rules that are meant to
+join. Radii belong to the objects inside a band: compact controls and badges use the small radius,
+inputs and normal buttons the medium radius, cards and floating panels the large radius. Pills are
+reserved for genuinely circular or capsule-shaped elements.
 
-One-pixel borders are the default structural line. They separate headers, catalog lanes, cards, source regions, anatomy rows, and controls without adding visual bulk.
+One-pixel borders are the only structural line, and they are shared: a band's bottom rule is the next
+band's top rule.
 
 **The Radius Follows Scale Rule.** Small object, small corner. Large container, larger corner. Avoid a single oversized radius across every element.
 
@@ -239,7 +270,18 @@ One-pixel borders are the default structural line. They separate headers, catalo
 - **State:** Neutral badges use the sunken surface. Semantic badges mix 14% of their tone into the card surface, then use a stronger same-hue border.
 - **Mono:** Use for package imports, counts, and code-like metadata.
 
+### Bands
+
+- **Header:** An optional label strip opens a band — 11px uppercase sans in muted text, with an
+  optional monospace note on the right for a path, an axis list, or a count.
+- **Border:** The band's own bottom hairline, plus the frame's rails on either side. No radius, no
+  shadow, and no border of its own on the sides.
+- **Internal Padding:** The shared inline inset on every cell that holds text, and 0.6 to 1.25rem of
+  block padding depending on whether the band is a label strip, a row, or a masthead.
+
 ### Cards / Containers
+
+Cards are for content inside a band and inside the component catalog, not for page structure.
 
 - **Corner Style:** Gently curved, using the large radius.
 - **Background:** Clean surface over the page canvas.
@@ -255,15 +297,24 @@ One-pixel borders are the default structural line. They separate headers, catalo
 
 ### Navigation
 
-The header and desktop sidebar use compact 13px links. Hover moves muted text to full contrast. The current sidebar page adds the interactive wash and a slightly stronger weight. Mobile keeps only the catalog-level switcher below the sticky header, allowing horizontal scroll rather than wrapping.
+The header and desktop sidebar use compact 13px links. Header links fill the full height of the bar
+and are parted by vertical rules, so hover fills a cell rather than a floating pill. Hover moves muted
+text to full contrast and adds the interactive wash. The current sidebar page adds the wash, a
+slightly stronger weight, and a 2px ink marker on its leading edge. Mobile keeps only the
+catalog-level switcher below the sticky header, allowing horizontal scroll rather than wrapping.
 
 ### Example frames
 
-Examples are the main teaching unit for styled components. Use a rounded bordered frame with a compact title bar, an optional note, a roomy centered preview, and a native disclosure for source. Source opens onto the dark code surface. Do not imply that the displayed recipe is available through the planned registry.
+Examples are the main teaching unit for styled components. An example is a band, not a card: a label
+strip, an optional note, a roomy centred preview on the muted canvas, and a native disclosure for
+source. Source opens onto the dark code surface, full width between the rails. Do not imply that the
+displayed recipe is available through the planned registry.
 
 ### Primitive references
 
-Primitive pages lead with a monospace import badge, then show separate Import and Anatomy cards. Anatomy rows pair the namespaced part name with a small logic or element badge. Keep this reference format factual and compact.
+Primitive pages stack an Import band, whose code line runs full width on the dark code surface, and an
+Anatomy band listing each namespaced part on its own ruled row. Keep this reference format factual and
+compact.
 
 ### Floating content
 
@@ -274,7 +325,7 @@ Popovers and dialogs use raised surfaces, hairline borders, the large radius, an
 ### Do:
 
 - **Do** keep Components and Primitives visually related but structurally separate.
-- **Do** use borders and tonal changes before reaching for shadows.
+- **Do** use the grid's hairlines and tonal changes before reaching for borders of their own or shadows.
 - **Do** reserve monospace for imports, source, paths, versions, and anatomy names.
 - **Do** preserve focus outlines, coarse-pointer target sizes, and reduced-motion behavior.
 - **Do** say that the registry is planned and point readers to the demo source that exists today.
@@ -285,4 +336,5 @@ Popovers and dialogs use raised surfaces, hairline borders, the large radius, an
 - **Don't** turn semantic teal, green, amber, or rose into broad decorative color.
 - **Don't** hide the catalog split inside one undifferentiated navigation tree.
 - **Don't** add large shadows to normal documentation sections.
+- **Don't** put a margin, a gap, or a radius between two regions of the frame.
 - **Don't** replace the dense desktop sidebar with oversized marketing navigation.

@@ -4,6 +4,7 @@ import { For, Loading, Show, createSignal } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import Link from "./components/Link";
+import { Bleed, frame } from "./components/Frame";
 import { Button } from "./components/ui/Button";
 import { reactiveStyleAttributes } from "./components/ui/styleProps";
 import { components } from "./content/components";
@@ -11,8 +12,20 @@ import { primitives } from "./content/primitives";
 import { themes, type ThemeName } from "./styles/themes";
 import { tokens } from "./styles/tokens.stylex";
 
+/**
+ * The sidebar column, and the header cell the sidebar rail runs up through.
+ * They share a width so the two draw one continuous line.
+ */
+const RAIL = "14rem";
+
 const styles = stylex.create({
-  root: { backgroundColor: tokens.canvas, color: tokens.text, minHeight: "100vh" },
+  root: {
+    backgroundColor: tokens.canvas,
+    color: tokens.text,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+  },
   skipLink: {
     backgroundColor: tokens.text,
     borderRadius: tokens.radiusSm,
@@ -37,17 +50,13 @@ const styles = stylex.create({
     zIndex: 30,
   },
   headerInner: {
-    alignItems: "center",
+    alignItems: "stretch",
     display: "grid",
-    gap: "1.5rem",
     gridTemplateColumns: {
-      default: "1fr auto",
-      "@media (min-width: 64rem)": "13.5rem 1fr auto",
+      default: "auto 1fr auto",
+      "@media (min-width: 64rem)": `${RAIL} 1fr auto`,
     },
-    marginInline: "auto",
-    maxWidth: tokens.contentWidth,
     minHeight: "3.75rem",
-    paddingInline: "clamp(1rem, 3vw, 2rem)",
   },
   brand: {
     alignItems: "center",
@@ -56,7 +65,12 @@ const styles = stylex.create({
     fontWeight: 720,
     gap: "0.55rem",
     letterSpacing: "-0.025em",
+    paddingInlineEnd: "1rem",
     textDecoration: "none",
+    // Below the sidebar breakpoint the rail has nothing to continue into.
+    borderInlineEndWidth: { default: 0, "@media (min-width: 64rem)": 1 },
+    borderInlineEndColor: tokens.border,
+    borderInlineEndStyle: "solid",
   },
   brandMark: {
     alignItems: "center",
@@ -66,100 +80,146 @@ const styles = stylex.create({
     display: "inline-flex",
     fontFamily: tokens.fontMono,
     fontSize: "0.65rem",
-    height: "1.55rem",
+    height: "1.4rem",
     justifyContent: "center",
     letterSpacing: "-0.04em",
-    width: "1.55rem",
+    width: "1.4rem",
   },
   topNav: {
+    alignItems: "stretch",
     display: { default: "none", "@media (min-width: 42rem)": "flex" },
-    gap: "0.25rem",
   },
   topLink: {
-    borderRadius: tokens.radiusSm,
+    alignItems: "center",
+    borderInlineEndColor: tokens.border,
+    borderInlineEndStyle: "solid",
+    borderInlineEndWidth: 1,
     color: { default: tokens.textMuted, ":hover": tokens.text },
+    display: "inline-flex",
     fontSize: "0.8125rem",
     fontWeight: 560,
-    padding: "0.45rem 0.6rem",
+    paddingInline: "1.15rem",
     textDecoration: "none",
+    transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
+    ":hover": { backgroundColor: tokens.surfaceInteractive },
+    "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
-  actions: { alignItems: "center", display: "flex", gap: "0.4rem" },
+  actions: {
+    alignItems: "center",
+    borderInlineStartColor: tokens.border,
+    borderInlineStartStyle: "solid",
+    borderInlineStartWidth: 1,
+    display: "flex",
+    gap: "0.75rem",
+    paddingInline: tokens.inset,
+  },
   version: {
     color: tokens.textSubtle,
     display: { default: "none", "@media (min-width: 36rem)": "inline" },
     fontFamily: tokens.fontMono,
     fontSize: "0.6875rem",
   },
-  shell: {
-    display: "grid",
-    gridTemplateColumns: { default: "1fr", "@media (min-width: 64rem)": "13.5rem 1fr" },
-    marginInline: "auto",
-    maxWidth: tokens.contentWidth,
-    minHeight: "calc(100vh - 3.75rem)",
-    paddingInline: "clamp(1rem, 3vw, 2rem)",
-  },
-  mobileCatalog: {
+  body: { display: "flex", flexDirection: "column", flexGrow: 1 },
+  catalogBleed: {
     borderBottomColor: tokens.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
-    display: { default: "flex", "@media (min-width: 64rem)": "none" },
-    gap: "0.25rem",
-    marginInline: "clamp(1rem, 3vw, 2rem)",
-    overflowX: "auto",
-    paddingBlock: "0.6rem",
+    display: { default: "block", "@media (min-width: 64rem)": "none" },
   },
+  catalogBar: { display: "flex", overflowX: "auto" },
   mobileCatalogLink: {
-    borderRadius: tokens.radiusSm,
+    borderInlineEndColor: tokens.border,
+    borderInlineEndStyle: "solid",
+    borderInlineEndWidth: 1,
     color: { default: tokens.textMuted, ":hover": tokens.text },
     flexShrink: 0,
     fontSize: "0.8125rem",
     fontWeight: 580,
-    padding: "0.45rem 0.6rem",
+    paddingBlock: "0.7rem",
+    paddingInline: tokens.inset,
     textDecoration: "none",
     ":focus-visible": {
       outlineColor: tokens.focus,
-      outlineOffset: 1,
+      outlineOffset: -2,
       outlineStyle: "solid",
       outlineWidth: 2,
     },
   },
+  /*
+   * A catalog page sits in the rails and splits into sidebar plus content; a
+   * full-width page draws no rails here at all, because its own bands do.
+   */
+  shell: { display: "grid", gridTemplateColumns: "1fr" },
+  shellBleed: { width: "100%" },
+  shellWithSidebar: {
+    borderInlineColor: tokens.border,
+    borderInlineStyle: "solid",
+    borderInlineWidth: 1,
+    gridTemplateColumns: { default: "1fr", "@media (min-width: 64rem)": `${RAIL} 1fr` },
+    marginInline: "auto",
+    maxWidth: tokens.contentWidth,
+    width: "100%",
+  },
   sidebar: {
-    borderRightColor: tokens.border,
-    borderRightStyle: "solid",
-    borderRightWidth: 1,
+    borderInlineEndColor: tokens.border,
+    borderInlineEndStyle: "solid",
+    borderInlineEndWidth: 1,
     display: { default: "none", "@media (min-width: 64rem)": "block" },
     height: "calc(100vh - 3.75rem)",
     overflowY: "auto",
-    paddingBlock: "2rem 4rem",
-    paddingInlineEnd: "1.5rem",
     position: "sticky",
     top: "3.75rem",
   },
-  sideGroup: { marginBlockEnd: "1.75rem" },
-  sideHeading: {
-    fontSize: "0.75rem",
-    fontWeight: 650,
-    letterSpacing: "-0.01em",
-    margin: "0 0 0.55rem",
+  sideGroup: {
+    borderBottomColor: tokens.border,
+    borderBottomStyle: "solid",
+    borderBottomWidth: 1,
+    paddingBlock: "1.25rem 1.5rem",
   },
-  sideList: { display: "grid", gap: "0.08rem", listStyle: "none", margin: 0, padding: 0 },
+  sideHeading: {
+    color: tokens.textMuted,
+    fontSize: "0.6875rem",
+    fontWeight: 640,
+    letterSpacing: "0.05em",
+    margin: "0 0 0.5rem",
+    paddingInline: tokens.inset,
+    textTransform: "uppercase",
+  },
+  sideList: { listStyle: "none", margin: 0, padding: 0 },
   sideLink: {
-    borderRadius: tokens.radiusSm,
+    borderInlineStartColor: { default: "transparent", ":is([aria-current])": tokens.text },
+    borderInlineStartStyle: "solid",
+    borderInlineStartWidth: 2,
     color: { default: tokens.textMuted, ":hover": tokens.text, ":is([aria-current])": tokens.text },
     display: "block",
     fontSize: "0.8125rem",
-    paddingBlock: "0.35rem",
-    paddingInline: "0.5rem",
+    paddingBlock: "0.4rem",
+    paddingInline: `calc(${tokens.inset} - 2px)`,
     textDecoration: "none",
+    ":hover": { backgroundColor: tokens.surfaceInteractive },
     ":is([aria-current])": { backgroundColor: tokens.surfaceInteractive, fontWeight: 580 },
     ":focus-visible": {
       outlineColor: tokens.focus,
-      outlineOffset: 1,
+      outlineOffset: -2,
       outlineStyle: "solid",
       outlineWidth: 2,
     },
   },
   main: { minWidth: 0 },
+  footer: {
+    alignItems: "center",
+    color: tokens.textSubtle,
+    display: "flex",
+    flexWrap: "wrap",
+    fontSize: "0.75rem",
+    gap: "0.4rem 1.5rem",
+    justifyContent: "space-between",
+    paddingBlock: "1.25rem",
+  },
+  footerLink: {
+    color: { default: tokens.textSubtle, ":hover": tokens.text },
+    textDecorationColor: tokens.border,
+  },
 });
 
 function initialTheme(): ThemeName {
@@ -193,8 +253,8 @@ export default function Layout(props: { children?: JSX.Element }) {
         Skip to content
       </a>
       <header {...stylex.attrs(styles.header)}>
-        <div {...stylex.attrs(styles.headerInner)}>
-          <Link href="/" xstyle={styles.brand}>
+        <div {...stylex.attrs(frame.column, styles.headerInner)}>
+          <Link href="/" xstyle={[frame.inset, styles.brand]}>
             <span aria-hidden="true" {...stylex.attrs(styles.brandMark)}>
               R/
             </span>
@@ -221,62 +281,81 @@ export default function Layout(props: { children?: JSX.Element }) {
           </div>
         </div>
       </header>
-      <Show when={isCatalog()}>
-        <nav aria-label="Catalog" {...stylex.attrs(styles.mobileCatalog)}>
-          <Link href="/components" xstyle={styles.mobileCatalogLink}>
-            Components
-          </Link>
-          <Link href="/primitives" xstyle={styles.mobileCatalogLink}>
-            Primitives
-          </Link>
-        </nav>
-      </Show>
-      <div {...stylex.attrs(isCatalog() && styles.shell)}>
+      <div {...stylex.attrs(styles.body)}>
         <Show when={isCatalog()}>
-          <aside {...stylex.attrs(styles.sidebar)}>
-            <nav aria-label="Documentation">
-              <div {...stylex.attrs(styles.sideGroup)}>
-                <h2 {...stylex.attrs(styles.sideHeading)}>Components</h2>
-                <ul {...stylex.attrs(styles.sideList)}>
-                  <For each={components}>
-                    {(entry) => (
-                      <li>
-                        <Link
-                          aria-current={current(`/components/${entry.slug}`)}
-                          href={`/components/${entry.slug}`}
-                          xstyle={styles.sideLink}
-                        >
-                          {entry.name}
-                        </Link>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </div>
-              <div {...stylex.attrs(styles.sideGroup)}>
-                <h2 {...stylex.attrs(styles.sideHeading)}>Primitives</h2>
-                <ul {...stylex.attrs(styles.sideList)}>
-                  <For each={primitives}>
-                    {(entry) => (
-                      <li>
-                        <Link
-                          aria-current={current(`/primitives/${entry.slug}`)}
-                          href={`/primitives/${entry.slug}`}
-                          xstyle={styles.sideLink}
-                        >
-                          {entry.name}
-                        </Link>
-                      </li>
-                    )}
-                  </For>
-                </ul>
-              </div>
+          <div {...stylex.attrs(styles.catalogBleed)}>
+            <nav aria-label="Catalog" {...stylex.attrs(frame.column, styles.catalogBar)}>
+              <Link href="/components" xstyle={styles.mobileCatalogLink}>
+                Components
+              </Link>
+              <Link href="/primitives" xstyle={styles.mobileCatalogLink}>
+                Primitives
+              </Link>
             </nav>
-          </aside>
+          </div>
         </Show>
-        <main id="main-content" tabindex="-1" {...stylex.attrs(styles.main)}>
-          <Loading>{props.children}</Loading>
-        </main>
+        <div
+          {...stylex.attrs(styles.shell, isCatalog() ? styles.shellWithSidebar : styles.shellBleed)}
+        >
+          <Show when={isCatalog()}>
+            <aside {...stylex.attrs(styles.sidebar)}>
+              <nav aria-label="Documentation">
+                <div {...stylex.attrs(styles.sideGroup)}>
+                  <h2 {...stylex.attrs(styles.sideHeading)}>Components</h2>
+                  <ul {...stylex.attrs(styles.sideList)}>
+                    <For each={components}>
+                      {(entry) => (
+                        <li>
+                          <Link
+                            aria-current={current(`/components/${entry.slug}`)}
+                            href={`/components/${entry.slug}`}
+                            xstyle={styles.sideLink}
+                          >
+                            {entry.name}
+                          </Link>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </div>
+                <div {...stylex.attrs(styles.sideGroup)}>
+                  <h2 {...stylex.attrs(styles.sideHeading)}>Primitives</h2>
+                  <ul {...stylex.attrs(styles.sideList)}>
+                    <For each={primitives}>
+                      {(entry) => (
+                        <li>
+                          <Link
+                            aria-current={current(`/primitives/${entry.slug}`)}
+                            href={`/primitives/${entry.slug}`}
+                            xstyle={styles.sideLink}
+                          >
+                            {entry.name}
+                          </Link>
+                        </li>
+                      )}
+                    </For>
+                  </ul>
+                </div>
+              </nav>
+            </aside>
+          </Show>
+          <main id="main-content" tabindex="-1" {...stylex.attrs(styles.main)}>
+            <Loading>{props.children}</Loading>
+          </main>
+        </div>
+        <div aria-hidden="true" {...stylex.attrs(frame.column, frame.runout)} />
+        <Bleed bare rule="top">
+          <div {...stylex.attrs(frame.inset, styles.footer)}>
+            <span>Built for the Solid 2 release candidate.</span>
+            <a
+              href="https://github.com/fdemb/rigid-ui"
+              rel="noreferrer"
+              {...stylex.attrs(styles.footerLink)}
+            >
+              github.com/fdemb/rigid-ui
+            </a>
+          </div>
+        </Bleed>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { For, Match, Show, Switch } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import { tokens } from "../styles/tokens.stylex";
+import Band, { BandHeader, frame } from "./Frame";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
 import { Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/Card";
@@ -13,68 +14,64 @@ import { Skeleton } from "./ui/Skeleton";
 import { Textarea } from "./ui/Textarea";
 
 const styles = stylex.create({
-  matrix: {
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
-    borderStyle: "solid",
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  header: {
-    alignItems: "baseline",
-    backgroundColor: tokens.surfaceSunken,
-    display: "flex",
-    gap: "0.6rem",
-    justifyContent: "space-between",
-    paddingBlock: "0.55rem",
-    paddingInline: "0.85rem",
-  },
-  name: { fontFamily: tokens.fontMono, fontSize: "0.75rem", fontWeight: 500, margin: 0 },
-  note: { color: tokens.textMuted, fontSize: "0.75rem", margin: 0 },
+  /*
+   * Wide enough for two columns, the block padding moves into the cells so the
+   * label column's rule runs the full height of the row and meets the rules
+   * above and below it.
+   */
   row: {
-    alignItems: "center",
-    backgroundColor: tokens.surface,
-    borderTopColor: tokens.border,
-    borderTopStyle: "solid",
-    borderTopWidth: 1,
     display: "grid",
-    gap: "0.75rem",
-    gridTemplateColumns: { default: "1fr", "@media (min-width: 44rem)": "9rem 1fr" },
-    paddingBlock: "0.7rem",
-    paddingInline: "0.85rem",
+    gap: "0.4rem 0",
+    gridTemplateColumns: { default: "1fr", "@media (min-width: 44rem)": "8rem 1fr" },
+    paddingBlock: { default: "0.8rem", "@media (min-width: 44rem)": 0 },
+    ":not(:last-child)": {
+      borderBottomColor: tokens.border,
+      borderBottomStyle: "solid",
+      borderBottomWidth: 1,
+    },
   },
-  rowLabel: { color: tokens.textSubtle, fontFamily: tokens.fontMono, fontSize: "0.6875rem" },
-  specimens: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.5rem" },
+  rowLabel: {
+    color: tokens.textSubtle,
+    fontFamily: tokens.fontMono,
+    fontSize: "0.6875rem",
+    "@media (min-width: 44rem)": {
+      borderInlineEndColor: tokens.border,
+      borderInlineEndStyle: "solid",
+      borderInlineEndWidth: 1,
+      paddingBlock: "0.9rem",
+      paddingInlineEnd: "1rem",
+    },
+  },
+  specimens: {
+    alignItems: "center",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "0.5rem",
+    "@media (min-width: 44rem)": { paddingBlock: "0.85rem", paddingInlineStart: "1rem" },
+  },
   field: { display: "grid", gap: "0.3rem", maxWidth: "22rem", width: "100%" },
   stretch: { width: "100%" },
   card: { maxWidth: "22rem", width: "100%" },
 });
 
 /**
- * The bordered panel a matrix sits in. The Elements overview labels each panel
- * with the component name; a component's own page has an `h2` above it already,
- * so it passes no name and gets the box alone.
+ * The band a matrix sits in. The frame's rails close it on the sides, so it
+ * carries no border of its own. Callers that stack several matrices label each
+ * one; a single unlabelled matrix gets the rows alone.
  */
 export function Matrix(props: { name?: string; note?: string; children: JSX.Element }) {
   return (
-    <section {...stylex.attrs(styles.matrix)}>
-      <Show when={props.name}>
-        {(name) => (
-          <div {...stylex.attrs(styles.header)}>
-            <h3 {...stylex.attrs(styles.name)}>{name()}</h3>
-            <p {...stylex.attrs(styles.note)}>{props.note}</p>
-          </div>
-        )}
-      </Show>
+    <Band bare>
+      <Show when={props.name}>{(name) => <BandHeader title={name()} note={props.note} />}</Show>
       {props.children}
-    </section>
+    </Band>
   );
 }
 
 /** One axis of a matrix: the prop being varied, then every value it takes. */
 export function Row(props: { label: string; children: JSX.Element }) {
   return (
-    <div {...stylex.attrs(styles.row)}>
+    <div {...stylex.attrs(frame.inset, styles.row)}>
       <span {...stylex.attrs(styles.rowLabel)}>{props.label}</span>
       <div {...stylex.attrs(styles.specimens)}>{props.children}</div>
     </div>
@@ -86,10 +83,11 @@ const buttonSizes = ["xs", "sm", "md", "lg"] as const;
 const badgeTones = ["neutral", "accent", "success", "warning", "danger"] as const;
 
 /**
- * The axes each component varies on, shown as the panel note. Doubles as the
- * test for whether a component has a matrix at all: the primitive-backed ones
- * (Dialog, Popover, Tooltip, Scroll area) document behaviour on their own pages
- * instead.
+ * The axes each component varies on. The Elements overview shows these as the
+ * panel note; a component's own page lists the axes as rows instead, so it only
+ * uses this as the test for whether the component has a matrix at all. The
+ * primitive-backed ones (Dialog, Popover, Tooltip, Scroll area) do not, and
+ * document their behaviour on their own pages.
  */
 export const variantAxes: Record<string, string> = {
   button: "variant × size × state",

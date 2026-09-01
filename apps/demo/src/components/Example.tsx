@@ -2,34 +2,10 @@ import * as stylex from "@stylexjs/stylex";
 import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
+import Band, { BandHeader, frame } from "./Frame";
 import { tokens } from "../styles/tokens.stylex";
 
 const styles = stylex.create({
-  root: {
-    backgroundColor: tokens.surface,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusXl,
-    borderStyle: "solid",
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  header: {
-    alignItems: "center",
-    borderBottomColor: tokens.border,
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1,
-    display: "flex",
-    gap: "0.75rem",
-    justifyContent: "space-between",
-    paddingBlock: "0.75rem",
-    paddingInline: "1rem",
-  },
-  title: {
-    fontSize: "0.8125rem",
-    fontWeight: 620,
-    letterSpacing: "-0.01em",
-    margin: 0,
-  },
   note: {
     borderBottomColor: tokens.border,
     borderBottomStyle: "solid",
@@ -38,32 +14,34 @@ const styles = stylex.create({
     fontSize: "0.8125rem",
     lineHeight: 1.55,
     margin: 0,
-    paddingBlock: "0.6rem",
-    paddingInline: "0.85rem",
+    paddingBlock: "0.7rem",
   },
+  /*
+   * The stage is hatched so a specimen reads as an object placed on it rather
+   * than as more page. The hatch is drawn from the same 1px hairline the rest
+   * of the frame rules with, just turned 45 degrees and dropped to a tint.
+   */
   preview: {
     alignItems: "center",
     backgroundColor: tokens.canvas,
+    backgroundImage: `repeating-linear-gradient(45deg, ${tokens.hatch} 0 1px, transparent 1px 9px)`,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
     justifyContent: "center",
     minHeight: "18rem",
-    padding: "clamp(1.5rem, 6vw, 3.5rem)",
+    paddingBlock: "clamp(2rem, 6vw, 3.5rem)",
+    paddingInline: tokens.inset,
   },
   summary: {
     borderTopColor: tokens.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: {
-      default: tokens.textMuted,
-      ":hover": tokens.text,
-    },
+    color: { default: tokens.textMuted, ":hover": tokens.text },
     cursor: "pointer",
     fontFamily: tokens.fontMono,
     fontSize: "0.75rem",
-    paddingBlock: "0.55rem",
-    paddingInline: "0.85rem",
+    paddingBlock: "0.6rem",
     transition: `color ${tokens.durationFast} ${tokens.easing}`,
     userSelect: "none",
     "@media (prefers-reduced-motion: reduce)": {
@@ -81,7 +59,8 @@ const styles = stylex.create({
     lineHeight: 1.65,
     margin: 0,
     overflowX: "auto",
-    padding: "1rem",
+    paddingBlock: "1rem",
+    paddingInline: tokens.inset,
   },
 });
 
@@ -92,22 +71,25 @@ interface ExampleProps {
   children: JSX.Element;
 }
 
+/**
+ * A worked example. It is a band rather than a card: the frame's rails close it
+ * on the sides, so it needs no border or radius of its own and sits flush
+ * against the sections above and below it.
+ */
 export default function Example(props: ExampleProps) {
   return (
-    <section {...stylex.attrs(styles.root)}>
-      <div {...stylex.attrs(styles.header)}>
-        <h2 {...stylex.attrs(styles.title)}>{props.title}</h2>
-      </div>
+    <Band bare>
+      <BandHeader title={props.title} />
       <Show when={props.note}>
-        <p {...stylex.attrs(styles.note)}>{props.note}</p>
+        <p {...stylex.attrs(frame.inset, styles.note)}>{props.note}</p>
       </Show>
       <div {...stylex.attrs(styles.preview)}>{props.children}</div>
       <details>
-        <summary {...stylex.attrs(styles.summary)}>Source</summary>
+        <summary {...stylex.attrs(frame.inset, styles.summary)}>Source</summary>
         <pre {...stylex.attrs(styles.source)}>
           <code>{props.src}</code>
         </pre>
       </details>
-    </section>
+    </Band>
   );
 }

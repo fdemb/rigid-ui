@@ -5,6 +5,7 @@ import type { JSX } from "@solidjs/web";
 import type { ComponentEntry } from "../content/components";
 import { components } from "../content/components";
 import { tokens } from "../styles/tokens.stylex";
+import Band, { BandHeader, frame } from "./Frame";
 import Example from "./Example";
 import { Matrix, VariantMatrix, variantAxes } from "./VariantMatrix";
 import Link from "./Link";
@@ -32,29 +33,35 @@ const styles = stylex.create({
   card: { maxWidth: "24rem", width: "100%" },
   source: {
     backgroundColor: tokens.codeBackground,
-    borderRadius: tokens.radiusMd,
     color: tokens.codeText,
     display: "block",
     fontSize: "0.75rem",
     lineHeight: 1.7,
     overflowX: "auto",
-    padding: "1rem",
+    paddingBlock: "0.9rem",
+    paddingInline: tokens.inset,
   },
-  section: { display: "grid", gap: "0.85rem" },
-  heading: { fontSize: "1.1rem", fontWeight: 650, letterSpacing: "-0.02em", margin: 0 },
+  body: { paddingBlock: "1.25rem" },
   copy: {
     color: tokens.textMuted,
     fontSize: "0.875rem",
     lineHeight: 1.65,
-    margin: 0,
+    margin: "0 0 0.9rem",
     maxWidth: "46rem",
   },
-  links: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.45rem" },
+  links: { display: "flex", flexWrap: "wrap" },
   textLink: {
-    color: tokens.textMuted,
+    borderInlineEndColor: tokens.border,
+    borderInlineEndStyle: "solid",
+    borderInlineEndWidth: 1,
+    color: { default: tokens.textMuted, ":hover": tokens.text },
     fontSize: "0.8125rem",
-    textDecorationColor: tokens.borderStrong,
-    ":hover": { color: tokens.text },
+    paddingBlock: "0.85rem",
+    paddingInline: tokens.inset,
+    textDecoration: "none",
+    transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
+    ":hover": { backgroundColor: tokens.surfaceInteractive },
+    "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
 });
 
@@ -150,23 +157,22 @@ export default function ComponentDetail(props: { component: ComponentEntry }) {
         <Preview slug={props.component.slug} />
       </Example>
       <Show when={variantAxes[props.component.slug]}>
-        <section {...stylex.attrs(styles.section)}>
-          <h2 {...stylex.attrs(styles.heading)}>Variants</h2>
-          <Matrix>
-            <VariantMatrix slug={props.component.slug} />
-          </Matrix>
-        </section>
+        <Matrix name="Variants">
+          <VariantMatrix slug={props.component.slug} />
+        </Matrix>
       </Show>
-      <section {...stylex.attrs(styles.section)}>
-        <h2 {...stylex.attrs(styles.heading)}>Source</h2>
-        <p {...stylex.attrs(styles.copy)}>
-          This recipe currently lives in the demo. The planned registry will make the same source
-          vendorable without coupling your app to this documentation package.
-        </p>
+      <Band bare>
+        <BandHeader title="Source" />
+        <div {...stylex.attrs(frame.inset, styles.body)}>
+          <p {...stylex.attrs(styles.copy)}>
+            This recipe currently lives in the demo. The planned registry will make the same source
+            vendorable without coupling your app to this documentation package.
+          </p>
+        </div>
         <code {...stylex.attrs(styles.source)}>{props.component.sourcePath}</code>
-      </section>
-      <section {...stylex.attrs(styles.section)}>
-        <h2 {...stylex.attrs(styles.heading)}>Related</h2>
+      </Band>
+      <Band bare>
+        <BandHeader title="Related" />
         <div {...stylex.attrs(styles.links)}>
           <Link href="/components" xstyle={styles.textLink}>
             All components
@@ -186,7 +192,7 @@ export default function ComponentDetail(props: { component: ComponentEntry }) {
             )}
           </For>
         </div>
-      </section>
+      </Band>
     </Page>
   );
 }

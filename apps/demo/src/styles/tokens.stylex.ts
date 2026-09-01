@@ -23,6 +23,10 @@ export const tokens = stylex.defineVars({
   focus: "#0f766e",
   codeBackground: "#171717",
   codeText: "#f5f5f1",
+  codeTextMuted: "#b6b6b1",
+  /* The hairline of the preview hatch. Tinted from the ink so it reads at
+   * the same weight over any canvas the themes set. */
+  hatch: "rgba(23, 23, 23, 0.05)",
   backdrop: "rgba(15, 15, 14, 0.58)",
   radiusSm: "0.3125rem",
   radiusMd: "0.5rem",
@@ -35,6 +39,8 @@ export const tokens = stylex.defineVars({
   durationFast: "120ms",
   durationNormal: "180ms",
   easing: "cubic-bezier(0.2, 0.8, 0.2, 1)",
-  contentWidth: "88rem",
+  contentWidth: "80rem",
+  /* Inline padding that clears the frame's rails. See `components/Frame.tsx`. */
+  inset: "clamp(1rem, 2vw, 1.5rem)",
   fontMono: 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
 });

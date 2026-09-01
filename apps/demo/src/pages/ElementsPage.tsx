@@ -10,7 +10,6 @@ import UsageBlock from "../blocks/UsageBlock";
 import { components } from "../content/components";
 
 const styles = stylex.create({
-  page: { display: "flex", flexDirection: "column", gap: "1rem" },
   blocks: {
     alignItems: "start",
     display: "grid",
@@ -31,25 +30,23 @@ export default function ElementsPage() {
       title="Elements"
       lede="The styled layer the registry components are built from. Each one is plain StyleX over the token set, so switching themes moves all of them at once."
     >
-      <div {...stylex.attrs(styles.page)}>
-        <For each={styled}>
-          {(entry) => (
-            <Matrix name={entry.name} note={variantAxes[entry.slug]}>
-              <VariantMatrix slug={entry.slug} />
-            </Matrix>
-          )}
-        </For>
-        <Matrix name="Blocks" note="elements composed with primitives">
-          <Row label="composed">
-            <div {...stylex.attrs(styles.blocks)}>
-              <SignInBlock />
-              <DeploymentBlock />
-              <FeedbackBlock />
-              <UsageBlock />
-            </div>
-          </Row>
-        </Matrix>
-      </div>
+      <For each={styled}>
+        {(entry) => (
+          <Matrix name={entry.name} note={variantAxes[entry.slug]}>
+            <VariantMatrix slug={entry.slug} />
+          </Matrix>
+        )}
+      </For>
+      <Matrix name="Blocks" note="elements composed with primitives">
+        <Row label="composed">
+          <div {...stylex.attrs(styles.blocks)}>
+            <SignInBlock />
+            <DeploymentBlock />
+            <FeedbackBlock />
+            <UsageBlock />
+          </div>
+        </Row>
+      </Matrix>
     </Page>
   );
 }
