@@ -63,8 +63,8 @@ export default function ComponentsPage() {
     >
       <Band>
         <p {...stylex.attrs(styles.intro)}>
-          The registry is planned. For now, these pages document the source that lives in this demo
-          rather than presenting an install command that does not exist yet.
+          Vendorable recipes for application interfaces. Each page provides the complete component
+          source and examples ready to copy into your project.
         </p>
       </Band>
       <For each={groups}>

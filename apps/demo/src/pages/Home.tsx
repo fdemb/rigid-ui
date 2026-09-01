@@ -175,8 +175,8 @@ export default function Home() {
           <div {...stylex.attrs(styles.laneHead)}>
             <h2 {...stylex.attrs(styles.laneTitle)}>Components</h2>
             <p {...stylex.attrs(styles.laneCopy)}>
-              Finished controls and patterns for product interfaces. The registry is planned; today,
-              every page points to the source used by this demo.
+              Finished controls and patterns for product interfaces. Each page includes the complete
+              component source ready to copy into your project.
             </p>
           </div>
           <For each={components.slice(0, 5)}>

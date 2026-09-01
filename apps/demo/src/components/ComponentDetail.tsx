@@ -4,8 +4,10 @@ import type { JSX } from "@solidjs/web";
 
 import type { ComponentEntry } from "../content/components";
 import { components } from "../content/components";
+import { componentSources } from "../content/componentSources";
 import { tokens } from "../styles/tokens.stylex";
 import Band, { BandHeader, frame } from "./Frame";
+import CodeBlock from "./CodeBlock";
 import Example from "./Example";
 import { Matrix, VariantMatrix, variantAxes } from "./VariantMatrix";
 import Link from "./Link";
@@ -31,17 +33,7 @@ const styles = stylex.create({
   },
   field: { display: "grid", gap: "0.4rem", maxWidth: "22rem", width: "100%" },
   card: { maxWidth: "24rem", width: "100%" },
-  source: {
-    backgroundColor: tokens.codeBackground,
-    color: tokens.codeText,
-    display: "block",
-    fontSize: "0.75rem",
-    lineHeight: 1.7,
-    overflowX: "auto",
-    paddingBlock: "0.9rem",
-    paddingInline: tokens.inset,
-  },
-  body: { paddingBlock: "1.25rem" },
+  sourceSection: { paddingBlock: "1.25rem" },
   copy: {
     color: tokens.textMuted,
     fontSize: "0.875rem",
@@ -162,14 +154,14 @@ export default function ComponentDetail(props: { component: ComponentEntry }) {
         </Matrix>
       </Show>
       <Band bare>
-        <BandHeader title="Source" />
-        <div {...stylex.attrs(frame.inset, styles.body)}>
-          <p {...stylex.attrs(styles.copy)}>
-            This recipe currently lives in the demo. The planned registry will make the same source
-            vendorable without coupling your app to this documentation package.
-          </p>
+        <BandHeader title="Source" note={props.component.sourcePath} />
+        <div {...stylex.attrs(frame.inset, styles.sourceSection)}>
+          <p {...stylex.attrs(styles.copy)}>Copy and paste the following code into your project.</p>
+          <CodeBlock
+            path={props.component.sourcePath}
+            code={componentSources[props.component.slug] ?? ""}
+          />
         </div>
-        <code {...stylex.attrs(styles.source)}>{props.component.sourcePath}</code>
       </Band>
       <Band bare>
         <BandHeader title="Related" />
