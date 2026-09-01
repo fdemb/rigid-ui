@@ -16,15 +16,9 @@ const styles = stylex.create({
     margin: 0,
     paddingBlock: "0.7rem",
   },
-  /*
-   * The stage is hatched so a specimen reads as an object placed on it rather
-   * than as more page. The hatch is drawn from the same 1px hairline the rest
-   * of the frame rules with, just turned 45 degrees and dropped to a tint.
-   */
   preview: {
     alignItems: "center",
     backgroundColor: tokens.canvas,
-    backgroundImage: `repeating-linear-gradient(45deg, ${tokens.hatch} 0 1px, transparent 1px 9px)`,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
