@@ -35,41 +35,9 @@ export const darkTheme = stylex.createTheme(tokens, {
   shadowLg: "0 32px 90px rgba(0, 0, 0, 0.5)",
 });
 
-export const groveTheme = stylex.createTheme(tokens, {
-  canvas: "#f0f6ef",
-  canvasMuted: "#e3eee1",
-  surface: "#fbfdf9",
-  surfaceRaised: "#ffffff",
-  surfaceSunken: "#edf4ec",
-  surfaceInteractive: "#e8f2e5",
-  text: "#17201a",
-  textMuted: "#59685d",
-  textSubtle: "#647166",
-  border: "#cbd9c8",
-  borderStrong: "#99ae96",
-  accent: "#227a4e",
-  accentHover: "#155f3b",
-  accentText: "#ffffff",
-  danger: "#b84242",
-  dangerHover: "#983434",
-  dangerText: "#ffffff",
-  success: "#1d7048",
-  warning: "#8a5c12",
-  focus: "#25845a",
-  codeBackground: "#15241a",
-  codeText: "#e8f5e9",
-  codeTextMuted: "#a4bfa8",
-  hatch: "rgba(23, 32, 26, 0.055)",
-  backdrop: "rgba(15, 32, 21, 0.48)",
-  shadowSm: "0 1px 2px rgba(23, 48, 31, 0.08)",
-  shadowMd: "0 16px 48px rgba(23, 48, 31, 0.14)",
-  shadowLg: "0 28px 80px rgba(23, 48, 31, 0.18)",
-});
-
-export type ThemeName = "light" | "dark" | "grove";
+export type ThemeName = "light" | "dark";
 
 export const themes = {
   light: lightTheme,
   dark: darkTheme,
-  grove: groveTheme,
 } satisfies Record<ThemeName, stylex.Theme<typeof tokens>>;

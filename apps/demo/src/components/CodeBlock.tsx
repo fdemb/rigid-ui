@@ -2,6 +2,7 @@ import * as stylex from "@stylexjs/stylex";
 import { For, Show, createMemo, createSignal } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
+import { TypeScriptIcon } from "./icons";
 import { tokens } from "../styles/tokens.stylex";
 export interface CodeBlockProps {
   code: string;
@@ -243,6 +244,7 @@ const styles = stylex.create({
     paddingInline: "0.35rem",
     userSelect: "none",
   },
+  languageIcon: { height: "0.8rem", width: "0.8rem" },
   path: {
     color: tokens.codeTextMuted,
     fontFamily: tokens.fontMono,
@@ -457,7 +459,12 @@ export default function CodeBlock(props: CodeBlockProps) {
     <div {...stylex.attrs(styles.root, merged.xstyle)}>
       <div {...stylex.attrs(styles.header)}>
         <div {...stylex.attrs(styles.headerLeft)}>
-          <span {...stylex.attrs(styles.badge)}>{languageLabel()}</span>
+          <span {...stylex.attrs(styles.badge)}>
+            <Show when={languageLabel() === "TS"}>
+              <TypeScriptIcon aria-hidden="true" {...stylex.attrs(styles.languageIcon)} />
+            </Show>
+            {languageLabel()}
+          </span>
           <Show when={merged.path}>
             <span {...stylex.attrs(styles.path)}>{merged.path}</span>
           </Show>

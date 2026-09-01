@@ -5,7 +5,7 @@ import type { JSX } from "@solidjs/web";
 
 import Link from "./components/Link";
 import { Bleed, frame } from "./components/Frame";
-import { Button } from "./components/ui/Button";
+import { MoonIcon, SunIcon } from "./components/icons";
 import { reactiveStyleAttributes } from "./components/ui/styleProps";
 import { components } from "./content/components";
 import { primitives } from "./content/primitives";
@@ -113,11 +113,50 @@ const styles = stylex.create({
     gap: "0.75rem",
     paddingInline: tokens.inset,
   },
-  version: {
-    color: tokens.textSubtle,
-    display: { default: "none", "@media (min-width: 36rem)": "inline" },
-    fontFamily: tokens.fontMono,
-    fontSize: "0.6875rem",
+  themeIcon: { height: "0.875rem", width: "0.875rem" },
+  themeSwitcher: {
+    alignItems: "center",
+    backgroundColor: tokens.surfaceSunken,
+    borderColor: tokens.borderStrong,
+    borderRadius: tokens.radiusFull,
+    borderStyle: "solid",
+    borderWidth: 1,
+    display: "inline-flex",
+    gap: "0.1rem",
+    padding: "0.2rem",
+  },
+  themeOption: {
+    alignItems: "center",
+    appearance: "none",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderRadius: tokens.radiusFull,
+    borderStyle: "solid",
+    borderWidth: 1,
+    color: {
+      default: tokens.textSubtle,
+      ":hover": tokens.text,
+    },
+    cursor: "pointer",
+    display: "inline-flex",
+    height: "1.7rem",
+    justifyContent: "center",
+    padding: 0,
+    transition: `background-color ${tokens.durationFast} ${tokens.easing}, color ${tokens.durationFast} ${tokens.easing}`,
+    width: "1.7rem",
+    ":focus-visible": {
+      outlineColor: tokens.focus,
+      outlineOffset: 2,
+      outlineStyle: "solid",
+      outlineWidth: 2,
+    },
+    "@media (pointer: coarse)": { height: "2.25rem", width: "2.25rem" },
+  },
+  themeOptionActive: {
+    backgroundColor: tokens.surface,
+    borderColor: tokens.border,
+    color: tokens.text,
+    boxShadow: tokens.shadowSm,
   },
   body: { display: "flex", flexDirection: "column", flexGrow: 1 },
   catalogBleed: {
@@ -224,7 +263,7 @@ const styles = stylex.create({
 
 function initialTheme(): ThemeName {
   const saved = localStorage.getItem("rigid-ui-theme");
-  if (saved === "light" || saved === "dark" || saved === "grove") return saved;
+  if (saved === "light" || saved === "dark") return saved;
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
@@ -237,8 +276,7 @@ export default function Layout(props: { children?: JSX.Element }) {
     location.pathname.includes("/primitives") ||
     location.pathname.includes("/elements");
 
-  function cycleTheme() {
-    const next: ThemeName = theme() === "light" ? "dark" : "light";
+  function selectTheme(next: "light" | "dark") {
     setTheme(next);
     localStorage.setItem("rigid-ui-theme", next);
   }
@@ -269,15 +307,32 @@ export default function Layout(props: { children?: JSX.Element }) {
             </Link>
           </nav>
           <div {...stylex.attrs(styles.actions)}>
-            <span {...stylex.attrs(styles.version)}>Solid 2 RC</span>
-            <Button
-              aria-label={`Switch to ${theme() === "light" ? "dark" : "light"} theme`}
-              onClick={cycleTheme}
-              size="xs"
-              variant="ghost"
-            >
-              {theme() === "light" ? "Dark" : "Light"}
-            </Button>
+            <div aria-label="Theme" role="group" {...stylex.attrs(styles.themeSwitcher)}>
+              <button
+                type="button"
+                aria-label="Light theme"
+                aria-pressed={theme() === "light" ? "true" : "false"}
+                onClick={() => selectTheme("light")}
+                {...stylex.attrs(
+                  styles.themeOption,
+                  theme() === "light" && styles.themeOptionActive,
+                )}
+              >
+                <SunIcon aria-hidden="true" {...stylex.attrs(styles.themeIcon)} />
+              </button>
+              <button
+                type="button"
+                aria-label="Dark theme"
+                aria-pressed={theme() === "dark" ? "true" : "false"}
+                onClick={() => selectTheme("dark")}
+                {...stylex.attrs(
+                  styles.themeOption,
+                  theme() === "dark" && styles.themeOptionActive,
+                )}
+              >
+                <MoonIcon aria-hidden="true" {...stylex.attrs(styles.themeIcon)} />
+              </button>
+            </div>
           </div>
         </div>
       </header>
