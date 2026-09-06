@@ -1,3 +1,96 @@
-@import "tailwindcss";
+/*
+ * Layer order for the whole site. StyleX repeats these two names ahead of its
+ * own `priority*` layers (`useCSSLayers` in vite.config.ts), so a component
+ * style beats a global one whichever stylesheet loads first. Keep every rule in
+ * this file inside a layer. Unlayered CSS outranks all of them.
+ */
+@layer reset, base;
 
-@custom-variant dark (&:where(.dark, .dark *));
+@import "modern-normalize/modern-normalize.css" layer(reset);
+
+/* The handful of normalizations modern-normalize leaves to the app. */
+@layer reset {
+  hr {
+    color: inherit;
+    height: 0;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  table {
+    border-collapse: collapse;
+    text-indent: 0;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  img,
+  video {
+    height: auto;
+  }
+
+  /*
+   * Drop the UA link and visited colors. Every anchor on the site gets its
+   * color from a StyleX style, and without this the ones that only set
+   * `textDecoration` render as Safari's blue and purple. The underline stays:
+   * `textLink` and `laneLink` set `textDecorationColor` and let the UA draw it.
+   */
+  a {
+    color: inherit;
+  }
+
+  /* Beats a `display` set by a component, which is the point of the attribute. */
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer base {
+  html {
+    background: #0a0a0a;
+    color-scheme: light dark;
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100vh;
+    min-width: 20rem;
+  }
+
+  ::selection {
+    background: #99f6e4;
+    color: #134e4a;
+  }
+
+  * {
+    scrollbar-color: #a8a8a1 transparent;
+    scrollbar-width: thin;
+  }
+
+  button,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a {
+    text-underline-offset: 0.18em;
+  }
+}

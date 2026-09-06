@@ -1,0 +1,44 @@
+import DocPage from "../components/DocPage";
+import Link from "../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage
+      title="Introduction"
+      sections={[
+        "Choose a starting point",
+        "Requirements",
+        "Composition",
+        "Source and availability",
+      ]}
+    >
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Introduction
+
+Build interfaces with accessible primitives and styled component examples for Solid 2.
+
+## Choose a starting point
+
+Use <Link href="/components">components</Link> when you want a styled starting point. Each page includes live examples and source you can copy and change.
+
+Use <Link href="/primitives">primitives</Link> when you want to supply your own design. Compose their parts to get focus management, keyboard interactions, and accessible semantics without a built-in theme.
+
+## Requirements
+
+Rigid UI targets the Solid 2 release candidate. Your application needs the matching Solid 2 core, web renderer, and JSX compiler. Solid 1 is not supported.
+
+## Composition
+
+Components such as Dialog and Popover are made of parts. The root manages state, a trigger opens the content, and a popup contains it. This gives you control over the markup and styling around each interaction.
+
+The `render` prop accepts a tag name, a component, or a callback. Use a callback when you need to add element-specific attributes. Read reactive values from the callback argument instead of destructuring it.
+
+## Source and availability
+
+Styled examples use StyleX and shared theme tokens. Copy the component's local dependencies as well as its source, or adapt the styling to your application. The component registry is not available yet.
+
+Browse the <Link href="/components">component examples</Link> or start with the <Link href="/primitives/dialog">Dialog primitive</Link>.

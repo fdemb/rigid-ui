@@ -1,8 +1,13 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import tailwindcss from "@tailwindcss/vite";
+import mdx from "@mdx-js/rollup";
+import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
+
 import solidPlugin from "@solidjs/vite-plugin";
+import stylex from "@stylexjs/unplugin";
 import { defineConfig, lazyPlugins } from "vite-plus";
 import type { Plugin } from "vite-plus";
 
@@ -34,7 +39,31 @@ function spaFallback(): Plugin {
 }
 
 export default defineConfig({
-  plugins: lazyPlugins(() => [solidPlugin(), tailwindcss(), spaFallback()]),
+  plugins: lazyPlugins(() => [
+    stylex.vite({
+      dev: process.env.NODE_ENV !== "production",
+      runtimeInjection: false,
+      sxPropName: false,
+      // StyleX writes a layer-order statement at the top of its own stylesheet,
+      // so repeating the two layer names globals.css uses puts them ahead of
+      // the priority layers even when the StyleX sheet loads first. It does
+      // load first in dev: `virtual:stylex.css` is a <link> in the head, while
+      // globals.css only arrives once the module graph evaluates.
+      useCSSLayers: { before: ["reset", "base"] },
+    }),
+    {
+      ...mdx({
+        jsx: true,
+        jsxImportSource: "@solidjs/web",
+        providerImportSource: fileURLToPath(new URL("./src/components/mdx.tsx", import.meta.url)),
+        rehypePlugins: [rehypeSlug],
+        remarkPlugins: [remarkGfm],
+      }),
+      enforce: "pre",
+    },
+    solidPlugin({ extensions: [".mdx"] }),
+    spaFallback(),
+  ]),
   base: process.env.GITHUB_ACTIONS ? "/rigid-ui/" : "/",
   server: {
     port: 3333,
@@ -52,6 +81,11 @@ export default defineConfig({
       build: {
         command: "vp build",
         dependsOn: [{ task: "build", from: "dependencies" }],
+      },
+      "test:docs": {
+        command: "node scripts/check-docs.mjs",
+        cache: false,
+        dependsOn: ["build"],
       },
       preview: {
         command: "vp preview",

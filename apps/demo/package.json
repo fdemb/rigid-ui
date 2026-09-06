@@ -6,13 +6,19 @@
   "dependencies": {
     "@solidjs/router": "catalog:",
     "@solidjs/web": "catalog:",
+    "@stylexjs/stylex": "catalog:",
+    "github-slugger": "catalog:",
+    "modern-normalize": "catalog:",
     "rigid-ui": "workspace:*",
     "solid-js": "catalog:"
   },
   "devDependencies": {
+    "@mdx-js/rollup": "catalog:",
     "@solidjs/vite-plugin": "catalog:",
-    "@tailwindcss/vite": "catalog:",
-    "tailwindcss": "catalog:",
+    "@stylexjs/unplugin": "catalog:",
+    "jsdom": "catalog:",
+    "rehype-slug": "catalog:",
+    "remark-gfm": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:"

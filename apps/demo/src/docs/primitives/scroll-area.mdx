@@ -1,0 +1,52 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Scroll area" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Scroll area
+
+Provides custom scrollbars while preserving native scrolling. This primitive is unstyled.
+
+## Import
+
+```tsx
+import { ScrollArea } from "rigid-ui/primitives/scroll-area";
+```
+
+## Anatomy
+
+Scroll area is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
+
+```tsx
+<ScrollArea.Root>
+  <ScrollArea.Viewport>
+    <ScrollArea.Content>Scrollable content</ScrollArea.Content>
+  </ScrollArea.Viewport>
+  <ScrollArea.Scrollbar orientation="vertical">
+    <ScrollArea.Thumb />
+  </ScrollArea.Scrollbar>
+  <ScrollArea.Scrollbar orientation="horizontal">
+    <ScrollArea.Thumb />
+  </ScrollArea.Scrollbar>
+  <ScrollArea.Corner />
+</ScrollArea.Root>
+```
+
+## Behavior
+
+Give the scroll area a constrained height so its content can overflow. The viewport preserves native wheel, touch, and keyboard scrolling.
+
+Add a scrollbar for each axis when content can overflow in both directions. The corner occupies the space where the two scrollbars meet.
+
+## Styling
+
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
+
+<Link href="/components/scroll-area">View the styled scroll area examples</Link> for a complete
+implementation.

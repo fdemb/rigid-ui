@@ -10,7 +10,7 @@
     "test": "vp run rigid-ui#test",
     "test:run": "vp run rigid-ui#test:run",
     "test:chromium": "vp run rigid-ui#test:chromium",
-    "ready": "vp run rigid-ui#build && vp check && vp run rigid-ui#test:run && vp run rigid-ui#test:chromium && vp run demo#build",
+    "ready": "vp run rigid-ui#build && vp check && vp run rigid-ui#test:run && vp run rigid-ui#test:chromium && vp run demo#build && vp run demo#test:docs",
     "prepare": "vp config --no-agent"
   },
   "devDependencies": {

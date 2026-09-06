@@ -1,0 +1,24 @@
+import DocPage from "../components/DocPage";
+import DocsCatalog from "../components/DocsCatalog";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Components" sections={["Using the components", "Browse components"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Components
+
+Styled components for Solid 2. Copy the source into your application and adapt it to your design.
+
+## Using the components
+
+Each page includes a working preview, usage examples, and the component source. The examples use StyleX with shared theme tokens and utilities. Copy those local dependencies along with the component, or replace them with your own styling.
+
+A component registry is planned. For now, use the source shown on each page.
+
+## Browse components
+
+<DocsCatalog kind="components" />

@@ -1,0 +1,49 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Alert dialog" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Alert dialog
+
+Asks the user to confirm an action before continuing. This primitive is unstyled.
+
+## Import
+
+```tsx
+import { AlertDialog } from "rigid-ui/primitives/alert-dialog";
+```
+
+## Anatomy
+
+Alert dialog is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
+
+```tsx
+<AlertDialog.Root>
+  <AlertDialog.Trigger>Delete project</AlertDialog.Trigger>
+  <AlertDialog.Portal>
+    <AlertDialog.Backdrop />
+    <AlertDialog.Popup>
+      <AlertDialog.Title>Delete this project?</AlertDialog.Title>
+      <AlertDialog.Description>This action cannot be undone.</AlertDialog.Description>
+      <AlertDialog.Close>Cancel</AlertDialog.Close>
+    </AlertDialog.Popup>
+  </AlertDialog.Portal>
+</AlertDialog.Root>
+```
+
+## Behavior
+
+Use an alert dialog for decisions such as deleting a resource. Clicking the backdrop does not close it. Include a cancel action and name the destructive action explicitly.
+
+## Styling
+
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
+
+<Link href="/components/alert-dialog">View the styled alert dialog examples</Link> for a complete
+implementation.

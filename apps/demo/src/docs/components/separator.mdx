@@ -1,0 +1,40 @@
+import DocPage from "../../components/DocPage";
+import BasicSeparator from "../../examples/separator/BasicSeparator";
+import source from "../../examples/separator/BasicSeparator.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Separator" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Separator
+
+Separates groups of content horizontally or vertically.
+
+<Example title="Separator preview" src={source}>
+  <BasicSeparator />
+</Example>
+
+## Usage
+
+Use `decorative` when the line adds no meaning for assistive technology. Set `orientation="vertical"` for a separator within a horizontal row.
+
+```tsx
+<Separator decorative />
+```
+
+## Variants
+
+<VariantMatrix slug="separator" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="separator" />

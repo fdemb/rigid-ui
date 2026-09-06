@@ -1,0 +1,42 @@
+import DocPage from "../../components/DocPage";
+import BasicButton from "../../examples/button/BasicButton";
+import source from "../../examples/button/BasicButton.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Button" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Button
+
+Triggers an action, such as submitting a form or opening a dialog.
+
+<Example title="Button preview" src={source}>
+  <BasicButton />
+</Example>
+
+## Usage
+
+Use `variant` to distinguish the primary action from secondary actions. Reserve `danger` for destructive actions. Set `type="submit"` when the button submits a form.
+
+```tsx
+<Button variant="primary" type="submit">
+  Save changes
+</Button>
+```
+
+## Variants
+
+<VariantMatrix slug="button" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="button" />

@@ -1,0 +1,41 @@
+import DocPage from "../../components/DocPage";
+import BasicInput from "../../examples/input/BasicInput";
+import source from "../../examples/input/BasicInput.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Input" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Input
+
+A single-line field for text, email addresses, and other form values.
+
+<Example title="Input preview" src={source}>
+  <BasicInput />
+</Example>
+
+## Usage
+
+Associate each input with a `Label` using matching `id` and `for` values. Use `invalid` to mark a validation error and `aria-describedby` to connect the field to its error message.
+
+```tsx
+<Label for="email">Email</Label>
+<Input id="email" type="email" placeholder="you@example.com" />
+```
+
+## Variants
+
+<VariantMatrix slug="input" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="input" />

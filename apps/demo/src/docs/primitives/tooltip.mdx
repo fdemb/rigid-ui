@@ -1,0 +1,51 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Tooltip" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Tooltip
+
+Shows a brief description when a trigger is hovered or focused. This primitive is unstyled.
+
+## Import
+
+```tsx
+import { Tooltip } from "rigid-ui/primitives/tooltip";
+```
+
+## Anatomy
+
+Tooltip is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
+
+```tsx
+<Tooltip.Provider>
+  <Tooltip.Root>
+    <Tooltip.Trigger>Save</Tooltip.Trigger>
+    <Tooltip.Portal>
+      <Tooltip.Positioner>
+        <Tooltip.Popup>
+          <Tooltip.Arrow />
+          Save your changes
+        </Tooltip.Popup>
+      </Tooltip.Positioner>
+    </Tooltip.Portal>
+  </Tooltip.Root>
+</Tooltip.Provider>
+```
+
+## Behavior
+
+Wrap related tooltips in a provider to share their timing. After one opens, adjacent tooltips can open without another delay. Keep the content short and use a popover for links or controls.
+
+## Styling
+
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
+
+<Link href="/components/tooltip">View the styled tooltip examples</Link> for a complete
+implementation.

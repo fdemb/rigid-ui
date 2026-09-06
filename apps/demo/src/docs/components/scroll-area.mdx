@@ -1,0 +1,49 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import VerticalScrollArea from "../../examples/scroll-area/VerticalScrollArea";
+import VerticalScrollAreaSource from "../../examples/scroll-area/VerticalScrollArea.tsx?raw";
+import BothAxesScrollArea from "../../examples/scroll-area/BothAxesScrollArea";
+import BothAxesScrollAreaSource from "../../examples/scroll-area/BothAxesScrollArea.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage
+      title="Scroll area"
+      sections={["Vertical scrolling", "Both axes", "Source", "Primitive"]}
+    >
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Scroll area
+
+Provides custom scrollbars while preserving native scrolling.
+
+## Vertical scrolling
+
+Give the scroll area a constrained height so its content can overflow. The viewport preserves native wheel, touch, and keyboard scrolling.
+
+<Example title="Vertical scrolling" src={VerticalScrollAreaSource}>
+  <VerticalScrollArea />
+</Example>
+
+## Both axes
+
+Add a scrollbar for each axis when content can overflow in both directions. The corner occupies the space where the two scrollbars meet.
+
+<Example title="Both axes" src={BothAxesScrollAreaSource}>
+  <BothAxesScrollArea />
+</Example>
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="scroll-area" />
+
+## Primitive
+
+For your own styles, use the <Link href="/primitives/scroll-area">Scroll area primitive</Link>.

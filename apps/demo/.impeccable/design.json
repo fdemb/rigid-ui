@@ -1,0 +1,310 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-31T00:00:00.000Z",
+  "title": "Design System: Rigid UI documentation",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#fafafa",
+        "tonalRamp": [
+          "#242423",
+          "#414140",
+          "#626260",
+          "#858582",
+          "#aaa9a5",
+          "#cecdc9",
+          "#e9e8e4",
+          "#fafafa"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clean Surface",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262625",
+          "#444442",
+          "#666663",
+          "#898985",
+          "#aeada8",
+          "#d2d1cc",
+          "#ecebe6",
+          "#ffffff"
+        ]
+      },
+      "text": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#171717",
+        "tonalRamp": [
+          "#171717",
+          "#343431",
+          "#555551",
+          "#777772",
+          "#9b9b95",
+          "#c0c0b9",
+          "#e1e1da",
+          "#f5f5f0"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Muted Graphite",
+        "canonical": "#5f5f5b",
+        "tonalRamp": [
+          "#20201f",
+          "#3e3e3b",
+          "#5f5f5b",
+          "#80807a",
+          "#a3a39c",
+          "#c6c6be",
+          "#e3e3dc",
+          "#f5f5f0"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e2e2de",
+        "tonalRamp": [
+          "#292928",
+          "#474745",
+          "#686865",
+          "#8b8b87",
+          "#aeaea9",
+          "#cececa",
+          "#e2e2de",
+          "#f6f6f3"
+        ]
+      },
+      "focus": {
+        "role": "secondary",
+        "displayName": "Focus Teal",
+        "canonical": "#0f766e",
+        "tonalRamp": [
+          "#052c29",
+          "#07463f",
+          "#0a6058",
+          "#0f766e",
+          "#26988e",
+          "#62bcb3",
+          "#a9ded8",
+          "#e3f5f2"
+        ]
+      },
+      "danger": {
+        "role": "tertiary",
+        "displayName": "Danger Rose",
+        "canonical": "#c83f52",
+        "tonalRamp": [
+          "#47151e",
+          "#68202c",
+          "#8b2b3a",
+          "#aa3043",
+          "#c83f52",
+          "#df7180",
+          "#efadb5",
+          "#f9e5e8"
+        ]
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Success Green",
+        "canonical": "#1f7a4d",
+        "tonalRamp": [
+          "#092c1b",
+          "#10452d",
+          "#175f3c",
+          "#1f7a4d",
+          "#3a9a68",
+          "#72bb91",
+          "#b2dcc3",
+          "#e4f3ea"
+        ]
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Warning Ochre",
+        "canonical": "#9a6410",
+        "tonalRamp": [
+          "#342105",
+          "#523508",
+          "#714a0b",
+          "#9a6410",
+          "#bd852d",
+          "#d4a85f",
+          "#e8cca2",
+          "#f7edda"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Home-page hero headlines only." },
+      "headline": { "displayName": "Headline", "purpose": "Component and primitive page titles." },
+      "title": { "displayName": "Title", "purpose": "Section headings and card titles." },
+      "body": { "displayName": "Body", "purpose": "Documentation prose and descriptions." },
+      "label": { "displayName": "Label", "purpose": "Controls, navigation, badges, and metadata." },
+      "mono": { "displayName": "Mono", "purpose": "Imports, source, paths, versions, and anatomy." }
+    },
+    "shadows": [
+      {
+        "name": "low",
+        "value": "0 1px 2px rgba(24, 21, 31, 0.08)",
+        "purpose": "Quiet support for bordered buttons and cards."
+      },
+      {
+        "name": "floating",
+        "value": "0 18px 50px rgba(20, 20, 18, 0.14)",
+        "purpose": "Popovers and tooltips above document content."
+      },
+      {
+        "name": "modal",
+        "value": "0 30px 90px rgba(20, 20, 18, 0.2)",
+        "purpose": "Dialogs above a dimmed backdrop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "fast",
+        "value": "120ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Button, field, tooltip, and disclosure state changes."
+      },
+      {
+        "name": "normal",
+        "value": "180ms cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Popover and dialog opacity and scale transitions."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0ms",
+        "purpose": "Replaces component transitions when reduced motion is requested."
+      }
+    ],
+    "breakpoints": [
+      { "name": "header-nav", "value": "42rem" },
+      { "name": "catalog-split", "value": "48rem" },
+      { "name": "hero-split", "value": "58rem" },
+      { "name": "desktop-sidebar", "value": "64rem" }
+    ],
+    "components": [
+      {
+        "name": "Primary Button",
+        "kind": "button",
+        "refersTo": "button-primary",
+        "description": "The decisive action used in heroes, forms, and examples.",
+        "html": "<button class=\"ds-button-primary\">Browse components</button>",
+        "css": ".ds-button-primary { align-items:center; background:#171717; border:1px solid #171717; border-radius:8px; box-shadow:0 1px 2px rgba(24,21,31,.08); color:#fff; cursor:pointer; display:inline-flex; font:600 .875rem/1 Inter,ui-sans-serif,system-ui,sans-serif; min-height:44px; padding:0 16px; transition:background-color 120ms cubic-bezier(.2,.8,.2,1),transform 120ms cubic-bezier(.2,.8,.2,1); } .ds-button-primary:hover { background:#343431; } .ds-button-primary:active { transform:scale(.975); } .ds-button-primary:focus-visible { outline:2px solid #0f766e; outline-offset:2px; }"
+      },
+      {
+        "name": "Secondary Button",
+        "kind": "button",
+        "refersTo": "button-secondary",
+        "description": "A bordered action for alternatives and navigation.",
+        "html": "<button class=\"ds-button-secondary\">Read primitive docs</button>",
+        "css": ".ds-button-secondary { align-items:center; background:#fff; border:1px solid #e2e2de; border-radius:8px; box-shadow:0 1px 2px rgba(24,21,31,.08); color:#171717; cursor:pointer; display:inline-flex; font:600 .875rem/1 Inter,ui-sans-serif,system-ui,sans-serif; min-height:44px; padding:0 16px; transition:background-color 120ms cubic-bezier(.2,.8,.2,1),border-color 120ms cubic-bezier(.2,.8,.2,1),transform 120ms cubic-bezier(.2,.8,.2,1); } .ds-button-secondary:hover { background:#f0f0ed; border-color:#b8b8b1; } .ds-button-secondary:active { transform:scale(.975); } .ds-button-secondary:focus-visible { outline:2px solid #0f766e; outline-offset:2px; }"
+      },
+      {
+        "name": "Text Input",
+        "kind": "input",
+        "refersTo": "input",
+        "description": "The shared field treatment for text inputs and textareas.",
+        "html": "<input class=\"ds-input\" aria-label=\"Project name\" placeholder=\"api-gateway\">",
+        "css": ".ds-input { background:#fff; border:1px solid #e2e2de; border-radius:8px; color:#171717; font:400 .875rem/1.4 Inter,ui-sans-serif,system-ui,sans-serif; min-height:44px; padding:8px 11px; transition:border-color 120ms cubic-bezier(.2,.8,.2,1),box-shadow 120ms cubic-bezier(.2,.8,.2,1); width:100%; } .ds-input::placeholder { color:#74746f; } .ds-input:hover { border-color:#b8b8b1; } .ds-input:focus-visible { border-color:#0f766e; outline:2px solid #0f766e; outline-offset:1px; }"
+      },
+      {
+        "name": "Status Badge",
+        "kind": "chip",
+        "refersTo": "badge",
+        "description": "A compact semantic label for state and catalog metadata.",
+        "html": "<span class=\"ds-badge-success\">Ready</span>",
+        "css": ".ds-badge-success { align-items:center; background:color-mix(in srgb,#1f7a4d 14%,#fff); border:1px solid color-mix(in srgb,#1f7a4d 32%,transparent); border-radius:5px; color:#1f7a4d; display:inline-flex; font:650 .6875rem/1.45 Inter,ui-sans-serif,system-ui,sans-serif; padding:.15rem .4rem; white-space:nowrap; }"
+      },
+      {
+        "name": "Documentation Card",
+        "kind": "card",
+        "refersTo": "card",
+        "description": "A bordered container for imports, anatomy, and product details.",
+        "html": "<article class=\"ds-card\"><header class=\"ds-card-header\"><strong>Import</strong></header><div class=\"ds-card-body\"><code>rigid-ui/primitives/dialog</code></div></article>",
+        "css": ".ds-card { background:#fff; border:1px solid #e2e2de; border-radius:12px; box-shadow:0 1px 2px rgba(24,21,31,.08); color:#171717; font-family:Inter,ui-sans-serif,system-ui,sans-serif; overflow:hidden; } .ds-card-header { border-bottom:1px solid #e2e2de; font-size:.875rem; padding:.85rem 1rem; } .ds-card-body { padding:1rem; } .ds-card-body code { font:500 .75rem/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; } .ds-card:hover { border-color:#b8b8b1; } .ds-card:focus-within { outline:2px solid #0f766e; outline-offset:2px; }"
+      },
+      {
+        "name": "Sidebar Navigation Item",
+        "kind": "nav",
+        "description": "A dense documentation link with a quiet selected state.",
+        "html": "<a class=\"ds-nav-item\" aria-current=\"page\" href=\"#\">Dialog</a>",
+        "css": ".ds-nav-item { border-radius:5px; color:#5f5f5b; display:block; font:400 .8125rem/1.4 Inter,ui-sans-serif,system-ui,sans-serif; padding:.35rem .5rem; text-decoration:none; } .ds-nav-item:hover { color:#171717; } .ds-nav-item[aria-current] { background:#f0f0ed; color:#171717; font-weight:580; } .ds-nav-item:focus-visible { outline:2px solid #0f766e; outline-offset:1px; }"
+      },
+      {
+        "name": "Example Frame",
+        "kind": "custom",
+        "description": "The preview and source unit used on styled component pages.",
+        "html": "<section class=\"ds-example\"><header class=\"ds-example-header\">Preview</header><div class=\"ds-example-stage\"><button class=\"ds-example-button\">Save changes</button></div><button class=\"ds-example-source\">Source</button></section>",
+        "css": ".ds-example { background:#fff; border:1px solid #e2e2de; border-radius:16px; color:#171717; overflow:hidden; } .ds-example-header { border-bottom:1px solid #e2e2de; font:620 .8125rem/1.4 Inter,ui-sans-serif,system-ui,sans-serif; padding:.75rem 1rem; } .ds-example-stage { align-items:center; background:#fafafa; display:flex; justify-content:center; min-height:180px; padding:32px; } .ds-example-button { background:#171717; border:1px solid #171717; border-radius:8px; color:#fff; font-weight:600; min-height:44px; padding:0 16px; } .ds-example-button:focus-visible,.ds-example-source:focus-visible { outline:2px solid #0f766e; outline-offset:2px; } .ds-example-source { background:#fff; border:0; border-top:1px solid #e2e2de; color:#5f5f5b; cursor:pointer; font:500 .75rem/1.4 ui-monospace,SFMono-Regular,Consolas,monospace; padding:.55rem .85rem; text-align:left; width:100%; } .ds-example-source:hover { color:#171717; }"
+      }
+    ],
+    "narrative": {
+      "northStar": "The Working Reference",
+      "overview": "Rigid UI reads like documentation built beside the code. Warm neutral surfaces, near-black accents, compact labels, and fine borders keep attention on examples and API facts. The system is quiet but not soft. Its dense navigation and precise type make it feel dependable.\n\nThe styled Components catalog and unstyled Primitives catalog share one shell but teach different things. Component pages use grouped recipes, generous previews, and source disclosure familiar to shadcn/ui users. Primitive pages favor Base UI-like import and anatomy references. Copy must stay honest about the planned registry: recipes live in the demo today and are not yet installable from a registry.",
+      "keyCharacteristics": [
+        "Warm neutral canvases with near-black text and actions",
+        "Dense, persistent desktop navigation with a compact mobile catalog switcher",
+        "Large editorial page titles set against small technical labels and monospace code",
+        "Border-led structure, restrained elevation, and short state transitions",
+        "First-class light and dark themes with the same hierarchy in both"
+      ],
+      "rules": [
+        {
+          "name": "The Ink Is Earned Rule",
+          "body": "Use the near-black accent for primary actions and decisive state. Do not spread it across decorative regions.",
+          "section": "colors"
+        },
+        {
+          "name": "The Theme Parity Rule",
+          "body": "Dark mode changes token values, not information hierarchy. The same elements remain primary, muted, bordered, or raised.",
+          "section": "colors"
+        },
+        {
+          "name": "The Technical Accent Rule",
+          "body": "Monospace is a semantic cue for code and package identity. Do not use it as general decoration.",
+          "section": "typography"
+        },
+        {
+          "name": "The Two Catalogs Rule",
+          "body": "Components and Primitives remain visible as separate routes and navigation groups. Never collapse their content into an ambiguous single list.",
+          "section": "layout"
+        },
+        {
+          "name": "The Dense Edge, Open Page Rule",
+          "body": "Keep navigation compact. Give examples and reading content enough horizontal and vertical room to scan without crowding.",
+          "section": "layout"
+        },
+        {
+          "name": "The Floating Layers Rule",
+          "body": "Broad shadows indicate content that escaped document flow. Do not use them on ordinary page sections or preview frames.",
+          "section": "elevation"
+        },
+        {
+          "name": "The Radius Follows Scale Rule",
+          "body": "Small object, small corner. Large container, larger corner. Avoid a single oversized radius across every element.",
+          "section": "shapes"
+        }
+      ],
+      "dos": [
+        "**Do** keep Components and Primitives visually related but structurally separate.",
+        "**Do** use borders and tonal changes before reaching for shadows.",
+        "**Do** reserve monospace for imports, source, paths, versions, and anatomy names.",
+        "**Do** preserve focus outlines, coarse-pointer target sizes, and reduced-motion behavior.",
+        "**Do** say that the registry is planned and point readers to the demo source that exists today."
+      ],
+      "donts": [
+        "**Don't** present the styled recipes as installable registry packages before that registry ships.",
+        "**Don't** turn semantic teal, green, amber, or rose into broad decorative color.",
+        "**Don't** hide the catalog split inside one undifferentiated navigation tree.",
+        "**Don't** add large shadows to normal documentation sections.",
+        "**Don't** replace the dense desktop sidebar with oversized marketing navigation."
+      ]
+    }
+  }
+}

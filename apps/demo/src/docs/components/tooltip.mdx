@@ -1,0 +1,36 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import BasicTooltip from "../../examples/tooltip/BasicTooltip";
+import BasicTooltipSource from "../../examples/tooltip/BasicTooltip.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Tooltip" sections={["Grouped tooltips", "Source", "Primitive"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Tooltip
+
+Shows a brief description when a trigger is hovered or focused.
+
+## Grouped tooltips
+
+Wrap related tooltips in a provider to share their timing. After one opens, adjacent tooltips can open without another delay. Keep the content short and use a popover for links or controls.
+
+<Example title="Grouped tooltips" src={BasicTooltipSource}>
+  <BasicTooltip />
+</Example>
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="tooltip" />
+
+## Primitive
+
+For your own styles, use the <Link href="/primitives/tooltip">Tooltip primitive</Link>.

@@ -1,0 +1,46 @@
+import DocPage from "../../components/DocPage";
+import BasicCard from "../../examples/card/BasicCard";
+import source from "../../examples/card/BasicCard.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Card" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Card
+
+Groups related content with an optional header and footer.
+
+<Example title="Card preview" src={source}>
+  <BasicCard />
+</Example>
+
+## Usage
+
+Compose `CardHeader`, `CardBody`, and `CardFooter` inside `Card`. Use `CardTitle` for the heading and `CardDescription` for supporting text.
+
+```tsx
+<Card>
+  <CardHeader>
+    <CardTitle>Project settings</CardTitle>
+    <CardDescription>Manage your project.</CardDescription>
+  </CardHeader>
+  <CardBody>Project details</CardBody>
+</Card>
+```
+
+## Variants
+
+<VariantMatrix slug="card" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="card" />

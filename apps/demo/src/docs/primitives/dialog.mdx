@@ -1,0 +1,51 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Dialog" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Dialog
+
+Displays a window above the page for a focused task. This primitive is unstyled.
+
+## Import
+
+```tsx
+import { Dialog } from "rigid-ui/primitives/dialog";
+```
+
+## Anatomy
+
+Dialog is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
+
+```tsx
+<Dialog.Root>
+  <Dialog.Trigger>Open dialog</Dialog.Trigger>
+  <Dialog.Portal>
+    <Dialog.Backdrop />
+    <Dialog.Popup>
+      <Dialog.Title>Project settings</Dialog.Title>
+      <Dialog.Description>Update your project details.</Dialog.Description>
+      <Dialog.Close>Close</Dialog.Close>
+    </Dialog.Popup>
+  </Dialog.Portal>
+</Dialog.Root>
+```
+
+## Behavior
+
+A modal dialog moves focus into the window, keeps keyboard focus inside it, and prevents the page behind it from scrolling. Give the dialog a title and a close action.
+
+Set `modal={false}` to keep the rest of the page interactive. Set `initialFocus={false}` when opening the dialog should leave focus where it is.
+
+## Styling
+
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
+
+<Link href="/components/dialog">View the styled dialog examples</Link> for a complete
+implementation.

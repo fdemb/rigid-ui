@@ -1,0 +1,46 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import ConfirmationDialog from "../../examples/dialog/ConfirmationDialog";
+import ConfirmationDialogSource from "../../examples/dialog/ConfirmationDialog.tsx?raw";
+import NonModalDialog from "../../examples/dialog/NonModalDialog";
+import NonModalDialogSource from "../../examples/dialog/NonModalDialog.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Dialog" sections={["Modal dialog", "Non-modal dialog", "Source", "Primitive"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Dialog
+
+Displays a window above the page for a focused task.
+
+## Modal dialog
+
+A modal dialog moves focus into the window, keeps keyboard focus inside it, and prevents the page behind it from scrolling. Give the dialog a title and a close action.
+
+<Example title="Modal dialog" src={ConfirmationDialogSource}>
+  <ConfirmationDialog />
+</Example>
+
+## Non-modal dialog
+
+Set `modal={false}` to keep the rest of the page interactive. Set `initialFocus={false}` when opening the dialog should leave focus where it is.
+
+<Example title="Non-modal dialog" src={NonModalDialogSource}>
+  <NonModalDialog />
+</Example>
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="dialog" />
+
+## Primitive
+
+For your own styles, use the <Link href="/primitives/dialog">Dialog primitive</Link>.

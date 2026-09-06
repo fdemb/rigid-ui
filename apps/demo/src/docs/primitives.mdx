@@ -1,0 +1,24 @@
+import DocPage from "../components/DocPage";
+import DocsCatalog from "../components/DocsCatalog";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Primitives" sections={["Using the primitives", "Browse primitives"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Primitives
+
+Unstyled components for building accessible interfaces with Solid 2.
+
+## Using the primitives
+
+Import each primitive from its own package path. Compose its parts and provide your own classes or styles. The library handles interactions such as focus management, dismissal, and popup positioning.
+
+The library targets the Solid 2 release candidate. It does not support Solid 1.
+
+## Browse primitives
+
+<DocsCatalog kind="primitives" />
