@@ -35,6 +35,7 @@ export const Router = createRouter({
         { path: "/textarea", component: lazy(() => import("./docs/components/textarea.mdx")) },
         { path: "/badge", component: lazy(() => import("./docs/components/badge.mdx")) },
         { path: "/card", component: lazy(() => import("./docs/components/card.mdx")) },
+        { path: "/meter", component: lazy(() => import("./docs/components/meter.mdx")) },
         { path: "/separator", component: lazy(() => import("./docs/components/separator.mdx")) },
         { path: "/skeleton", component: lazy(() => import("./docs/components/skeleton.mdx")) },
         { path: "/dialog", component: lazy(() => import("./docs/components/dialog.mdx")) },

@@ -1,3 +1,4 @@
+import meterSource from "../components/ui/Meter.tsx?raw";
 import badgeSource from "../components/ui/Badge.tsx?raw";
 import buttonSource from "../components/ui/Button.tsx?raw";
 import cardSource from "../components/ui/Card.tsx?raw";
@@ -12,6 +13,7 @@ import textareaSource from "../components/ui/Textarea.tsx?raw";
 import tooltipSource from "../components/ui/Tooltip.tsx?raw";
 
 export const componentSources: Record<string, string> = {
+  meter: meterSource,
   badge: badgeSource,
   button: buttonSource,
   card: cardSource,

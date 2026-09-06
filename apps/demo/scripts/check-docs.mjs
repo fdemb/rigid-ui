@@ -129,6 +129,21 @@ if (!route) {
       route === "/elements" ? 0 : 1,
     );
   }
+  if (route === "/components/meter") {
+    const meters = Array.from(document.querySelectorAll('[role="meter"]'));
+    assert.equal(meters.length, 2);
+    for (const [index, meter] of meters.entries()) {
+      assert.equal(meter.getAttribute("aria-valuenow"), index === 0 ? "64" : "640");
+      assert.equal(
+        document.getElementById(meter.getAttribute("aria-labelledby")).textContent,
+        "Storage usage",
+      );
+      const value = meter.querySelector('[aria-hidden="true"]');
+      assert.equal(value.textContent, index === 0 ? "64%" : "640 GB");
+      assert.ok(meter.querySelector('[style*="width: 64%"]'));
+      assert.ok(meter.className, "Styled meter must receive compiled StyleX classes");
+    }
+  }
   if (route === "/components/dialog") {
     document.querySelector(".docs-prose section button").click();
     await waitFor(() => document.querySelector('[role="dialog"]'));
