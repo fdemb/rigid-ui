@@ -1,0 +1,36 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import DeletionAlert from "../../examples/alert-dialog/DeletionAlert";
+import DeletionAlertSource from "../../examples/alert-dialog/DeletionAlert.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Alert dialog" sections={["Confirmation", "Source", "Primitive"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Alert dialog
+
+Asks the user to confirm an action before continuing.
+
+## Confirmation
+
+Use an alert dialog for decisions such as deleting a resource. Clicking the backdrop does not close it. Include a cancel action and name the destructive action explicitly.
+
+<Example title="Confirmation" src={DeletionAlertSource}>
+  <DeletionAlert />
+</Example>
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="alert-dialog" />
+
+## Primitive
+
+For your own styles, use the <Link href="/primitives/alert-dialog">Alert dialog primitive</Link>.

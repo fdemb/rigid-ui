@@ -1,0 +1,76 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import BasicPopover from "../../examples/popover/BasicPopover";
+import BasicPopoverSource from "../../examples/popover/BasicPopover.tsx?raw";
+import HoverPopover from "../../examples/popover/HoverPopover";
+import HoverPopoverSource from "../../examples/popover/HoverPopover.tsx?raw";
+import ComposedPopover from "../../examples/popover/ComposedPopover";
+import ComposedPopoverSource from "../../examples/popover/ComposedPopover.tsx?raw";
+import SharedTriggerPopover from "../../examples/popover/SharedTriggerPopover";
+import SharedTriggerPopoverSource from "../../examples/popover/SharedTriggerPopover.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage
+      title="Popover"
+      sections={[
+        "Basic usage",
+        "Open on hover",
+        "Custom styling",
+        "Shared popup",
+        "Source",
+        "Primitive",
+      ]}
+    >
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Popover
+
+Displays interactive content next to a trigger.
+
+## Basic usage
+
+Use a popover for a small form or contextual controls that should leave the rest of the page available.
+
+<Example title="Basic usage" src={BasicPopoverSource}>
+  <BasicPopover />
+</Example>
+
+## Open on hover
+
+Set `openOnHover` to open the popup when the pointer rests on the trigger. The popup remains open while the pointer moves over its content.
+
+<Example title="Open on hover" src={HoverPopoverSource}>
+  <HoverPopover />
+</Example>
+
+## Custom styling
+
+Pass `xstyle` to override a component's styles with StyleX. Keep focus and disabled states visible when changing the appearance.
+
+<Example title="Custom styling" src={ComposedPopoverSource}>
+  <ComposedPopover />
+</Example>
+
+## Shared popup
+
+Several triggers can share one popup. Each trigger supplies a payload, and the popup moves to the active trigger. Read payload values through the render callback argument to preserve reactivity.
+
+<Example title="Shared popup" src={SharedTriggerPopoverSource}>
+  <SharedTriggerPopover />
+</Example>
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="popover" />
+
+## Primitive
+
+For your own styles, use the <Link href="/primitives/popover">Popover primitive</Link>.

@@ -1,0 +1,53 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Popover" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Popover
+
+Displays interactive content next to a trigger. This primitive is unstyled.
+
+## Import
+
+```tsx
+import { Popover } from "rigid-ui/primitives/popover";
+```
+
+## Anatomy
+
+Popover is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
+
+```tsx
+<Popover.Root>
+  <Popover.Trigger>Open popover</Popover.Trigger>
+  <Popover.Portal>
+    <Popover.Positioner>
+      <Popover.Popup>
+        <Popover.Arrow />
+        <Popover.Title>Settings</Popover.Title>
+        <Popover.Description>Adjust your preferences.</Popover.Description>
+        <Popover.Close>Close</Popover.Close>
+      </Popover.Popup>
+    </Popover.Positioner>
+  </Popover.Portal>
+</Popover.Root>
+```
+
+## Behavior
+
+Use a popover for a small form or contextual controls that should leave the rest of the page available.
+
+Set `openOnHover` to open the popup when the pointer rests on the trigger. The popup remains open while the pointer moves over its content.
+
+## Styling
+
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
+
+<Link href="/components/popover">View the styled popover examples</Link> for a complete
+implementation.

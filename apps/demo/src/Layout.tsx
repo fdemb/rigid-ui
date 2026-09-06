@@ -1,22 +1,15 @@
 import * as stylex from "@stylexjs/stylex";
-import { useLocation } from "@solidjs/router";
-import { For, Loading, Show, createSignal } from "solid-js";
+import { Loading, createSignal } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import Link from "./components/Link";
 import { Bleed, frame } from "./components/Frame";
 import { MoonIcon, SunIcon } from "./components/icons";
 import { reactiveStyleAttributes } from "./components/ui/styleProps";
-import { components } from "./content/components";
-import { primitives } from "./content/primitives";
 import { themes, type ThemeName } from "./styles/themes";
 import { tokens } from "./styles/tokens.stylex";
 
-/**
- * The sidebar column, and the header cell the sidebar rail runs up through.
- * They share a width so the two draw one continuous line.
- */
-const RAIL = "14rem";
+const BRAND_WIDTH = "14rem";
 
 const styles = stylex.create({
   root: {
@@ -54,7 +47,7 @@ const styles = stylex.create({
     display: "grid",
     gridTemplateColumns: {
       default: "auto 1fr auto",
-      "@media (min-width: 64rem)": `${RAIL} 1fr auto`,
+      "@media (min-width: 64rem)": `${BRAND_WIDTH} 1fr auto`,
     },
     minHeight: "3.75rem",
   },
@@ -67,7 +60,7 @@ const styles = stylex.create({
     letterSpacing: "-0.025em",
     paddingInlineEnd: "1rem",
     textDecoration: "none",
-    // Below the sidebar breakpoint the rail has nothing to continue into.
+    // Compact headers leave the brand cell open.
     borderInlineEndWidth: { default: 0, "@media (min-width: 64rem)": 1 },
     borderInlineEndColor: tokens.border,
     borderInlineEndStyle: "solid",
@@ -159,92 +152,6 @@ const styles = stylex.create({
     boxShadow: tokens.shadowSm,
   },
   body: { display: "flex", flexDirection: "column", flexGrow: 1 },
-  catalogBleed: {
-    borderBottomColor: tokens.border,
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1,
-    display: { default: "block", "@media (min-width: 64rem)": "none" },
-  },
-  catalogBar: { display: "flex", overflowX: "auto" },
-  mobileCatalogLink: {
-    borderInlineEndColor: tokens.border,
-    borderInlineEndStyle: "solid",
-    borderInlineEndWidth: 1,
-    color: { default: tokens.textMuted, ":hover": tokens.text },
-    flexShrink: 0,
-    fontSize: "0.8125rem",
-    fontWeight: 580,
-    paddingBlock: "0.7rem",
-    paddingInline: tokens.inset,
-    textDecoration: "none",
-    ":focus-visible": {
-      outlineColor: tokens.focus,
-      outlineOffset: -2,
-      outlineStyle: "solid",
-      outlineWidth: 2,
-    },
-  },
-  /*
-   * A catalog page sits in the rails and splits into sidebar plus content; a
-   * full-width page draws no rails here at all, because its own bands do.
-   */
-  shell: { display: "grid", gridTemplateColumns: "1fr" },
-  shellBleed: { width: "100%" },
-  shellWithSidebar: {
-    borderInlineColor: tokens.border,
-    borderInlineStyle: "solid",
-    borderInlineWidth: 1,
-    gridTemplateColumns: { default: "1fr", "@media (min-width: 64rem)": `${RAIL} 1fr` },
-    marginInline: "auto",
-    maxWidth: tokens.contentWidth,
-    width: "100%",
-  },
-  sidebar: {
-    borderInlineEndColor: tokens.border,
-    borderInlineEndStyle: "solid",
-    borderInlineEndWidth: 1,
-    display: { default: "none", "@media (min-width: 64rem)": "block" },
-    height: "calc(100vh - 3.75rem)",
-    overflowY: "auto",
-    position: "sticky",
-    top: "3.75rem",
-  },
-  sideGroup: {
-    borderBottomColor: tokens.border,
-    borderBottomStyle: "solid",
-    borderBottomWidth: 1,
-    paddingBlock: "1.25rem 1.5rem",
-  },
-  sideHeading: {
-    color: tokens.textMuted,
-    fontSize: "0.6875rem",
-    fontWeight: 640,
-    letterSpacing: "0.05em",
-    margin: "0 0 0.5rem",
-    paddingInline: tokens.inset,
-    textTransform: "uppercase",
-  },
-  sideList: { listStyle: "none", margin: 0, padding: 0 },
-  sideLink: {
-    borderInlineStartColor: { default: "transparent", ":is([aria-current])": tokens.text },
-    borderInlineStartStyle: "solid",
-    borderInlineStartWidth: 2,
-    color: { default: tokens.textMuted, ":hover": tokens.text, ":is([aria-current])": tokens.text },
-    display: "block",
-    fontSize: "0.8125rem",
-    paddingBlock: "0.4rem",
-    paddingInline: `calc(${tokens.inset} - 2px)`,
-    textDecoration: "none",
-    ":hover": { backgroundColor: tokens.surfaceInteractive },
-    ":is([aria-current])": { backgroundColor: tokens.surfaceInteractive, fontWeight: 580 },
-    ":focus-visible": {
-      outlineColor: tokens.focus,
-      outlineOffset: -2,
-      outlineStyle: "solid",
-      outlineWidth: 2,
-    },
-  },
-  main: { minWidth: 0 },
   footer: {
     alignItems: "center",
     color: tokens.textSubtle,
@@ -268,21 +175,11 @@ function initialTheme(): ThemeName {
 }
 
 export default function Layout(props: { children?: JSX.Element }) {
-  const location = useLocation();
   const [theme, setTheme] = createSignal<ThemeName>(initialTheme());
   const themeAttributes = reactiveStyleAttributes(() => stylex.attrs(styles.root, themes[theme()]));
-  const isCatalog = () =>
-    location.pathname.includes("/components") ||
-    location.pathname.includes("/primitives") ||
-    location.pathname.includes("/elements");
-
   function selectTheme(next: "light" | "dark") {
     setTheme(next);
     localStorage.setItem("rigid-ui-theme", next);
-  }
-
-  function current(path: string) {
-    return location.pathname.endsWith(path) ? "page" : undefined;
   }
 
   return (
@@ -299,6 +196,9 @@ export default function Layout(props: { children?: JSX.Element }) {
             Rigid UI
           </Link>
           <nav aria-label="Primary" {...stylex.attrs(styles.topNav)}>
+            <Link href="/docs" xstyle={styles.topLink}>
+              Docs
+            </Link>
             <Link href="/components" xstyle={styles.topLink}>
               Components
             </Link>
@@ -337,67 +237,7 @@ export default function Layout(props: { children?: JSX.Element }) {
         </div>
       </header>
       <div {...stylex.attrs(styles.body)}>
-        <Show when={isCatalog()}>
-          <div {...stylex.attrs(styles.catalogBleed)}>
-            <nav aria-label="Catalog" {...stylex.attrs(frame.column, styles.catalogBar)}>
-              <Link href="/components" xstyle={styles.mobileCatalogLink}>
-                Components
-              </Link>
-              <Link href="/primitives" xstyle={styles.mobileCatalogLink}>
-                Primitives
-              </Link>
-            </nav>
-          </div>
-        </Show>
-        <div
-          {...stylex.attrs(styles.shell, isCatalog() ? styles.shellWithSidebar : styles.shellBleed)}
-        >
-          <Show when={isCatalog()}>
-            <aside {...stylex.attrs(styles.sidebar)}>
-              <nav aria-label="Documentation">
-                <div {...stylex.attrs(styles.sideGroup)}>
-                  <h2 {...stylex.attrs(styles.sideHeading)}>Components</h2>
-                  <ul {...stylex.attrs(styles.sideList)}>
-                    <For each={components}>
-                      {(entry) => (
-                        <li>
-                          <Link
-                            aria-current={current(`/components/${entry.slug}`)}
-                            href={`/components/${entry.slug}`}
-                            xstyle={styles.sideLink}
-                          >
-                            {entry.name}
-                          </Link>
-                        </li>
-                      )}
-                    </For>
-                  </ul>
-                </div>
-                <div {...stylex.attrs(styles.sideGroup)}>
-                  <h2 {...stylex.attrs(styles.sideHeading)}>Primitives</h2>
-                  <ul {...stylex.attrs(styles.sideList)}>
-                    <For each={primitives}>
-                      {(entry) => (
-                        <li>
-                          <Link
-                            aria-current={current(`/primitives/${entry.slug}`)}
-                            href={`/primitives/${entry.slug}`}
-                            xstyle={styles.sideLink}
-                          >
-                            {entry.name}
-                          </Link>
-                        </li>
-                      )}
-                    </For>
-                  </ul>
-                </div>
-              </nav>
-            </aside>
-          </Show>
-          <main id="main-content" tabindex="-1" {...stylex.attrs(styles.main)}>
-            <Loading>{props.children}</Loading>
-          </main>
-        </div>
+        <Loading>{props.children}</Loading>
         <div aria-hidden="true" {...stylex.attrs(frame.column, frame.runout)} />
         <Bleed bare rule="top">
           <div {...stylex.attrs(frame.inset, styles.footer)}>

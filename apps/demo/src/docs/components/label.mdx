@@ -1,0 +1,41 @@
+import DocPage from "../../components/DocPage";
+import BasicLabel from "../../examples/label/BasicLabel";
+import source from "../../examples/label/BasicLabel.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Label" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Label
+
+Identifies a form control and makes its text a clickable target.
+
+<Example title="Label preview" src={source}>
+  <BasicLabel />
+</Example>
+
+## Usage
+
+Set `for` to the control's `id`. The `required` prop displays an asterisk; add `required` to the control itself to enable native validation.
+
+```tsx
+<Label for="name" required>Name</Label>
+<Input id="name" required />
+```
+
+## Variants
+
+<VariantMatrix slug="label" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="label" />

@@ -2,10 +2,18 @@ import * as stylex from "@stylexjs/stylex";
 import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
-import Band, { BandHeader, frame } from "./Frame";
+import { frame } from "./Frame";
 import { tokens } from "../styles/tokens.stylex";
 
 const styles = stylex.create({
+  root: {
+    borderColor: tokens.border,
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderRadius: tokens.radiusLg,
+    overflow: "hidden",
+    marginBlock: "1.5rem",
+  },
   note: {
     borderBottomColor: tokens.border,
     borderBottomStyle: "solid",
@@ -65,25 +73,19 @@ interface ExampleProps {
   children: JSX.Element;
 }
 
-/**
- * A worked example. It is a band rather than a card: the frame's rails close it
- * on the sides, so it needs no border or radius of its own and sits flush
- * against the sections above and below it.
- */
 export default function Example(props: ExampleProps) {
   return (
-    <Band bare>
-      <BandHeader title={props.title} />
+    <section aria-label={props.title} {...stylex.attrs(styles.root)}>
       <Show when={props.note}>
         <p {...stylex.attrs(frame.inset, styles.note)}>{props.note}</p>
       </Show>
       <div {...stylex.attrs(styles.preview)}>{props.children}</div>
       <details>
-        <summary {...stylex.attrs(frame.inset, styles.summary)}>Source</summary>
+        <summary {...stylex.attrs(frame.inset, styles.summary)}>View code</summary>
         <pre {...stylex.attrs(styles.source)}>
           <code>{props.src}</code>
         </pre>
       </details>
-    </Band>
+    </section>
   );
 }

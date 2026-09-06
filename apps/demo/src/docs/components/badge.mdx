@@ -1,0 +1,40 @@
+import DocPage from "../../components/DocPage";
+import BasicBadge from "../../examples/badge/BasicBadge";
+import source from "../../examples/badge/BasicBadge.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Badge" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Badge
+
+Displays a short status or category alongside other content.
+
+<Example title="Badge preview" src={source}>
+  <BasicBadge />
+</Example>
+
+## Usage
+
+Use `tone` to distinguish statuses. Always include a text label so that color is not the only way to tell them apart.
+
+```tsx
+<Badge tone="success">Ready</Badge>
+```
+
+## Variants
+
+<VariantMatrix slug="badge" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="badge" />

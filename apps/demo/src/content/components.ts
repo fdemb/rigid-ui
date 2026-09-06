@@ -2,14 +2,14 @@ export const components = [
   {
     slug: "button",
     name: "Button",
-    description: "Displays an action or a control that looks like one.",
+    description: "Triggers an action, such as submitting a form.",
     sourcePath: "components/ui/Button.tsx",
     group: "Inputs",
   },
   {
     slug: "input",
     name: "Input",
-    description: "A text field with sizes, invalid styling, and an optional monospace value.",
+    description: "A single-line field for text and other form values.",
     sourcePath: "components/ui/Input.tsx",
     group: "Inputs",
   },
@@ -23,7 +23,7 @@ export const components = [
   {
     slug: "textarea",
     name: "Textarea",
-    description: "A multiline field that shares its visual language with Input.",
+    description: "A multiline text field for messages and notes.",
     sourcePath: "components/ui/Textarea.tsx",
     group: "Inputs",
   },
@@ -93,14 +93,3 @@ export const components = [
 ] as const;
 
 export type ComponentEntry = (typeof components)[number];
-
-export const componentCatalog = {
-  button: components[0],
-  input: components[1],
-  label: components[2],
-  textarea: components[3],
-  card: components[9],
-  separator: components[10],
-  badge: components[11],
-  skeleton: components[12],
-} as const;

@@ -1,0 +1,41 @@
+import DocPage from "../../components/DocPage";
+import BasicTextarea from "../../examples/textarea/BasicTextarea";
+import source from "../../examples/textarea/BasicTextarea.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Textarea" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Textarea
+
+A multiline text field for messages, notes, and longer responses.
+
+<Example title="Textarea preview" src={source}>
+  <BasicTextarea />
+</Example>
+
+## Usage
+
+Give the field a visible label. Set `rows` for its initial height; users can resize it vertically. Use `invalid` together with an associated error message when validation fails.
+
+```tsx
+<Label for="message">Message</Label>
+<Textarea id="message" rows={4} placeholder="How can we help?" />
+```
+
+## Variants
+
+<VariantMatrix slug="textarea" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="textarea" />

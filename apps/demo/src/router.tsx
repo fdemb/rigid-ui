@@ -1,37 +1,72 @@
 import { lazy } from "solid-js";
 import { createRouter } from "@solidjs/router";
+import DocsLayout from "./layouts/DocsLayout";
+import SitePageLayout from "./layouts/SitePageLayout";
 
 export const Router = createRouter({
-  // `BASE_URL` is "/" locally and "/rigid-ui/" in CI, matching the Pages project
-  // site. The router joins base and path with a separator of its own and only
-  // trims repeated trailing slashes, so the trailing one has to go here or every
-  // link resolves to "/rigid-ui//dialog".
   base: import.meta.env.BASE_URL.replace(/\/$/, ""),
   routes: [
-    { path: "/", component: lazy(() => import("./pages/Home")) },
-    { path: "/elements", component: lazy(() => import("./pages/ComponentsPage")) },
-    { path: "/components", component: lazy(() => import("./pages/ComponentsPage")) },
-    { path: "/components/button", component: lazy(() => import("./pages/ButtonPage")) },
-    { path: "/components/input", component: lazy(() => import("./pages/InputPage")) },
-    { path: "/components/label", component: lazy(() => import("./pages/LabelPage")) },
-    { path: "/components/textarea", component: lazy(() => import("./pages/TextareaPage")) },
-    { path: "/components/dialog", component: lazy(() => import("./pages/DialogPage")) },
     {
-      path: "/components/alert-dialog",
-      component: lazy(() => import("./pages/AlertDialogPage")),
+      path: "/",
+      component: SitePageLayout,
+      children: [
+        { path: "/", component: lazy(() => import("./pages/Home")) },
+        { path: "*404", component: lazy(() => import("./pages/NotFound")) },
+      ],
     },
-    { path: "/components/popover", component: lazy(() => import("./pages/PopoverPage")) },
-    { path: "/components/tooltip", component: lazy(() => import("./pages/TooltipPage")) },
     {
-      path: "/components/scroll-area",
-      component: lazy(() => import("./pages/ScrollAreaPage")),
+      path: "/docs",
+      component: DocsLayout,
+      children: [{ path: "/", component: lazy(() => import("./docs/introduction.mdx")) }],
     },
-    { path: "/components/card", component: lazy(() => import("./pages/CardPage")) },
-    { path: "/components/separator", component: lazy(() => import("./pages/SeparatorPage")) },
-    { path: "/components/badge", component: lazy(() => import("./pages/BadgePage")) },
-    { path: "/components/skeleton", component: lazy(() => import("./pages/SkeletonPage")) },
-    { path: "/primitives", component: lazy(() => import("./pages/PrimitivesPage")) },
-    { path: "/primitives/:primitive", component: lazy(() => import("./pages/PrimitivePage")) },
-    { path: "*404", component: lazy(() => import("./pages/NotFound")) },
+    {
+      path: "/elements",
+      component: DocsLayout,
+      children: [{ path: "/", component: lazy(() => import("./docs/components.mdx")) }],
+    },
+    {
+      path: "/components",
+      component: DocsLayout,
+      children: [
+        { path: "/", component: lazy(() => import("./docs/components.mdx")) },
+        { path: "/button", component: lazy(() => import("./docs/components/button.mdx")) },
+        { path: "/input", component: lazy(() => import("./docs/components/input.mdx")) },
+        { path: "/label", component: lazy(() => import("./docs/components/label.mdx")) },
+        { path: "/textarea", component: lazy(() => import("./docs/components/textarea.mdx")) },
+        { path: "/badge", component: lazy(() => import("./docs/components/badge.mdx")) },
+        { path: "/card", component: lazy(() => import("./docs/components/card.mdx")) },
+        { path: "/separator", component: lazy(() => import("./docs/components/separator.mdx")) },
+        { path: "/skeleton", component: lazy(() => import("./docs/components/skeleton.mdx")) },
+        { path: "/dialog", component: lazy(() => import("./docs/components/dialog.mdx")) },
+        {
+          path: "/alert-dialog",
+          component: lazy(() => import("./docs/components/alert-dialog.mdx")),
+        },
+        { path: "/popover", component: lazy(() => import("./docs/components/popover.mdx")) },
+        { path: "/tooltip", component: lazy(() => import("./docs/components/tooltip.mdx")) },
+        {
+          path: "/scroll-area",
+          component: lazy(() => import("./docs/components/scroll-area.mdx")),
+        },
+      ],
+    },
+    {
+      path: "/primitives",
+      component: DocsLayout,
+      children: [
+        { path: "/", component: lazy(() => import("./docs/primitives.mdx")) },
+        { path: "/dialog", component: lazy(() => import("./docs/primitives/dialog.mdx")) },
+        {
+          path: "/alert-dialog",
+          component: lazy(() => import("./docs/primitives/alert-dialog.mdx")),
+        },
+        { path: "/popover", component: lazy(() => import("./docs/primitives/popover.mdx")) },
+        { path: "/tooltip", component: lazy(() => import("./docs/primitives/tooltip.mdx")) },
+        {
+          path: "/scroll-area",
+          component: lazy(() => import("./docs/primitives/scroll-area.mdx")),
+        },
+      ],
+    },
   ],
 });

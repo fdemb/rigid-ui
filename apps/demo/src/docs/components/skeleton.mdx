@@ -1,0 +1,43 @@
+import DocPage from "../../components/DocPage";
+import BasicSkeleton from "../../examples/skeleton/BasicSkeleton";
+import source from "../../examples/skeleton/BasicSkeleton.tsx?raw";
+import Example from "../../components/Example";
+import { VariantMatrix } from "../../components/VariantMatrix";
+import ComponentSource from "../../components/ComponentSource";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Skeleton" sections={["Usage", "Variants", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Skeleton
+
+Reserves space for content while it loads.
+
+<Example title="Skeleton preview" src={source}>
+  <BasicSkeleton />
+</Example>
+
+## Usage
+
+Match the placeholder to the expected content with `shape`, `width`, and `height`. Skeletons are hidden from assistive technology; mark the containing region with `aria-busy` while loading.
+
+```tsx
+<div aria-busy="true" aria-label="Loading profile">
+  <Skeleton shape="text" width="12rem" />
+  <Skeleton height="5rem" />
+</div>
+```
+
+## Variants
+
+<VariantMatrix slug="skeleton" />
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="skeleton" />

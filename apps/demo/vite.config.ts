@@ -1,5 +1,10 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import mdx from "@mdx-js/rollup";
+import rehypeSlug from "rehype-slug";
+import remarkGfm from "remark-gfm";
 
 import solidPlugin from "@solidjs/vite-plugin";
 import stylex from "@stylexjs/unplugin";
@@ -46,7 +51,17 @@ export default defineConfig({
       // globals.css only arrives once the module graph evaluates.
       useCSSLayers: { before: ["reset", "base"] },
     }),
-    solidPlugin(),
+    {
+      ...mdx({
+        jsx: true,
+        jsxImportSource: "@solidjs/web",
+        providerImportSource: fileURLToPath(new URL("./src/components/mdx.tsx", import.meta.url)),
+        rehypePlugins: [rehypeSlug],
+        remarkPlugins: [remarkGfm],
+      }),
+      enforce: "pre",
+    },
+    solidPlugin({ extensions: [".mdx"] }),
     spaFallback(),
   ]),
   base: process.env.GITHUB_ACTIONS ? "/rigid-ui/" : "/",
@@ -66,6 +81,11 @@ export default defineConfig({
       build: {
         command: "vp build",
         dependsOn: [{ task: "build", from: "dependencies" }],
+      },
+      "test:docs": {
+        command: "node scripts/check-docs.mjs",
+        cache: false,
+        dependsOn: ["build"],
       },
       preview: {
         command: "vp preview",

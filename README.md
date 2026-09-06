@@ -74,7 +74,21 @@ Run the full check before submitting a change:
 pnpm ready
 ```
 
-`pnpm ready` builds the library, checks formatting and types, runs the JSDOM and Chromium test suites, and builds the demo. The demo imports through the published `exports` map, so the library build must exist before you run the demo or its type check.
+`pnpm ready` builds the library, checks formatting and types, runs the JSDOM and Chromium test suites, builds the demo, and checks the compiled documentation routes. The demo imports through the published `exports` map, so the library build must exist before you run the demo or its type check.
+
+## Documentation
+
+Documentation pages live in `apps/demo/src/docs` as MDX. Put prose and code samples there, and import live Solid examples from `apps/demo/src/examples`. Each page supplies its title and section headings to `DocPage`, which renders the reading column and contents links.
+
+The Vite pipeline preserves MDX's JSX, then compiles it with the Solid 2 plugin. `components/mdx.tsx` maps Markdown tags to Solid components because Solid 2 cannot render MDX's default string component mappings. `DocsLayout` supplies documentation navigation through nested routes; `Layout` owns the shared header, footer, and theme.
+
+Check every documentation route against the production bundle without opening a browser:
+
+```bash
+vp run demo#test:docs
+```
+
+The check builds the demo, then uses JSDOM to verify page rendering, heading links, client navigation, and the dialog example. It also accepts a build configured for the GitHub Pages base path.
 
 ## Credits
 
