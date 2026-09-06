@@ -56,6 +56,7 @@ Use the `render` prop to replace a DOM part's default element with a tag, a comp
 | Popover      | `rigid-ui/primitives/popover`      | Positions interactive content next to a trigger.           |
 | Scroll Area  | `rigid-ui/primitives/scroll-area`  | Keeps native scrolling while exposing stylable scrollbars. |
 | Tooltip      | `rigid-ui/primitives/tooltip`      | Shows contextual information on hover or keyboard focus.   |
+| Separator    | `rigid-ui/primitives/separator`    | Separates content with horizontal or vertical semantics.   |
 
 The package also exports `CSPProvider`, `DirectionProvider`, and `mergeProps` from their respective `rigid-ui/primitives/*` subpaths.
 

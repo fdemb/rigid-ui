@@ -55,6 +55,7 @@ export const Router = createRouter({
       component: DocsLayout,
       children: [
         { path: "/", component: lazy(() => import("./docs/primitives.mdx")) },
+        { path: "/separator", component: lazy(() => import("./docs/primitives/separator.mdx")) },
         { path: "/dialog", component: lazy(() => import("./docs/primitives/dialog.mdx")) },
         {
           path: "/alert-dialog",

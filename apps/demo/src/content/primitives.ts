@@ -1,5 +1,12 @@
 export const primitives = [
   {
+    slug: "separator",
+    name: "Separator",
+    importPath: "rigid-ui/primitives/separator",
+    anatomy: ["Separator"],
+    description: "An accessible separator with horizontal and vertical orientations.",
+  },
+  {
     slug: "dialog",
     name: "Dialog",
     importPath: "rigid-ui/primitives/dialog",

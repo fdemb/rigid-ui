@@ -26,6 +26,10 @@
   ],
   "type": "module",
   "exports": {
+    "./primitives/separator": {
+      "types": "./dist/separator/index.d.ts",
+      "import": "./dist/separator/index.js"
+    },
     "./primitives/scroll-area": {
       "types": "./dist/scroll-area/index.d.ts",
       "import": "./dist/scroll-area/index.js"
