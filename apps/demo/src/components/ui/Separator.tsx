@@ -2,6 +2,7 @@ import * as stylex from "@stylexjs/stylex";
 import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
+import { Separator as SeparatorPrimitive } from "rigid-ui/primitives/separator";
 
 import { tokens } from "../../styles/tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
@@ -41,7 +42,8 @@ export function Separator(props: SeparatorProps) {
   );
 
   return (
-    <div
+    <SeparatorPrimitive
+      orientation={orientation()}
       aria-orientation={props.decorative ? undefined : orientation()}
       role={props.decorative ? "none" : "separator"}
       {...mergeProps(styleAttributes, elementProps)}

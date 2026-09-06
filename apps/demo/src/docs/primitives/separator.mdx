@@ -1,0 +1,41 @@
+import DocPage from "../../components/DocPage";
+import Link from "../../components/Link";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Separator" sections={["Import", "Usage", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Separator
+
+Separates content with an accessible, unstyled element.
+
+## Import
+
+```tsx
+import { Separator } from "rigid-ui/primitives/separator";
+```
+
+## Usage
+
+```tsx
+<Separator />
+<Separator orientation="vertical" />
+```
+
+## Behavior
+
+Renders a `div` with `role="separator"`. The `orientation` prop defaults to `"horizontal"` and sets both `aria-orientation` and `data-orientation`.
+
+Use `render` to change the element. Its callback receives the element props and live orientation state. Forward the props to the element you return.
+
+For a purely decorative line, pass `role="none"` and `aria-orientation={undefined}`.
+
+## Styling
+
+Add dimensions and a background or border with `class` or `style`. Both props accept callbacks that receive the orientation state. Use `[data-orientation="vertical"]` to target vertical separators in CSS.
+
+<Link href="/components/separator">View the styled separator examples</Link> for an implementation.

@@ -43,6 +43,7 @@ function solidNative() {
 export default defineConfig({
   pack: {
     entry: {
+      "separator/index": "src/separator/index.ts",
       "scroll-area/index": "src/scroll-area/index.ts",
       "dialog/index": "src/dialog/index.ts",
       "alert-dialog/index": "src/alert-dialog/index.ts",
