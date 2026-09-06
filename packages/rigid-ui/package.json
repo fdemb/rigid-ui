@@ -61,6 +61,10 @@
     "./primitives/merge-props": {
       "types": "./dist/merge-props/index.d.ts",
       "import": "./dist/merge-props/index.js"
+    },
+    "./primitives/meter": {
+      "types": "./dist/meter/index.d.ts",
+      "import": "./dist/meter/index.js"
     }
   },
   "scripts": {

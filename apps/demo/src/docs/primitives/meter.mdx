@@ -1,0 +1,61 @@
+import DocPage from "../../components/DocPage";
+import { Meter } from "rigid-ui/primitives/meter";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Meter" sections={["Import", "Usage", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Meter
+
+Displays a measurement within a known range, such as storage usage or battery level.
+
+## Import
+
+```tsx
+import { Meter } from "rigid-ui/primitives/meter";
+```
+
+## Usage
+
+<Meter.Root value={64}>
+  <Meter.Label>Storage usage</Meter.Label> <Meter.Value />
+  <Meter.Track style={{ height: "8px", background: "var(--border)", "margin-block": "12px" }}>
+    <Meter.Indicator style={{ background: "currentColor" }} />
+  </Meter.Track>
+</Meter.Root>
+
+```tsx
+<Meter.Root value={64}>
+  <Meter.Label>Storage usage</Meter.Label>
+  <Meter.Value />
+  <Meter.Track>
+    <Meter.Indicator />
+  </Meter.Track>
+</Meter.Root>
+```
+
+## Behavior
+
+`Root` requires a numeric `value`. The range defaults to `min={0}` and `max={100}`.
+The indicator width and default percentage text describe the value's position within that range.
+Out-of-range values are clamped. `NaN` uses the minimum value and an empty indicator.
+
+`Label` supplies the meter's accessible name. Its association updates when its ID changes and clears when it unmounts.
+Without a `Label`, provide `aria-label` or `aria-labelledby` on `Root`.
+
+`format` accepts `Intl.NumberFormat` options and formats the clamped numeric value instead of its percentage.
+`locale` selects the formatting locale. Both the visible value and `aria-valuetext` use the same formatted text.
+
+`getAriaValueText(formattedValue, value)` customizes the accessible value text.
+`Value` also accepts a child function with those arguments. Both callbacks receive the original, unclamped numeric value.
+
+## Styling
+
+`Root`, `Track`, and `Indicator` render `div` elements. `Label` and `Value` render `span` elements.
+Set a height and background on `Track`, then a fill color on `Indicator`. The indicator supplies its percentage width and inherits height.
+
+Each part accepts `class`, `style`, `ref`, and `render`. Render callbacks receive the element props and an empty state object.

@@ -1,5 +1,12 @@
 export const primitives = [
   {
+    slug: "meter",
+    name: "Meter",
+    importPath: "rigid-ui/primitives/meter",
+    anatomy: ["Root", "Label", "Track", "Indicator", "Value"],
+    description: "A numeric measurement within a known range, with localized value text.",
+  },
+  {
     slug: "separator",
     name: "Separator",
     importPath: "rigid-ui/primitives/separator",
