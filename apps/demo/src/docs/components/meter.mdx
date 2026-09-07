@@ -1,0 +1,64 @@
+import DocPage from "../../components/DocPage";
+import Example from "../../components/Example";
+import ComponentSource from "../../components/ComponentSource";
+import Link from "../../components/Link";
+import BasicMeter from "../../examples/meter/BasicMeter";
+import basicSource from "../../examples/meter/BasicMeter.tsx?raw";
+import FormattedMeter from "../../examples/meter/FormattedMeter";
+import formattedSource from "../../examples/meter/FormattedMeter.tsx?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Meter" sections={["Usage", "Formatting", "Styling", "Source"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Meter
+
+Displays a measurement within a known range, such as storage usage or battery level.
+
+<Example title="Meter preview" src={basicSource}>
+  <BasicMeter />
+</Example>
+
+## Usage
+
+Compose `Root`, `Label`, `Value`, `Track`, and `Indicator`. The range defaults to 0–100, and the value displays as a percentage.
+
+```tsx
+<Meter.Root value={64}>
+  <Meter.Label>Storage usage</Meter.Label>
+  <Meter.Value />
+  <Meter.Track>
+    <Meter.Indicator />
+  </Meter.Track>
+</Meter.Root>
+```
+
+Use `Label` to name the measurement, or supply `aria-label` on `Root` when the visible label lives elsewhere.
+For task completion or loading, use a progress indicator instead of a meter.
+
+## Formatting
+
+Set `min` and `max` for a custom range. `format` and `locale` control the displayed number.
+Use `getAriaValueText` to include units or capacity in the accessible value text.
+
+<Example title="Storage capacity" src={formattedSource}>
+  <FormattedMeter />
+</Example>
+
+## Styling
+
+The component uses shared theme tokens for the label, muted value, track, and fill.
+The fill animates value changes and respects reduced-motion preferences.
+Each part accepts `xstyle`, `class`, and `style` overrides.
+
+For unstyled parts and the full behavioral API, see the <Link href="/primitives/meter">Meter primitive</Link>.
+
+## Source
+
+Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+
+<ComponentSource slug="meter" />

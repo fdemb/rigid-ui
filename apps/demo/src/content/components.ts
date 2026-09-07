@@ -77,6 +77,13 @@ export const components = [
     group: "Layout",
   },
   {
+    slug: "meter",
+    name: "Meter",
+    description: "A styled measurement with a label, value, and theme-aware fill.",
+    sourcePath: "components/ui/Meter.tsx",
+    group: "Feedback",
+  },
+  {
     slug: "badge",
     name: "Badge",
     description: "A small status or category label with semantic tones.",
