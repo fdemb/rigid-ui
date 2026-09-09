@@ -54,6 +54,7 @@ Use the `render` prop to replace a DOM part's default element with a tag, a comp
 | Alert Dialog | `rigid-ui/primitives/alert-dialog` | Interrupts the user to confirm a consequential action.     |
 | Dialog       | `rigid-ui/primitives/dialog`       | Displays modal or non-modal content above the page.        |
 | Popover      | `rigid-ui/primitives/popover`      | Positions interactive content next to a trigger.           |
+| Progress     | `rigid-ui/primitives/progress`     | Shows determinate or indeterminate task completion.        |
 | Scroll Area  | `rigid-ui/primitives/scroll-area`  | Keeps native scrolling while exposing stylable scrollbars. |
 | Tooltip      | `rigid-ui/primitives/tooltip`      | Shows contextual information on hover or keyboard focus.   |
 

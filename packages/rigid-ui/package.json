@@ -65,6 +65,10 @@
     "./primitives/meter": {
       "types": "./dist/meter/index.d.ts",
       "import": "./dist/meter/index.js"
+    },
+    "./primitives/progress": {
+      "types": "./dist/progress/index.d.ts",
+      "import": "./dist/progress/index.js"
     }
   },
   "scripts": {
