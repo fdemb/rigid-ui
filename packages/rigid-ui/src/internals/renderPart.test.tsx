@@ -122,11 +122,19 @@ describe("renderPart", () => {
       const anchor = container.firstElementChild as HTMLElement;
 
       expect(anchor.textContent).toBe("closed");
+      expect(anchor).not.toHaveAttribute("data-open");
 
       fireEvent.click(anchor);
       flush();
 
       expect(anchor.textContent).toBe("open");
+      expect(anchor).toHaveAttribute("data-open");
+
+      fireEvent.click(anchor);
+      flush();
+
+      expect(anchor.textContent).toBe("closed");
+      expect(anchor).not.toHaveAttribute("data-open");
     });
 
     it("merges the callback's own props through mergeProps", () => {

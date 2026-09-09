@@ -112,6 +112,12 @@ Check these before concluding a ported test has found a bug.
 | `does not re-render parts on scroll when the corner size is unchanged` (`context stability`) | Counts React commits. Solid has no re-render; the equivalent guarantee is the bail-out in the `setCornerSize` updater, which is structural rather than observable        |
 | `adds [data-hovering] when the synthetic pointer target differs from the native path`        | Pins that Base UI reads React's synthetic `event.target` rather than `composedPath()[0]`. Solid binds `pointerenter` natively, so there is no retargeting to distinguish |
 
+### Progress
+
+| Base UI case       | Why it does not apply                                                                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `enumSync.test.ts` | Rigid UI does not expose data attribute enums. `ProgressRoot.test.tsx` checks the emitted attributes on every part through the full status cycle instead. |
+
 ## `render` prop scope
 
 `render` accepts a tag name, a component, or a callback `(props, state) => JSX.Element`

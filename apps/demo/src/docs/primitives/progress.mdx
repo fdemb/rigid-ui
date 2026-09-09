@@ -1,0 +1,69 @@
+import DocPage from "../../components/DocPage";
+import { Progress } from "rigid-ui/primitives/progress";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Progress" sections={["Import", "Usage", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Progress
+
+Shows task completion, such as an upload or download.
+
+## Import
+
+```tsx
+import { Progress } from "rigid-ui/primitives/progress";
+```
+
+## Usage
+
+<Progress.Root value={64}>
+  <Progress.Label>Upload progress</Progress.Label> <Progress.Value />
+  <Progress.Track style={{ height: "8px", background: "var(--border)", "margin-block": "12px" }}>
+    <Progress.Indicator style={{ background: "currentColor" }} />
+  </Progress.Track>
+</Progress.Root>
+
+```tsx
+<Progress.Root value={64}>
+  <Progress.Label>Upload progress</Progress.Label>
+  <Progress.Value />
+  <Progress.Track>
+    <Progress.Indicator />
+  </Progress.Track>
+</Progress.Root>
+```
+
+## Behavior
+
+`Root` requires `value`, either a number or `null`. The range defaults to `min={0}` and `max={100}`.
+Finite values are clamped to the range. The default percentage text and indicator width describe the value's position within that range.
+Reaching or exceeding `max` sets the status to `complete`.
+
+`null`, `NaN`, and infinities set the status to `indeterminate`. The root omits `aria-valuenow` and uses "indeterminate progress" as its default accessible value text.
+`Value` is empty, and `Indicator` supplies no sizing or positioning styles in this state.
+
+`Label` supplies the accessible name. Its association updates when its ID changes and clears when it unmounts.
+Without a `Label`, provide `aria-label` or `aria-labelledby` on `Root`.
+
+`format` accepts `Intl.NumberFormat` options and formats the clamped number instead of its percentage.
+`locale` selects the formatting locale. Both the visible value and `aria-valuetext` use the formatted text.
+
+`getAriaValueText(formattedValue, value)` customizes the accessible value text. It receives an empty formatted string in the indeterminate state.
+`Value` accepts a child function with the same arguments, except that its formatted argument is "indeterminate" in that state.
+Both callbacks receive the original, unclamped value as the second argument.
+
+## Styling
+
+`Root`, `Track`, and `Indicator` render `div` elements. `Label` and `Value` render `span` elements.
+The determinate indicator supplies its percentage width and inherits the track's height.
+
+Every part exposes exactly one status attribute: `data-progressing`, `data-complete`, or `data-indeterminate`.
+Use `data-indeterminate` to apply your own loading appearance and sizing.
+
+Each part accepts `class`, `style`, `ref`, and `render`. The `class` and `style` callbacks receive `{ status }`.
+Render callbacks receive the element props and a reactive state object. Read `state.status` inside JSX to follow changes.

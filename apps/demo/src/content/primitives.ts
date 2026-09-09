@@ -1,5 +1,12 @@
 export const primitives = [
   {
+    slug: "progress",
+    name: "Progress",
+    importPath: "rigid-ui/primitives/progress",
+    anatomy: ["Root", "Label", "Track", "Indicator", "Value"],
+    description: "Task completion with determinate and indeterminate states.",
+  },
+  {
     slug: "meter",
     name: "Meter",
     importPath: "rigid-ui/primitives/meter",

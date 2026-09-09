@@ -48,7 +48,10 @@ export function renderPart<T extends HTMLElement, State extends object = Record<
       typeof options.state === "function"
         ? (options.state as () => State | undefined)
         : () => options.state as State | undefined;
-    return renderProp(bag, merge(() => (readState() ?? {}) as State) as State);
+    return renderProp(
+      merge(() => bag),
+      merge(() => (readState() ?? {}) as State) as State,
+    );
   }
 
   const Tag = dynamic(() => resolvedTag);

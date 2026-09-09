@@ -57,6 +57,7 @@ export const Router = createRouter({
       children: [
         { path: "/", component: lazy(() => import("./docs/primitives.mdx")) },
         { path: "/meter", component: lazy(() => import("./docs/primitives/meter.mdx")) },
+        { path: "/progress", component: lazy(() => import("./docs/primitives/progress.mdx")) },
         { path: "/separator", component: lazy(() => import("./docs/primitives/separator.mdx")) },
         { path: "/dialog", component: lazy(() => import("./docs/primitives/dialog.mdx")) },
         {
