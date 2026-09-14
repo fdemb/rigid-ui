@@ -1,9 +1,9 @@
 import DocPage from "../../components/DocPage";
-import { Meter } from "rigid-ui/primitives/meter";
+import Link from "../../components/Link";
 
 export default function Document(props) {
   return (
-    <DocPage title="Meter" sections={["Import", "Usage", "Behavior", "Styling"]}>
+    <DocPage title="Meter" sections={["Import", "Anatomy", "Behavior", "Styling"]}>
       {props.children}
     </DocPage>
   );
@@ -11,7 +11,7 @@ export default function Document(props) {
 
 # Meter
 
-Displays a measurement within a known range, such as storage usage or battery level.
+Displays a measurement within a known range, such as storage usage or battery level. This primitive is unstyled.
 
 ## Import
 
@@ -19,14 +19,9 @@ Displays a measurement within a known range, such as storage usage or battery le
 import { Meter } from "rigid-ui/primitives/meter";
 ```
 
-## Usage
+## Anatomy
 
-<Meter.Root value={64}>
-  <Meter.Label>Storage usage</Meter.Label> <Meter.Value />
-  <Meter.Track style={{ height: "8px", background: "var(--border)", "margin-block": "12px" }}>
-    <Meter.Indicator style={{ background: "currentColor" }} />
-  </Meter.Track>
-</Meter.Root>
+Meter is composed of the following parts. This example shows their structure; add your own styles to make the result visible and usable.
 
 ```tsx
 <Meter.Root value={64}>
@@ -55,7 +50,6 @@ Without a `Label`, provide `aria-label` or `aria-labelledby` on `Root`.
 
 ## Styling
 
-`Root`, `Track`, and `Indicator` render `div` elements. `Label` and `Value` render `span` elements.
-Set a height and background on `Track`, then a fill color on `Indicator`. The indicator supplies its percentage width and inherits height.
+Pass classes or styles to individual parts. The primitive handles behavior and accessibility without supplying a visual theme.
 
-Each part accepts `class`, `style`, `ref`, and `render`. Render callbacks receive the element props and an empty state object.
+<Link href="/components/meter">View the styled meter examples</Link> for a complete implementation.
