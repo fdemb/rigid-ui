@@ -43,6 +43,7 @@ function solidNative() {
 export default defineConfig({
   pack: {
     entry: {
+      "accordion/index": "src/accordion/index.ts",
       "progress/index": "src/progress/index.ts",
       "meter/index": "src/meter/index.ts",
       "separator/index": "src/separator/index.ts",
