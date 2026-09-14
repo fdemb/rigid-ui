@@ -26,6 +26,10 @@
   ],
   "type": "module",
   "exports": {
+    "./primitives/accordion": {
+      "types": "./dist/accordion/index.d.ts",
+      "import": "./dist/accordion/index.js"
+    },
     "./primitives/separator": {
       "types": "./dist/separator/index.d.ts",
       "import": "./dist/separator/index.js"

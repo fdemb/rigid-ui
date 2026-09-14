@@ -1,5 +1,12 @@
 export const primitives = [
   {
+    slug: "accordion",
+    name: "Accordion",
+    importPath: "rigid-ui/primitives/accordion",
+    anatomy: ["Root", "Item", "Header", "Trigger", "Panel"],
+    description: "Collapsible sections with single or multiple open items.",
+  },
+  {
     slug: "progress",
     name: "Progress",
     importPath: "rigid-ui/primitives/progress",
