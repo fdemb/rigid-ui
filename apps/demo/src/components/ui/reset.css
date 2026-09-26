@@ -1,0 +1,66 @@
+/*
+ * Keep these layers before StyleX's priority layers in the bundler config.
+ * Unlayered rules take precedence over component styles.
+ */
+@layer reset, base;
+
+@import "modern-normalize/modern-normalize.css" layer(reset);
+
+/* Normalizations modern-normalize leaves to the app. */
+@layer reset {
+  hr {
+    color: inherit;
+    height: 0;
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  table {
+    border-collapse: collapse;
+    text-indent: 0;
+  }
+
+  img,
+  picture,
+  video,
+  canvas,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  img,
+  video {
+    height: auto;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* Beats a `display` set by a component, which is the point of the attribute. */
+  [hidden] {
+    display: none !important;
+  }
+}
+
+@layer base {
+  html {
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    scrollbar-width: thin;
+  }
+
+  button,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a {
+    text-underline-offset: 0.18em;
+  }
+}

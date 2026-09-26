@@ -1,28 +1,30 @@
 import * as stylex from "@stylexjs/stylex";
-import { Loading, createSignal } from "solid-js";
+import { Loading, createEffect, createSignal } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import Link from "./components/Link";
 import { Bleed, frame } from "./components/Frame";
 import { MoonIcon, SunIcon } from "./components/icons";
-import { reactiveStyleAttributes } from "./components/ui/styleProps";
-import { themes, type ThemeName } from "./styles/themes";
-import { tokens } from "./styles/tokens.stylex";
+import { base } from "./components/ui/base";
+import { themes, type ThemeName } from "./components/ui/themes";
+import { siteThemes } from "./styles/themes";
+import { colors, motion, radii, shadows, typography } from "./components/ui/tokens.stylex";
+import { siteLayout } from "./styles/site.stylex";
 
 const BRAND_WIDTH = "14rem";
 
 const styles = stylex.create({
   root: {
-    backgroundColor: tokens.canvas,
-    color: tokens.text,
+    backgroundColor: colors.background,
+    color: colors.foreground,
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
   },
   skipLink: {
-    backgroundColor: tokens.text,
-    borderRadius: tokens.radiusSm,
-    color: tokens.canvas,
+    backgroundColor: colors.foreground,
+    borderRadius: radii.sm,
+    color: colors.background,
     fontSize: "0.8125rem",
     fontWeight: 650,
     left: "1rem",
@@ -34,8 +36,8 @@ const styles = stylex.create({
     ":focus": { transform: "translateY(0)" },
   },
   header: {
-    backgroundColor: tokens.canvas,
-    borderBottomColor: tokens.border,
+    backgroundColor: colors.background,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
     position: "sticky",
@@ -62,16 +64,16 @@ const styles = stylex.create({
     textDecoration: "none",
     // Compact headers leave the brand cell open.
     borderInlineEndWidth: { default: 0, "@media (min-width: 64rem)": 1 },
-    borderInlineEndColor: tokens.border,
+    borderInlineEndColor: colors.border,
     borderInlineEndStyle: "solid",
   },
   brandMark: {
     alignItems: "center",
-    backgroundColor: tokens.text,
-    borderRadius: tokens.radiusSm,
-    color: tokens.canvas,
+    backgroundColor: colors.foreground,
+    borderRadius: radii.sm,
+    color: colors.background,
     display: "inline-flex",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.65rem",
     height: "1.4rem",
     justifyContent: "center",
@@ -84,34 +86,34 @@ const styles = stylex.create({
   },
   topLink: {
     alignItems: "center",
-    borderInlineEndColor: tokens.border,
+    borderInlineEndColor: colors.border,
     borderInlineEndStyle: "solid",
     borderInlineEndWidth: 1,
-    color: { default: tokens.textMuted, ":hover": tokens.text },
+    color: { default: colors.mutedForeground, ":hover": colors.foreground },
     display: "inline-flex",
     fontSize: "0.8125rem",
     fontWeight: 560,
     paddingInline: "1.15rem",
     textDecoration: "none",
-    transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
-    ":hover": { backgroundColor: tokens.surfaceInteractive },
+    transition: `background-color ${motion.fast} ${motion.easing}`,
+    ":hover": { backgroundColor: colors.interactive },
     "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
   actions: {
     alignItems: "center",
-    borderInlineStartColor: tokens.border,
+    borderInlineStartColor: colors.border,
     borderInlineStartStyle: "solid",
     borderInlineStartWidth: 1,
     display: "flex",
     gap: "0.75rem",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
   },
   themeIcon: { height: "0.875rem", width: "0.875rem" },
   themeSwitcher: {
     alignItems: "center",
-    backgroundColor: tokens.surfaceSunken,
-    borderColor: tokens.borderStrong,
-    borderRadius: tokens.radiusFull,
+    backgroundColor: colors.muted,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.full,
     borderStyle: "solid",
     borderWidth: 1,
     display: "inline-flex",
@@ -123,22 +125,22 @@ const styles = stylex.create({
     appearance: "none",
     backgroundColor: "transparent",
     borderColor: "transparent",
-    borderRadius: tokens.radiusFull,
+    borderRadius: radii.full,
     borderStyle: "solid",
     borderWidth: 1,
     color: {
-      default: tokens.textSubtle,
-      ":hover": tokens.text,
+      default: colors.subtleForeground,
+      ":hover": colors.foreground,
     },
     cursor: "pointer",
     display: "inline-flex",
     height: "1.7rem",
     justifyContent: "center",
     padding: 0,
-    transition: `background-color ${tokens.durationFast} ${tokens.easing}, color ${tokens.durationFast} ${tokens.easing}`,
+    transition: `background-color ${motion.fast} ${motion.easing}, color ${motion.fast} ${motion.easing}`,
     width: "1.7rem",
     ":focus-visible": {
-      outlineColor: tokens.focus,
+      outlineColor: colors.focus,
       outlineOffset: 2,
       outlineStyle: "solid",
       outlineWidth: 2,
@@ -146,15 +148,15 @@ const styles = stylex.create({
     "@media (pointer: coarse)": { height: "2.25rem", width: "2.25rem" },
   },
   themeOptionActive: {
-    backgroundColor: tokens.surface,
-    borderColor: tokens.border,
-    color: tokens.text,
-    boxShadow: tokens.shadowSm,
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    color: colors.foreground,
+    boxShadow: shadows.sm,
   },
   body: { display: "flex", flexDirection: "column", flexGrow: 1 },
   footer: {
     alignItems: "center",
-    color: tokens.textSubtle,
+    color: colors.subtleForeground,
     display: "flex",
     flexWrap: "wrap",
     fontSize: "0.75rem",
@@ -163,8 +165,8 @@ const styles = stylex.create({
     paddingBlock: "1.25rem",
   },
   footerLink: {
-    color: { default: tokens.textSubtle, ":hover": tokens.text },
-    textDecorationColor: tokens.border,
+    color: { default: colors.subtleForeground, ":hover": colors.foreground },
+    textDecorationColor: colors.border,
   },
 });
 
@@ -176,14 +178,21 @@ function initialTheme(): ThemeName {
 
 export default function Layout(props: { children?: JSX.Element }) {
   const [theme, setTheme] = createSignal<ThemeName>(initialTheme());
-  const themeAttributes = reactiveStyleAttributes(() => stylex.attrs(styles.root, themes[theme()]));
+  createEffect(
+    () => stylex.attrs(base.root, themes[theme()], siteThemes[theme()]).class,
+    (className) => {
+      const classes = className?.split(" ") ?? [];
+      document.documentElement.classList.add(...classes);
+      return () => document.documentElement.classList.remove(...classes);
+    },
+  );
   function selectTheme(next: "light" | "dark") {
     setTheme(next);
     localStorage.setItem("rigid-ui-theme", next);
   }
 
   return (
-    <div {...themeAttributes}>
+    <div {...stylex.attrs(styles.root)}>
       <a href="#main-content" {...stylex.attrs(styles.skipLink)}>
         Skip to content
       </a>

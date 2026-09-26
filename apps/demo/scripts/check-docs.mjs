@@ -19,7 +19,13 @@ if (!route) {
       const source = await readFile(new URL(file, docs), "utf8");
       const title = source.match(/^# (.+)$/m)?.[1];
       assert.ok(title, `Missing title in ${file}`);
-      return [file === "introduction.mdx" ? "/docs" : `/${file.replace(/\.mdx$/, "")}`, title];
+      const path =
+        file === "introduction.mdx"
+          ? "/docs"
+          : file === "theming.mdx"
+            ? "/docs/theming"
+            : `/${file.replace(/\.mdx$/, "")}`;
+      return [path, title];
     }),
   );
   pages.push(
@@ -33,6 +39,14 @@ if (!route) {
       stdio: "inherit",
     });
     assert.equal(result.status, 0, `Documentation failed at ${path}`);
+  }
+  for (const preference of ["dark", "system-dark"]) {
+    const result = spawnSync(
+      process.execPath,
+      [fileURLToPath(import.meta.url), "/docs/theming", "Theming", preference],
+      { stdio: "inherit" },
+    );
+    assert.equal(result.status, 0, `Theme initialization failed for ${preference}`);
   }
   console.log(`Checked ${pages.length} routes from the production build at ${base}`);
 } else {
@@ -82,11 +96,12 @@ if (!route) {
   // JSDOM has no layout or media-query engine. These checks exercise DOM,
   // routing, and events, not positioning or responsive appearance.
   window.matchMedia = globalThis.matchMedia = () => ({
-    matches: false,
+    matches: process.argv[4] === "system-dark",
     addEventListener() {},
     removeEventListener() {},
   });
   window.scrollTo = () => {};
+  if (process.argv[4] === "dark") localStorage.setItem("rigid-ui-theme", "dark");
   globalThis.ResizeObserver = class {
     observe() {}
     unobserve() {}
@@ -145,14 +160,76 @@ if (!route) {
     }
   }
   if (route === "/components/dialog") {
+    const lightClasses = document.documentElement.className;
+    Array.from(document.querySelectorAll("button"))
+      .find((button) => button.getAttribute("aria-label") === "Dark theme")
+      .click();
+    await waitFor(() => document.documentElement.className !== lightClasses);
     document.querySelector(".docs-prose section button").click();
     await waitFor(() => document.querySelector('[role="dialog"]'));
+    const popup = document.querySelector('[role="dialog"]');
+    assert.ok(popup.closest("[data-rigid-ui-portal]"));
+    assert.equal(document.getElementById("root").contains(popup), false);
+    assert.ok(
+      document.documentElement.contains(popup),
+      "Body-mounted dialogs must share the document theme",
+    );
     const cancel = Array.from(document.querySelectorAll('[role="dialog"] button')).find(
       (button) => button.textContent === "Cancel",
     );
     assert.ok(cancel);
     cancel.click();
     await waitFor(() => !document.querySelector('[role="dialog"]'));
+  }
+  if (route === "/docs/theming") {
+    const darkButton = document.querySelector('button[aria-label="Dark theme"]');
+    const lightButton = document.querySelector('button[aria-label="Light theme"]');
+    const startsDark = process.argv[4] === "dark" || process.argv[4] === "system-dark";
+    assert.equal(darkButton.getAttribute("aria-pressed"), String(startsDark));
+    assert.ok(
+      document.documentElement.className,
+      "Apply theme classes to html, including on initial render",
+    );
+    const initialClasses = document.documentElement.className;
+    (startsDark ? lightButton : darkButton).click();
+    await waitFor(() => darkButton.getAttribute("aria-pressed") === String(!startsDark));
+    assert.notEqual(document.documentElement.className, initialClasses);
+    assert.equal(localStorage.getItem("rigid-ui-theme"), startsDark ? "light" : "dark");
+    (startsDark ? darkButton : lightButton).click();
+    await waitFor(() => document.documentElement.className === initialClasses);
+
+    const preview = document.querySelector('[role="group"][aria-label="Theme preview"]');
+    const colorClasses = preview.parentElement.className;
+    const initialPreviewClasses = preview.className;
+    const button = (name) =>
+      Array.from(document.querySelectorAll("button")).find(
+        (element) => element.textContent === name,
+      );
+    button("Compact controls").click();
+    await waitFor(() => preview.className !== initialPreviewClasses);
+    const compactClasses = preview.className;
+    button("Rounder corners").click();
+    await waitFor(() => preview.className !== compactClasses);
+    assert.equal(
+      preview.parentElement.className,
+      colorClasses,
+      "Shape and density must preserve the selected color theme",
+    );
+    button("Details").click();
+    await waitFor(() => preview.querySelector('[role="dialog"]'));
+    const popup = preview.querySelector('[role="dialog"]');
+    assert.ok(
+      popup.closest('[role="group"][aria-label="Theme preview"]'),
+      "Scoped popups must inherit local token overrides",
+    );
+    button("Dark preview").click();
+    await waitFor(() => preview.parentElement.className !== colorClasses);
+    assert.ok(preview.contains(popup), "Changing a scoped theme must retain the open popup");
+    popup.querySelector("button").click();
+    await waitFor(() => !preview.querySelector('[role="dialog"]'));
+    button("Rounder corners").click();
+    button("Compact controls").click();
+    await waitFor(() => preview.className === initialPreviewClasses);
   }
   if (route === "/components/button") {
     const destination = Array.from(document.querySelectorAll(".docs-mobile-navigation a")).find(

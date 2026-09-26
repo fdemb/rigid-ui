@@ -3,17 +3,18 @@ import * as stylex from "@stylexjs/stylex";
 import { Bleed } from "../components/Frame";
 import Link from "../components/Link";
 import { buttonStyle } from "../components/ui/Button";
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "../components/ui/tokens.stylex";
+import { siteLayout } from "../styles/site.stylex";
 
 const styles = stylex.create({
   root: {
     maxWidth: "34rem",
     paddingBlock: "clamp(4rem, 12vw, 8rem)",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
   },
   status: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
     letterSpacing: "0.08em",
     margin: 0,
@@ -26,7 +27,7 @@ const styles = stylex.create({
     marginBlock: "0.5rem 0",
   },
   copy: {
-    color: tokens.textMuted,
+    color: colors.mutedForeground,
     fontSize: "0.9375rem",
     lineHeight: 1.6,
     marginBlock: "0.6rem 1.4rem",

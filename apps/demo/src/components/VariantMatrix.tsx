@@ -2,11 +2,19 @@ import * as stylex from "@stylexjs/stylex";
 import { For, Match, Show, Switch } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "./ui/tokens.stylex";
 import Band, { BandHeader, frame } from "./Frame";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
-import { Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/Card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/Card";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
 import { Separator } from "./ui/Separator";
@@ -25,17 +33,17 @@ const styles = stylex.create({
     gridTemplateColumns: { default: "1fr", "@media (min-width: 44rem)": "8rem 1fr" },
     paddingBlock: { default: "0.8rem", "@media (min-width: 44rem)": 0 },
     ":not(:last-child)": {
-      borderBottomColor: tokens.border,
+      borderBottomColor: colors.border,
       borderBottomStyle: "solid",
       borderBottomWidth: 1,
     },
   },
   rowLabel: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
     "@media (min-width: 44rem)": {
-      borderInlineEndColor: tokens.border,
+      borderInlineEndColor: colors.border,
       borderInlineEndStyle: "solid",
       borderInlineEndWidth: 1,
       paddingBlock: "0.9rem",
@@ -80,6 +88,7 @@ export function Row(props: { label: string; children: JSX.Element }) {
 
 const buttonVariants = ["primary", "secondary", "outline", "ghost", "danger"] as const;
 const buttonSizes = ["xs", "sm", "md", "lg"] as const;
+const iconSizes = ["icon-xs", "icon-sm", "icon", "icon-lg"] as const;
 const badgeTones = ["neutral", "accent", "success", "warning", "danger"] as const;
 
 /**
@@ -116,9 +125,13 @@ export function VariantMatrix(props: { slug: string }) {
         </Row>
         <Row label="size">
           <For each={buttonSizes}>{(size) => <Button size={size}>{size}</Button>}</For>
-          <Button size="icon" aria-label="Add">
-            +
-          </Button>
+          <For each={iconSizes}>
+            {(size) => (
+              <Button size={size} aria-label="Add">
+                +
+              </Button>
+            )}
+          </For>
         </Row>
         <Row label="disabled">
           <For each={buttonVariants}>
@@ -207,7 +220,19 @@ export function VariantMatrix(props: { slug: string }) {
               <CardTitle>Production</CardTitle>
               <CardDescription>Warsaw region</CardDescription>
             </CardHeader>
-            <CardBody>All services are responding normally.</CardBody>
+            <CardContent>All services are responding normally.</CardContent>
+          </Card>
+        </Row>
+        <Row label="action">
+          <Card xstyle={styles.card}>
+            <CardHeader>
+              <CardTitle>Staging</CardTitle>
+              <CardDescription>Frankfurt region</CardDescription>
+              <CardAction>
+                <Badge tone="warning">Degraded</Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent>Two of five replicas are restarting.</CardContent>
           </Card>
         </Row>
         <Row label="divided">
@@ -215,7 +240,7 @@ export function VariantMatrix(props: { slug: string }) {
             <CardHeader divided>
               <CardTitle>Deployment</CardTitle>
             </CardHeader>
-            <CardBody>Rolling out to three of nine nodes.</CardBody>
+            <CardContent>Rolling out to three of nine nodes.</CardContent>
             <CardFooter divided>
               <Badge tone="success">Healthy</Badge>
             </CardFooter>
@@ -223,7 +248,7 @@ export function VariantMatrix(props: { slug: string }) {
         </Row>
         <Row label="interactive">
           <Card interactive xstyle={styles.card}>
-            <CardBody>Hover to see the border respond.</CardBody>
+            <CardContent>Hover to see the border respond.</CardContent>
           </Card>
         </Row>
       </Match>

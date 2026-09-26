@@ -6,7 +6,8 @@ import Link from "../components/Link";
 import { buttonStyle } from "../components/ui/Button";
 import { components } from "../content/components";
 import { primitives } from "../content/primitives";
-import { tokens } from "../styles/tokens.stylex";
+import { colors, motion, typography } from "../components/ui/tokens.stylex";
+import { siteColors, siteLayout } from "../styles/site.stylex";
 
 const styles = stylex.create({
   hero: {
@@ -30,10 +31,10 @@ const styles = stylex.create({
   },
   heroLead: {
     // At one column the rule between the cells is horizontal instead.
-    borderBottomColor: tokens.border,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: { default: 1, "@media (min-width: 58rem)": 0 },
-    borderInlineEndColor: tokens.border,
+    borderInlineEndColor: colors.border,
     borderInlineEndStyle: "solid",
     borderInlineEndWidth: { default: 0, "@media (min-width: 58rem)": 1 },
   },
@@ -47,26 +48,26 @@ const styles = stylex.create({
     textWrap: "balance",
   },
   heroSide: { gap: "1.5rem" },
-  lede: { color: tokens.textMuted, fontSize: "1rem", lineHeight: 1.65, margin: 0 },
+  lede: { color: colors.mutedForeground, fontSize: "1rem", lineHeight: 1.65, margin: 0 },
   actions: { alignItems: "center", display: "flex", flexWrap: "wrap", gap: "0.55rem" },
   primaryCta: {
-    backgroundColor: { default: tokens.text, ":hover": tokens.textMuted },
-    borderColor: tokens.text,
-    color: tokens.canvas,
+    backgroundColor: { default: colors.primary, ":hover": colors.primaryHover },
+    borderColor: colors.primary,
+    color: colors.primaryForeground,
   },
   importStrip: {
     alignItems: "baseline",
-    backgroundColor: tokens.codeBackground,
-    color: tokens.codeText,
+    backgroundColor: siteColors.codeBackground,
+    color: siteColors.codeText,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.5rem 2rem",
     justifyContent: "space-between",
     paddingBlock: "1.1rem",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
   },
-  importLine: { fontFamily: tokens.fontMono, fontSize: "0.8125rem", overflowX: "auto" },
-  importNote: { color: tokens.codeTextMuted, fontSize: "0.75rem" },
+  importLine: { fontFamily: typography.mono, fontSize: "0.8125rem", overflowX: "auto" },
+  importNote: { color: siteColors.codeTextMuted, fontSize: "0.75rem" },
   split: {
     display: "grid",
     gridTemplateColumns: {
@@ -79,15 +80,15 @@ const styles = stylex.create({
     flexDirection: "column",
     paddingBlock: "clamp(2rem, 4vw, 3rem) 0",
     ":first-child": {
-      borderBottomColor: tokens.border,
+      borderBottomColor: colors.border,
       borderBottomStyle: "solid",
       borderBottomWidth: { default: 1, "@media (min-width: 48rem)": 0 },
-      borderInlineEndColor: tokens.border,
+      borderInlineEndColor: colors.border,
       borderInlineEndStyle: "solid",
       borderInlineEndWidth: { default: 0, "@media (min-width: 48rem)": 1 },
     },
   },
-  laneHead: { paddingInline: tokens.inset },
+  laneHead: { paddingInline: siteLayout.inset },
   laneTitle: {
     fontSize: "clamp(1.5rem, 3vw, 2.15rem)",
     fontWeight: 650,
@@ -95,7 +96,7 @@ const styles = stylex.create({
     margin: 0,
   },
   laneCopy: {
-    color: tokens.textMuted,
+    color: colors.mutedForeground,
     fontSize: "0.875rem",
     lineHeight: 1.65,
     marginBlock: "0.7rem 1.75rem",
@@ -103,36 +104,40 @@ const styles = stylex.create({
   },
   sampleRow: {
     alignItems: "center",
-    borderTopColor: tokens.border,
+    borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: { default: tokens.text, ":hover": tokens.text },
+    color: { default: colors.foreground, ":hover": colors.foreground },
     display: "flex",
     fontSize: "0.8125rem",
     gap: "1rem",
     justifyContent: "space-between",
     paddingBlock: "0.7rem",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
     textDecoration: "none",
-    transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
-    ":hover": { backgroundColor: tokens.surfaceInteractive },
+    transition: `background-color ${motion.fast} ${motion.easing}`,
+    ":hover": { backgroundColor: colors.interactive },
     "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
-  sampleMeta: { color: tokens.textSubtle, fontFamily: tokens.fontMono, fontSize: "0.6875rem" },
+  sampleMeta: {
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
+    fontSize: "0.6875rem",
+  },
   laneLink: {
-    borderTopColor: tokens.border,
+    borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: tokens.text,
+    color: colors.foreground,
     display: "block",
     fontSize: "0.8125rem",
     fontWeight: 620,
     marginBlockStart: "auto",
     paddingBlock: "0.85rem",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
     textDecoration: "none",
-    transition: `background-color ${tokens.durationFast} ${tokens.easing}`,
-    ":hover": { backgroundColor: tokens.surfaceInteractive },
+    transition: `background-color ${motion.fast} ${motion.easing}`,
+    ":hover": { backgroundColor: colors.interactive },
     "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
 });

@@ -1,9 +1,10 @@
 import * as stylex from "@stylexjs/stylex";
+import { base } from "./base";
 import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, controls, motion, radii, shadows, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
@@ -14,16 +15,15 @@ const styles = stylex.create({
     borderWidth: 1,
     cursor: "pointer",
     display: "inline-flex",
-    fontWeight: 600,
-    gap: "0.45rem",
+    fontWeight: typography.semibold,
     justifyContent: "center",
     letterSpacing: "-0.005em",
     lineHeight: 1,
     textDecoration: "none",
     whiteSpace: "nowrap",
-    transitionDuration: tokens.durationFast,
+    transitionDuration: motion.fast,
     transitionProperty: "background-color, border-color, color, box-shadow, transform",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     userSelect: "none",
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
@@ -32,15 +32,9 @@ const styles = stylex.create({
     ":active": {
       transform: "scale(0.975)",
     },
-    ":focus-visible": {
-      outlineColor: tokens.focus,
-      outlineOffset: 2,
-      outlineStyle: "solid",
-      outlineWidth: 2,
-    },
     ":disabled": {
       cursor: "not-allowed",
-      opacity: 0.52,
+      opacity: controls.disabledOpacity,
     },
   },
   block: { width: "100%" },
@@ -50,88 +44,144 @@ const styles = stylex.create({
 const variantStyles = stylex.create({
   primary: {
     backgroundColor: {
-      default: tokens.accent,
-      ":hover": tokens.accentHover,
+      default: colors.primary,
+      ":hover": colors.primaryHover,
     },
-    borderColor: tokens.accent,
-    color: tokens.accentText,
-    boxShadow: tokens.shadowSm,
+    borderColor: colors.primary,
+    color: colors.primaryForeground,
+    boxShadow: shadows.sm,
   },
   secondary: {
     backgroundColor: {
-      default: tokens.surface,
-      ":hover": tokens.surfaceInteractive,
+      default: colors.surface,
+      ":hover": colors.interactive,
     },
-    borderColor: tokens.border,
-    color: tokens.text,
-    boxShadow: tokens.shadowSm,
+    borderColor: colors.border,
+    color: { default: colors.surfaceForeground, ":hover": colors.interactiveForeground },
+    boxShadow: shadows.sm,
   },
   ghost: {
     backgroundColor: {
       default: "transparent",
-      ":hover": tokens.surfaceInteractive,
+      ":hover": colors.interactive,
     },
     borderColor: "transparent",
     color: {
-      default: tokens.textMuted,
-      ":hover": tokens.text,
+      default: colors.mutedForeground,
+      ":hover": colors.interactiveForeground,
     },
   },
   outline: {
     backgroundColor: {
       default: "transparent",
-      ":hover": tokens.surfaceInteractive,
+      ":hover": colors.interactive,
     },
     borderColor: {
-      default: tokens.borderStrong,
-      ":hover": tokens.text,
+      default: colors.borderStrong,
+      ":hover": colors.foreground,
     },
-    color: tokens.text,
+    color: { default: colors.foreground, ":hover": colors.interactiveForeground },
   },
   danger: {
     backgroundColor: {
-      default: tokens.danger,
-      ":hover": tokens.dangerHover,
+      default: colors.danger,
+      ":hover": colors.dangerHover,
     },
-    borderColor: tokens.danger,
-    color: tokens.dangerText,
-    boxShadow: tokens.shadowSm,
+    borderColor: colors.danger,
+    color: colors.dangerForeground,
+    boxShadow: shadows.sm,
   },
 });
 
 /** The dimension axis. Every entry sets the same properties, so they compose. */
 const sizeStyles = stylex.create({
   xs: {
-    borderRadius: tokens.radiusSm,
-    fontSize: "0.75rem",
-    minHeight: "2.25rem",
+    borderRadius: radii.sm,
+    fontSize: typography.xs,
+    gap: "0.25rem",
+    minHeight: {
+      default: controls.heightXs,
+      "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
+    },
     paddingInline: "0.5rem",
-    "@media (pointer: coarse)": { minHeight: "2.75rem" },
   },
   sm: {
-    borderRadius: tokens.radiusSm,
-    fontSize: "0.8125rem",
-    minHeight: "2.5rem",
-    paddingInline: "0.7rem",
-    "@media (pointer: coarse)": { minHeight: "2.75rem" },
+    borderRadius: radii.sm,
+    fontSize: typography.sm,
+    gap: "0.25rem",
+    minHeight: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
+    paddingInline: "0.625rem",
   },
   md: {
-    borderRadius: tokens.radiusMd,
-    fontSize: "0.875rem",
-    minHeight: "2.75rem",
-    paddingInline: "1rem",
+    borderRadius: radii.md,
+    fontSize: typography.md,
+    gap: "0.375rem",
+    minHeight: {
+      default: controls.height,
+      "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
+    },
+    paddingInline: "0.625rem",
   },
   lg: {
-    borderRadius: tokens.radiusMd,
-    fontSize: "0.95rem",
-    minHeight: "3rem",
-    paddingInline: "1.2rem",
+    borderRadius: radii.md,
+    fontSize: typography.md,
+    gap: "0.375rem",
+    minHeight: {
+      default: controls.heightLg,
+      "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
+    },
+    paddingInline: "0.625rem",
+  },
+  "icon-xs": {
+    borderRadius: radii.sm,
+    height: {
+      default: controls.heightXs,
+      "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightXs,
+      "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
+    },
+  },
+  "icon-sm": {
+    borderRadius: radii.sm,
+    height: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
   },
   icon: {
-    borderRadius: tokens.radiusMd,
-    height: "2.75rem",
+    borderRadius: radii.md,
+    height: {
+      default: controls.height,
+      "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
+    },
     padding: 0,
-    width: "2.75rem",
+    width: {
+      default: controls.height,
+      "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
+    },
+  },
+  "icon-lg": {
+    borderRadius: radii.md,
+    height: {
+      default: controls.heightLg,
+      "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightLg,
+      "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
+    },
   },
 });
 
@@ -150,12 +200,16 @@ export type ButtonAppearance = Pick<ButtonProps, "variant" | "size">;
  * The button recipe as bare styles, for elements that must not be a `<button>`.
  * An anchor, most often. Links then match without nesting a control inside one.
  */
-export function buttonStyle(appearance: ButtonAppearance = {}) {
+export function buttonStyle(appearance: ButtonAppearance = {}): stylex.StyleXStyles {
+  // `StyleXStyles` uses one generic for the whole array, so a mix of compiled
+  // styles from different `stylex.create` calls does not satisfy it directly.
+  // `stylex.attrs`, the only consumer, accepts each element, so this cast is safe.
   return [
     styles.root,
-    variantStyles[appearance.variant ?? "secondary"],
+    base.focusRing,
+    variantStyles[appearance.variant ?? "primary"],
     sizeStyles[appearance.size ?? "md"],
-  ] as const;
+  ] as unknown as stylex.StyleXStyles;
 }
 
 export function Button(props: ButtonProps) {
@@ -163,7 +217,8 @@ export function Button(props: ButtonProps) {
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
       styles.root,
-      variantStyles[props.variant ?? "secondary"],
+      base.focusRing,
+      variantStyles[props.variant ?? "primary"],
       sizeStyles[props.size ?? "md"],
       props.block && styles.block,
       props.xstyle,

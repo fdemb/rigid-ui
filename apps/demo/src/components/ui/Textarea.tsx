@@ -1,4 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
+import { base } from "./base";
+import { controls, typography } from "./tokens.stylex";
 import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
@@ -9,8 +11,8 @@ import { fieldStyles } from "./Input";
 const styles = stylex.create({
   root: {
     display: "block",
-    lineHeight: 1.6,
-    minHeight: "5.5rem",
+    lineHeight: typography.bodyLineHeight,
+    minHeight: `calc(${controls.height} * 2)`,
     paddingBlock: "0.55rem",
     paddingInline: "0.7rem",
     resize: "vertical",
@@ -28,6 +30,7 @@ export function Textarea(props: TextareaProps) {
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
       fieldStyles.root,
+      base.focusRing,
       styles.root,
       props.mono && fieldStyles.mono,
       props.invalid && fieldStyles.invalid,

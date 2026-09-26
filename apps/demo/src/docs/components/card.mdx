@@ -23,15 +23,30 @@ Groups related content with an optional header and footer.
 
 ## Usage
 
-Compose `CardHeader`, `CardBody`, and `CardFooter` inside `Card`. Use `CardTitle` for the heading and `CardDescription` for supporting text.
+Compose `CardHeader`, `CardContent`, and `CardFooter` inside `Card`. Put `CardTitle` and `CardDescription` in the header, and `CardAction` for a badge or button at the end of the header. Set `divided` on a header or footer to draw a line between it and the content.
 
 ```tsx
 <Card>
   <CardHeader>
-    <CardTitle>Project settings</CardTitle>
-    <CardDescription>Manage your project.</CardDescription>
+    <CardTitle>Login to your account</CardTitle>
+    <CardDescription>Enter your email below to login to your account</CardDescription>
+    <CardAction>
+      <Button size="sm" variant="ghost">
+        Sign up
+      </Button>
+    </CardAction>
   </CardHeader>
-  <CardBody>Project details</CardBody>
+  <CardContent>
+    <form id="login-form">
+      <Label for="login-email">Email</Label>
+      <Input id="login-email" type="email" required />
+    </form>
+  </CardContent>
+  <CardFooter>
+    <Button type="submit" form="login-form" block>
+      Login
+    </Button>
+  </CardFooter>
 </Card>
 ```
 
@@ -41,6 +56,6 @@ Compose `CardHeader`, `CardBody`, and `CardFooter` inside `Card`. Use `CardTitle
 
 ## Source
 
-Copy the component source and its local imports into your project. These examples use StyleX and the demo's shared theme tokens. Registry installation is not available yet.
+Follow the [theming setup](/docs/theming), then copy the component source and its local imports into your project. Registry installation is not available yet.
 
 <ComponentSource slug="card" />

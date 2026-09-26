@@ -3,62 +3,56 @@ import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, radii, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   root: {
     alignItems: "center",
-    borderRadius: tokens.radiusSm,
+    borderRadius: radii.sm,
     borderStyle: "solid",
     borderWidth: 1,
     display: "inline-flex",
-    fontSize: "0.6875rem",
-    fontWeight: 650,
+    fontSize: typography.caption,
+    fontWeight: typography.bold,
     gap: "0.3rem",
-    lineHeight: 1.45,
+    lineHeight: typography.bodyLineHeight,
     paddingBlock: "0.15rem",
     paddingInline: "0.4rem",
     whiteSpace: "nowrap",
   },
   mono: {
-    fontFamily: tokens.fontMono,
-    fontWeight: 500,
+    fontFamily: typography.mono,
+    fontWeight: typography.medium,
     letterSpacing: "-0.01em",
   },
 });
 
-/*
- * The tone axis, in its own `create` per the StyleX variants recipe. Each tone
- * is a 14% tint of its colour over the card surface with a stronger border of
- * the same hue. StyleX evaluates these at build time, so the formula is written
- * out per tone rather than shared through a helper.
- */
 const toneStyles = stylex.create({
   neutral: {
-    backgroundColor: tokens.surfaceSunken,
-    borderColor: tokens.border,
-    color: tokens.textMuted,
+    backgroundColor: colors.muted,
+    borderColor: colors.border,
+    color: colors.mutedForeground,
   },
   accent: {
-    backgroundColor: `color-mix(in srgb, ${tokens.accent} 14%, ${tokens.surface})`,
-    borderColor: `color-mix(in srgb, ${tokens.accent} 32%, transparent)`,
-    color: tokens.accent,
+    backgroundColor: colors.primaryMuted,
+    borderColor: colors.primaryBorder,
+    color: colors.primaryMutedForeground,
   },
   success: {
-    backgroundColor: `color-mix(in srgb, ${tokens.success} 14%, ${tokens.surface})`,
-    borderColor: `color-mix(in srgb, ${tokens.success} 32%, transparent)`,
-    color: tokens.success,
+    backgroundColor: colors.success,
+    borderColor: colors.successBorder,
+    color: colors.successForeground,
   },
   warning: {
-    backgroundColor: `color-mix(in srgb, ${tokens.warning} 14%, ${tokens.surface})`,
-    borderColor: `color-mix(in srgb, ${tokens.warning} 32%, transparent)`,
-    color: tokens.warning,
+    backgroundColor: colors.warning,
+    borderColor: colors.warningBorder,
+    color: colors.warningForeground,
   },
   danger: {
-    backgroundColor: `color-mix(in srgb, ${tokens.danger} 14%, ${tokens.surface})`,
-    borderColor: `color-mix(in srgb, ${tokens.danger} 32%, transparent)`,
-    color: tokens.danger,
+    backgroundColor: colors.dangerMuted,
+    borderColor: colors.dangerBorder,
+    color: colors.dangerMutedForeground,
   },
 });
 

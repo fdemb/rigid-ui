@@ -3,7 +3,7 @@ import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, radii } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const shimmer = stylex.keyframes({
@@ -20,11 +20,11 @@ const styles = stylex.create({
       "@media (prefers-reduced-motion: reduce)": "none",
     },
     animationTimingFunction: "linear",
-    backgroundColor: tokens.surfaceSunken,
-    backgroundImage: `linear-gradient(90deg, transparent, color-mix(in srgb, ${tokens.borderStrong} 45%, transparent), transparent)`,
+    backgroundColor: colors.muted,
+    backgroundImage: `linear-gradient(90deg, transparent, color-mix(in srgb, ${colors.borderStrong} 45%, transparent), transparent)`,
     backgroundRepeat: "no-repeat",
     backgroundSize: "200% 100%",
-    borderRadius: tokens.radiusSm,
+    borderRadius: radii.sm,
     display: "block",
     flexShrink: 0,
   },
@@ -34,7 +34,7 @@ const styles = stylex.create({
 const shapeStyles = stylex.create({
   block: {},
   text: { height: "0.7em", marginBlock: "0.25em" },
-  circle: { borderRadius: tokens.radiusFull },
+  circle: { borderRadius: radii.full },
 });
 
 export interface SkeletonProps

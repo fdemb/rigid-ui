@@ -3,7 +3,8 @@ import { For, Show, createMemo, createSignal } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
 import { TypeScriptIcon } from "./icons";
-import { tokens } from "../styles/tokens.stylex";
+import { colors, motion, radii, shadows, typography } from "./ui/tokens.stylex";
+import { siteColors } from "../styles/site.stylex";
 export interface CodeBlockProps {
   code: string;
   path?: string;
@@ -196,9 +197,9 @@ function tokenizeCode(code: string): Token[][] {
 
 const styles = stylex.create({
   root: {
-    backgroundColor: tokens.codeBackground,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusMd,
+    backgroundColor: siteColors.codeBackground,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     borderStyle: "solid",
     borderWidth: 1,
     display: "flex",
@@ -210,7 +211,7 @@ const styles = stylex.create({
   header: {
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.025)",
-    borderBottomColor: tokens.border,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
     display: "flex",
@@ -230,12 +231,12 @@ const styles = stylex.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.08)",
     borderColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: tokens.radiusSm,
+    borderRadius: radii.sm,
     borderStyle: "solid",
     borderWidth: 1,
-    color: tokens.codeText,
+    color: siteColors.codeText,
     display: "inline-flex",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
     fontWeight: 700,
     justifyContent: "center",
@@ -246,8 +247,8 @@ const styles = stylex.create({
   },
   languageIcon: { height: "0.8rem", width: "0.8rem" },
   path: {
-    color: tokens.codeTextMuted,
-    fontFamily: tokens.fontMono,
+    color: siteColors.codeTextMuted,
+    fontFamily: typography.mono,
     fontSize: "0.8125rem",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -266,20 +267,20 @@ const styles = stylex.create({
     borderStyle: "none",
     borderWidth: 0,
     color: {
-      default: tokens.codeTextMuted,
-      ":hover": tokens.codeText,
+      default: siteColors.codeTextMuted,
+      ":hover": siteColors.codeText,
     },
     cursor: "pointer",
     display: "inline-flex",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.75rem",
     lineHeight: 1,
     paddingBlock: "0.3rem",
     paddingInline: "0.4rem",
-    transition: `color ${tokens.durationFast} ${tokens.easing}`,
+    transition: `color ${motion.fast} ${motion.easing}`,
   },
   divider: {
-    backgroundColor: tokens.border,
+    backgroundColor: colors.border,
     height: "0.85rem",
     width: 1,
   },
@@ -288,19 +289,19 @@ const styles = stylex.create({
     appearance: "none",
     backgroundColor: "transparent",
     borderColor: "transparent",
-    borderRadius: tokens.radiusSm,
+    borderRadius: radii.sm,
     borderStyle: "solid",
     borderWidth: 1,
     color: {
-      default: tokens.codeTextMuted,
-      ":hover": tokens.codeText,
+      default: siteColors.codeTextMuted,
+      ":hover": siteColors.codeText,
     },
     cursor: "pointer",
     display: "inline-flex",
     height: "1.75rem",
     justifyContent: "center",
     padding: 0,
-    transition: `color ${tokens.durationFast} ${tokens.easing}, background-color ${tokens.durationFast} ${tokens.easing}`,
+    transition: `color ${motion.fast} ${motion.easing}, background-color ${motion.fast} ${motion.easing}`,
     width: "1.75rem",
     ":hover": {
       backgroundColor: "rgba(255, 255, 255, 0.08)",
@@ -312,9 +313,9 @@ const styles = stylex.create({
     width: "0.875rem",
   },
   codeArea: {
-    backgroundColor: tokens.codeBackground,
+    backgroundColor: siteColors.codeBackground,
     display: "flex",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.8125rem",
     lineHeight: 1.65,
     margin: 0,
@@ -328,7 +329,7 @@ const styles = stylex.create({
     overflow: "hidden",
   },
   gutter: {
-    color: tokens.codeTextMuted,
+    color: siteColors.codeTextMuted,
     display: "flex",
     flexDirection: "column",
     flexShrink: 0,
@@ -350,7 +351,7 @@ const styles = stylex.create({
   },
   fadeOverlay: {
     alignItems: "flex-end",
-    backgroundImage: `linear-gradient(to bottom, transparent 0%, ${tokens.codeBackground} 85%)`,
+    backgroundImage: `linear-gradient(to bottom, transparent 0%, ${siteColors.codeBackground} 85%)`,
     bottom: 0,
     display: "flex",
     insetInline: 0,
@@ -362,25 +363,25 @@ const styles = stylex.create({
   expandButton: {
     alignItems: "center",
     appearance: "none",
-    backgroundColor: tokens.surfaceInteractive,
-    borderColor: tokens.borderStrong,
-    borderRadius: tokens.radiusFull,
+    backgroundColor: colors.interactive,
+    borderColor: colors.borderStrong,
+    borderRadius: radii.full,
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: tokens.shadowMd,
-    color: tokens.text,
+    boxShadow: shadows.md,
+    color: colors.foreground,
     cursor: "pointer",
     display: "inline-flex",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.75rem",
     fontWeight: 600,
     gap: "0.35rem",
     lineHeight: 1,
     paddingBlock: "0.4rem",
     paddingInline: "0.95rem",
-    transition: `transform ${tokens.durationFast} ${tokens.easing}, background-color ${tokens.durationFast} ${tokens.easing}`,
+    transition: `transform ${motion.fast} ${motion.easing}, background-color ${motion.fast} ${motion.easing}`,
     ":hover": {
-      backgroundColor: tokens.surfaceRaised,
+      backgroundColor: colors.overlay,
       transform: "translateY(-1px)",
     },
   },
@@ -388,10 +389,10 @@ const styles = stylex.create({
   tokType: { color: "#38bdf8" },
   tokString: { color: "#7dd3fc" },
   tokNumber: { color: "#fbbf24" },
-  tokComment: { color: tokens.codeTextMuted, fontStyle: "italic", opacity: 0.8 },
+  tokComment: { color: siteColors.codeTextMuted, fontStyle: "italic", opacity: 0.8 },
   tokPunct: { color: "#94a3b8" },
-  tokIdent: { color: tokens.codeText },
-  tokPlain: { color: tokens.codeText },
+  tokIdent: { color: siteColors.codeText },
+  tokPlain: { color: siteColors.codeText },
 });
 
 const tokenStyleMap = {

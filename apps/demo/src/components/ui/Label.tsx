@@ -3,20 +3,20 @@ import { Show, omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   root: {
     alignItems: "center",
-    color: tokens.text,
+    color: colors.foreground,
     display: "inline-flex",
-    fontSize: "0.8125rem",
-    fontWeight: 600,
+    fontSize: typography.sm,
+    fontWeight: typography.semibold,
     gap: "0.3rem",
-    lineHeight: 1.4,
+    lineHeight: typography.bodyLineHeight,
   },
-  required: { color: tokens.danger },
+  required: { color: colors.danger },
 });
 
 export interface LabelProps

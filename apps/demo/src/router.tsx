@@ -17,7 +17,10 @@ export const Router = createRouter({
     {
       path: "/docs",
       component: DocsLayout,
-      children: [{ path: "/", component: lazy(() => import("./docs/introduction.mdx")) }],
+      children: [
+        { path: "/", component: lazy(() => import("./docs/introduction.mdx")) },
+        { path: "/theming", component: lazy(() => import("./docs/theming.mdx")) },
+      ],
     },
     {
       path: "/elements",
