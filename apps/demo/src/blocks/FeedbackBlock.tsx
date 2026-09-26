@@ -4,7 +4,14 @@ import { createSignal } from "solid-js";
 import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "../components/ui/Card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/Card";
 import { Input } from "../components/ui/Input";
 import { Label } from "../components/ui/Label";
 import { Textarea } from "../components/ui/Textarea";
@@ -32,9 +39,11 @@ export default function FeedbackBlock() {
     <Card xstyle={styles.card}>
       <CardHeader divided>
         <CardTitle>Report an issue</CardTitle>
-        <Badge tone="warning">Triage</Badge>
+        <CardAction>
+          <Badge tone="warning">Triage</Badge>
+        </CardAction>
       </CardHeader>
-      <CardBody>
+      <CardContent>
         <div {...stylex.attrs(styles.field)}>
           <Label for="issue-title" required>
             Summary
@@ -60,7 +69,7 @@ export default function FeedbackBlock() {
             value={body()}
           />
         </div>
-      </CardBody>
+      </CardContent>
       <CardFooter divided xstyle={styles.footer}>
         <Button size="sm" variant="ghost">
           Attach log

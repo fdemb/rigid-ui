@@ -23,15 +23,22 @@ Groups related content with an optional header and footer.
 
 ## Usage
 
-Compose `CardHeader`, `CardBody`, and `CardFooter` inside `Card`. Use `CardTitle` for the heading and `CardDescription` for supporting text.
+Compose `CardHeader`, `CardContent`, and `CardFooter` inside `Card`. Put `CardTitle` and `CardDescription` in the header, and `CardAction` for a badge or button at the end of the header. Set `divided` on a header or footer to draw a line between it and the content.
 
 ```tsx
 <Card>
   <CardHeader>
     <CardTitle>Project settings</CardTitle>
     <CardDescription>Manage your project.</CardDescription>
+    <CardAction>
+      <Badge>Draft</Badge>
+    </CardAction>
   </CardHeader>
-  <CardBody>Project details</CardBody>
+  <CardContent>Project details</CardContent>
+  <CardFooter>
+    <Button variant="outline">Cancel</Button>
+    <Button>Save</Button>
+  </CardFooter>
 </Card>
 ```
 

@@ -4,7 +4,7 @@ import { For, createSignal } from "solid-js";
 import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { Card, CardBody, CardHeader, CardTitle } from "../components/ui/Card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "../components/ui/Card";
 import { Separator } from "../components/ui/Separator";
 import { Skeleton } from "../components/ui/Skeleton";
 
@@ -23,7 +23,7 @@ const styles = stylex.create({
     gap: "0.75rem",
     justifyContent: "space-between",
     paddingBlock: "0.7rem",
-    paddingInline: "1rem",
+    paddingInline: "1.25rem",
   },
   label: { color: colors.mutedForeground, fontSize: "0.8125rem" },
   figures: { alignItems: "center", display: "flex", gap: "0.6rem" },
@@ -41,11 +41,13 @@ export default function UsageBlock() {
     <Card xstyle={styles.card}>
       <CardHeader divided>
         <CardTitle>Last 24 hours</CardTitle>
-        <Button onClick={() => setLoading(!loading())} size="xs" variant="outline">
-          {loading() ? "Show data" : "Show loading"}
-        </Button>
+        <CardAction>
+          <Button onClick={() => setLoading(!loading())} size="xs" variant="outline">
+            {loading() ? "Show data" : "Show loading"}
+          </Button>
+        </CardAction>
       </CardHeader>
-      <CardBody xstyle={styles.body}>
+      <CardContent xstyle={styles.body}>
         <For each={metrics}>
           {(metric, index) => (
             <>
@@ -69,7 +71,7 @@ export default function UsageBlock() {
             </>
           )}
         </For>
-      </CardBody>
+      </CardContent>
     </Card>
   );
 }

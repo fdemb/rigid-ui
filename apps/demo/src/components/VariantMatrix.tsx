@@ -6,7 +6,15 @@ import { colors, typography } from "./ui/tokens.stylex";
 import Band, { BandHeader, frame } from "./Frame";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
-import { Card, CardBody, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/Card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./ui/Card";
 import { Input } from "./ui/Input";
 import { Label } from "./ui/Label";
 import { Separator } from "./ui/Separator";
@@ -207,7 +215,19 @@ export function VariantMatrix(props: { slug: string }) {
               <CardTitle>Production</CardTitle>
               <CardDescription>Warsaw region</CardDescription>
             </CardHeader>
-            <CardBody>All services are responding normally.</CardBody>
+            <CardContent>All services are responding normally.</CardContent>
+          </Card>
+        </Row>
+        <Row label="action">
+          <Card xstyle={styles.card}>
+            <CardHeader>
+              <CardTitle>Staging</CardTitle>
+              <CardDescription>Frankfurt region</CardDescription>
+              <CardAction>
+                <Badge tone="warning">Degraded</Badge>
+              </CardAction>
+            </CardHeader>
+            <CardContent>Two of five replicas are restarting.</CardContent>
           </Card>
         </Row>
         <Row label="divided">
@@ -215,7 +235,7 @@ export function VariantMatrix(props: { slug: string }) {
             <CardHeader divided>
               <CardTitle>Deployment</CardTitle>
             </CardHeader>
-            <CardBody>Rolling out to three of nine nodes.</CardBody>
+            <CardContent>Rolling out to three of nine nodes.</CardContent>
             <CardFooter divided>
               <Badge tone="success">Healthy</Badge>
             </CardFooter>
@@ -223,7 +243,7 @@ export function VariantMatrix(props: { slug: string }) {
         </Row>
         <Row label="interactive">
           <Card interactive xstyle={styles.card}>
-            <CardBody>Hover to see the border respond.</CardBody>
+            <CardContent>Hover to see the border respond.</CardContent>
           </Card>
         </Row>
       </Match>

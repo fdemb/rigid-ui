@@ -4,7 +4,14 @@ import { For } from "solid-js";
 import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
-import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "../components/ui/Card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/Card";
 import { AlertDialog, DialogFooter } from "../components/ui/Dialog";
 import { Separator } from "../components/ui/Separator";
 import { Tooltip } from "../components/ui/Tooltip";
@@ -41,9 +48,11 @@ export default function DeploymentBlock() {
           api-gateway
           <Badge tone="success">Live</Badge>
         </CardTitle>
-        <Badge mono>v2.14.0</Badge>
+        <CardAction>
+          <Badge mono>v2.14.0</Badge>
+        </CardAction>
       </CardHeader>
-      <CardBody xstyle={styles.body}>
+      <CardContent xstyle={styles.body}>
         <For each={rows}>
           {([key, value], index) => (
             <>
@@ -55,7 +64,7 @@ export default function DeploymentBlock() {
             </>
           )}
         </For>
-      </CardBody>
+      </CardContent>
       <CardFooter divided>
         <Tooltip.Root>
           <Tooltip.Trigger size="sm" variant="ghost">

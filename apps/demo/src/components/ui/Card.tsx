@@ -6,6 +6,11 @@ import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { colors, motion, radii, shadows, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
+/*
+ * Every section shares one padding. A header or footer without a divider drops
+ * the padding it shares with its neighbour, so undivided sections sit one
+ * padding apart instead of two.
+ */
 const styles = stylex.create({
   root: {
     backgroundColor: colors.surface,
@@ -29,34 +34,43 @@ const styles = stylex.create({
     transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
+  section: {
+    paddingBlock: "1rem",
+    paddingInline: "1.25rem",
+  },
   header: {
-    alignItems: "baseline",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "0.6rem",
-    justifyContent: "space-between",
-    paddingBlock: "0.85rem",
-    paddingInline: "1rem",
+    columnGap: "0.75rem",
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 1fr) auto",
+    paddingBlockEnd: { default: "1rem", ":not(:last-child)": 0 },
   },
   title: {
     fontSize: typography.md,
     fontWeight: typography.bold,
     letterSpacing: "-0.012em",
+    lineHeight: typography.headingLineHeight,
     margin: 0,
   },
   description: {
     color: colors.mutedForeground,
-    flexBasis: "100%",
     fontSize: typography.sm,
     lineHeight: typography.bodyLineHeight,
     margin: 0,
+    marginTop: "0.25rem",
   },
-  body: {
+  action: {
+    alignItems: "center",
+    alignSelf: "center",
+    display: "flex",
+    gap: "0.5rem",
+    gridColumn: 2,
+    gridRow: "1 / span 2",
+    justifySelf: "end",
+  },
+  content: {
     display: "flex",
     flexDirection: "column",
-    gap: "0.85rem",
-    paddingBlock: "1rem",
-    paddingInline: "1rem",
+    gap: "1rem",
   },
   footer: {
     alignItems: "center",
@@ -64,20 +78,20 @@ const styles = stylex.create({
     flexWrap: "wrap",
     gap: "0.5rem",
     justifyContent: "flex-end",
-    paddingBlock: "0.75rem",
-    paddingInline: "1rem",
+    paddingBlockStart: { default: "1rem", ":not(:first-child)": 0 },
   },
   divided: {
     borderColor: colors.border,
     borderStyle: "solid",
     borderWidth: 0,
   },
-  dividedTop: { borderTopWidth: 1 },
-  dividedBottom: { borderBottomWidth: 1 },
+  dividedHeader: { borderBottomWidth: 1, paddingBlockEnd: "1rem" },
+  dividedFooter: { borderTopWidth: 1, paddingBlockStart: "1rem" },
 });
 
-export interface CardProps
-  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "style">, StyleProps {
+type DivProps = Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "style"> & StyleProps;
+
+export interface CardProps extends DivProps {
   /** React to hover, for cards that are themselves a link or a button. */
   interactive?: boolean;
 }
@@ -90,19 +104,19 @@ export function Card(props: CardProps) {
   return <div {...mergeProps(styleAttributes, elementProps)} />;
 }
 
-interface SectionProps
-  extends Omit<JSX.HTMLAttributes<HTMLDivElement>, "class" | "style">, StyleProps {
-  /** Draw the hairline that separates this section from the card body. */
+export interface CardSectionProps extends DivProps {
+  /** Draw a hairline between this section and the content. */
   divided?: boolean;
 }
 
-export function CardHeader(props: SectionProps) {
+export function CardHeader(props: CardSectionProps) {
   const elementProps = omit(props, "divided", "xstyle");
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
+      styles.section,
       styles.header,
       props.divided && styles.divided,
-      props.divided && styles.dividedBottom,
+      props.divided && styles.dividedHeader,
       props.xstyle,
     ),
   );
@@ -127,19 +141,29 @@ export function CardDescription(
   return <p {...mergeProps(styleAttributes, elementProps)} />;
 }
 
-export function CardBody(props: CardProps) {
-  const elementProps = omit(props, "interactive", "xstyle");
-  const styleAttributes = reactiveStyleAttributes(() => stylex.attrs(styles.body, props.xstyle));
+/** Sits at the end of the header, beside the title and description. */
+export function CardAction(props: DivProps) {
+  const elementProps = omit(props, "xstyle");
+  const styleAttributes = reactiveStyleAttributes(() => stylex.attrs(styles.action, props.xstyle));
   return <div {...mergeProps(styleAttributes, elementProps)} />;
 }
 
-export function CardFooter(props: SectionProps) {
+export function CardContent(props: DivProps) {
+  const elementProps = omit(props, "xstyle");
+  const styleAttributes = reactiveStyleAttributes(() =>
+    stylex.attrs(styles.section, styles.content, props.xstyle),
+  );
+  return <div {...mergeProps(styleAttributes, elementProps)} />;
+}
+
+export function CardFooter(props: CardSectionProps) {
   const elementProps = omit(props, "divided", "xstyle");
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
+      styles.section,
       styles.footer,
       props.divided && styles.divided,
-      props.divided && styles.dividedTop,
+      props.divided && styles.dividedFooter,
       props.xstyle,
     ),
   );
