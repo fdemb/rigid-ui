@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { For } from "solid-js";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "../components/ui/Card";
@@ -27,8 +27,8 @@ const styles = stylex.create({
     gap: "0.75rem",
     justifyContent: "space-between",
   },
-  key: { color: tokens.textMuted },
-  value: { fontFamily: tokens.fontMono, fontSize: "0.75rem" },
+  key: { color: colors.mutedForeground },
+  value: { fontFamily: typography.mono, fontSize: "0.75rem" },
   actions: { alignItems: "center", display: "flex", gap: "0.5rem" },
   spacer: { flex: 1 },
 });

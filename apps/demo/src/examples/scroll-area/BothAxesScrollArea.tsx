@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 
 import { ScrollArea } from "../../components/ui/ScrollArea";
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, radii } from "../../components/ui/tokens.stylex";
 
 const styles = stylex.create({
   root: { height: "20rem", maxWidth: "calc(100vw - 5rem)", width: "20rem" },
@@ -17,9 +17,9 @@ const styles = stylex.create({
   },
   cell: {
     alignItems: "center",
-    backgroundColor: tokens.surfaceInteractive,
-    borderRadius: tokens.radiusMd,
-    color: tokens.textMuted,
+    backgroundColor: colors.interactive,
+    borderRadius: radii.md,
+    color: colors.mutedForeground,
     display: "flex",
     fontSize: "0.8rem",
     fontWeight: 650,

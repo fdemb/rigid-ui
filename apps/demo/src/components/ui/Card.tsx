@@ -3,29 +3,31 @@ import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, shadows, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   root: {
-    backgroundColor: tokens.surface,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
+    backgroundColor: colors.surface,
+    color: colors.surfaceForeground,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: tokens.shadowSm,
+    boxShadow: shadows.sm,
     display: "flex",
     flexDirection: "column",
     minWidth: 0,
   },
   interactive: {
     borderColor: {
-      default: tokens.border,
-      ":hover": tokens.borderStrong,
+      default: colors.border,
+      ":hover": colors.borderStrong,
     },
-    transitionDuration: tokens.durationFast,
+    transitionDuration: motion.fast,
     transitionProperty: "border-color, background-color",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
+    "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
   header: {
     alignItems: "baseline",
@@ -37,16 +39,16 @@ const styles = stylex.create({
     paddingInline: "1rem",
   },
   title: {
-    fontSize: "0.875rem",
-    fontWeight: 650,
+    fontSize: typography.md,
+    fontWeight: typography.bold,
     letterSpacing: "-0.012em",
     margin: 0,
   },
   description: {
-    color: tokens.textMuted,
+    color: colors.mutedForeground,
     flexBasis: "100%",
-    fontSize: "0.8125rem",
-    lineHeight: 1.55,
+    fontSize: typography.sm,
+    lineHeight: typography.bodyLineHeight,
     margin: 0,
   },
   body: {
@@ -66,7 +68,7 @@ const styles = stylex.create({
     paddingInline: "1rem",
   },
   divided: {
-    borderColor: tokens.border,
+    borderColor: colors.border,
     borderStyle: "solid",
     borderWidth: 0,
   },

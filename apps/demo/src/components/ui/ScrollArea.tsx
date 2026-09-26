@@ -1,9 +1,10 @@
 import * as stylex from "@stylexjs/stylex";
+import { base } from "./base";
 import { omit } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { ScrollArea as ScrollAreaPrimitive } from "rigid-ui/primitives/scroll-area";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
@@ -11,22 +12,21 @@ const styles = stylex.create({
     position: "relative",
   },
   viewport: {
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusMd,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     borderStyle: "solid",
     borderWidth: 1,
     height: "100%",
     outline: "none",
     ":focus-visible": {
-      borderColor: tokens.focus,
-      boxShadow: `0 0 0 2px ${tokens.focus}`,
+      borderColor: colors.focus,
     },
   },
   content: {
-    color: tokens.text,
+    color: colors.foreground,
   },
   scrollbar: {
-    borderRadius: "999px",
+    borderRadius: radii.full,
     display: "flex",
     margin: "0.5rem",
     opacity: {
@@ -39,7 +39,7 @@ const styles = stylex.create({
       ":is([data-hovering])": "auto",
       ":is([data-scrolling])": "auto",
     },
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "opacity",
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
@@ -47,15 +47,15 @@ const styles = stylex.create({
     },
   },
   vertical: {
-    backgroundColor: tokens.canvasMuted,
+    backgroundColor: colors.scrollbarTrack,
     width: "0.3rem",
   },
   horizontal: {
-    backgroundColor: tokens.canvasMuted,
+    backgroundColor: colors.scrollbarTrack,
     height: "0.3rem",
   },
   thumb: {
-    backgroundColor: tokens.borderStrong,
+    backgroundColor: colors.borderStrong,
     borderRadius: "inherit",
     height: "100%",
     width: "100%",
@@ -76,7 +76,9 @@ function Root(props: RootProps & StyleProps) {
 
 function Viewport(props: ViewportProps & StyleProps) {
   const primitiveProps = omit(props, "xstyle");
-  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.viewport, props.xstyle));
+  const attrs = reactiveStyleAttributes(() =>
+    stylex.attrs(styles.viewport, base.focusRing, props.xstyle),
+  );
   return <ScrollAreaPrimitive.Viewport {...mergeProps(attrs, primitiveProps)} />;
 }
 

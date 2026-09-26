@@ -4,12 +4,12 @@ import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { Separator as SeparatorPrimitive } from "rigid-ui/primitives/separator";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   root: {
-    backgroundColor: tokens.border,
+    backgroundColor: colors.border,
     border: "none",
     flexShrink: 0,
     margin: 0,

@@ -1,59 +1,70 @@
 import * as stylex from "@stylexjs/stylex";
+import { base } from "./base";
 import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, controls, motion, radii, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 /** Shared by `Input` and `Textarea` so the two stay dimensionally identical. */
 export const fieldStyles = stylex.create({
   root: {
-    backgroundColor: tokens.surface,
+    backgroundColor: colors.surface,
     borderColor: {
-      default: tokens.border,
-      ":hover": tokens.borderStrong,
+      default: colors.border,
+      ":hover": colors.borderStrong,
     },
-    borderRadius: tokens.radiusMd,
+    borderRadius: radii.md,
     borderStyle: "solid",
     borderWidth: 1,
-    color: tokens.text,
-    fontSize: "0.875rem",
-    transitionDuration: tokens.durationFast,
+    color: colors.surfaceForeground,
+    fontSize: typography.md,
+    transitionDuration: motion.fast,
     transitionProperty: "border-color, box-shadow, background-color",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
     },
     width: "100%",
-    "::placeholder": { color: tokens.textSubtle },
+    "::placeholder": { color: colors.subtleForeground },
     ":focus-visible": {
-      borderColor: tokens.focus,
-      outlineColor: tokens.focus,
-      outlineOffset: 1,
-      outlineStyle: "solid",
-      outlineWidth: 2,
+      borderColor: colors.focus,
     },
     ":disabled": {
-      backgroundColor: tokens.surfaceSunken,
+      backgroundColor: colors.muted,
       cursor: "not-allowed",
-      opacity: 0.6,
+      opacity: controls.disabledOpacity,
     },
   },
   invalid: {
     borderColor: {
-      default: tokens.danger,
-      ":hover": tokens.dangerHover,
+      default: colors.danger,
+      ":hover": colors.dangerHover,
     },
   },
-  mono: { fontFamily: tokens.fontMono, fontSize: "0.8125rem" },
+  mono: { fontFamily: typography.mono, fontSize: typography.sm },
 });
 
 /** The size axis. Textarea sets its own metrics, so this stays local to Input. */
 const sizeStyles = stylex.create({
-  sm: { minHeight: "2.5rem", paddingBlock: "0.3rem", paddingInline: "0.55rem" },
-  md: { minHeight: "2.75rem", paddingBlock: "0.5rem", paddingInline: "0.7rem" },
+  sm: {
+    minHeight: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
+    paddingBlock: "0.3rem",
+    paddingInline: "0.55rem",
+  },
+  md: {
+    minHeight: {
+      default: controls.height,
+      "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
+    },
+    paddingBlock: "0.5rem",
+    paddingInline: "0.7rem",
+  },
 });
 
 export interface InputProps
@@ -69,6 +80,7 @@ export function Input(props: InputProps) {
   const styleAttributes = reactiveStyleAttributes(() =>
     stylex.attrs(
       fieldStyles.root,
+      base.focusRing,
       sizeStyles[props.size ?? "md"],
       props.mono && fieldStyles.mono,
       props.invalid && fieldStyles.invalid,

@@ -3,19 +3,19 @@ import { omit } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { Popover as PopoverPrimitive } from "rigid-ui/primitives/popover";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, shadows, typography } from "./tokens.stylex";
 import { Button, type ButtonAppearance } from "./Button";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   popup: {
-    backgroundColor: tokens.surfaceRaised,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
+    backgroundColor: colors.overlay,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: tokens.shadowMd,
-    color: tokens.text,
+    boxShadow: shadows.md,
+    color: colors.overlayForeground,
     display: "flex",
     flexDirection: "column",
     gap: "0.55rem",
@@ -37,9 +37,9 @@ const styles = stylex.create({
       ":is([data-ending-style])": "scale(0.97) translateY(0.35rem)",
     },
     transformOrigin: "var(--transform-origin)",
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "opacity, transform",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
@@ -55,7 +55,9 @@ const styles = stylex.create({
    * further out to stay flush.
    */
   arrow: {
+    backgroundColor: "inherit",
     borderColor: "inherit",
+    clipPath: "polygon(50% 0, 100% 100%, 0 100%)",
     bottom: { default: null, ":is([data-side=top])": "-0.375rem" },
     display: "block",
     height: "0.375rem",
@@ -71,7 +73,7 @@ const styles = stylex.create({
     },
     width: "0.75rem",
     "::before": {
-      backgroundColor: tokens.surfaceRaised,
+      backgroundColor: "inherit",
       // Inherited from the popup through the arrow, so an `xstyle` that
       // recolors the popup's border recolors the arrow's edges with it.
       borderColor: "inherit",
@@ -89,15 +91,15 @@ const styles = stylex.create({
     },
   },
   title: {
-    fontSize: "0.875rem",
-    fontWeight: 700,
-    lineHeight: 1.35,
+    fontSize: typography.md,
+    fontWeight: typography.bold,
+    lineHeight: typography.headingLineHeight,
     margin: 0,
   },
   description: {
-    color: tokens.textMuted,
-    fontSize: "0.82rem",
-    lineHeight: 1.5,
+    color: colors.mutedForeground,
+    fontSize: typography.sm,
+    lineHeight: typography.bodyLineHeight,
     margin: 0,
   },
 });
@@ -107,8 +109,10 @@ type CloseProps = Parameters<typeof PopoverPrimitive.Close>[0];
 type PopupProps = Parameters<typeof PopoverPrimitive.Popup>[0];
 type TitleProps = Parameters<typeof PopoverPrimitive.Title>[0];
 type DescriptionProps = Parameters<typeof PopoverPrimitive.Description>[0];
+type PortalProps = Parameters<typeof PopoverPrimitive.Portal>[0];
 
 interface PopoverContentProps extends Omit<PopupProps, "class" | "style">, StyleProps {
+  container?: PortalProps["container"];
   align?: "start" | "center" | "end";
   sideOffset?: number;
 }
@@ -126,10 +130,10 @@ function PopoverTrigger(props: TriggerProps & ButtonAppearance & { xstyle?: styl
 }
 
 function PopoverContent(props: PopoverContentProps) {
-  const popupProps = omit(props, "align", "children", "sideOffset", "xstyle");
+  const popupProps = omit(props, "align", "children", "container", "sideOffset", "xstyle");
   const popupStyles = reactiveStyleAttributes(() => stylex.attrs(styles.popup, props.xstyle));
   return (
-    <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal container={props.container}>
       <PopoverPrimitive.Positioner
         align={props.align ?? "center"}
         sideOffset={props.sideOffset ?? 8}
@@ -143,21 +147,30 @@ function PopoverContent(props: PopoverContentProps) {
   );
 }
 
-function PopoverTitle(props: TitleProps) {
-  return <PopoverPrimitive.Title {...mergeProps(stylex.attrs(styles.title), props)} />;
+function PopoverTitle(props: TitleProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.title, props.xstyle));
+  return <PopoverPrimitive.Title {...mergeProps(attrs, primitiveProps)} />;
 }
 
-function PopoverDescription(props: DescriptionProps) {
-  return <PopoverPrimitive.Description {...mergeProps(stylex.attrs(styles.description), props)} />;
+function PopoverDescription(props: DescriptionProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.description, props.xstyle));
+  return <PopoverPrimitive.Description {...mergeProps(attrs, primitiveProps)} />;
 }
 
-function PopoverClose(props: CloseProps & ButtonAppearance) {
-  const primitiveProps = omit(props, "variant", "size");
+function PopoverClose(props: CloseProps & ButtonAppearance & StyleProps) {
+  const primitiveProps = omit(props, "variant", "size", "xstyle");
   return (
     <PopoverPrimitive.Close
       {...primitiveProps}
       render={(closeProps) => (
-        <Button {...closeProps} size={props.size ?? "sm"} variant={props.variant ?? "ghost"} />
+        <Button
+          {...closeProps}
+          size={props.size ?? "sm"}
+          variant={props.variant ?? "ghost"}
+          xstyle={props.xstyle}
+        />
       )}
     />
   );
@@ -165,8 +178,8 @@ function PopoverClose(props: CloseProps & ButtonAppearance) {
 
 /**
  * The arrow recipe as a bare style, for popups composed straight from the
- * primitive rather than through `Popover.Content`. The popup it points at needs
- * the same surface and border tokens, and a containing block of its own.
+ * primitive rather than through `Popover.Content`. The arrow inherits its fill
+ * and border from the popup, which must establish a containing block.
  */
 export const popoverArrowStyle = styles.arrow;
 

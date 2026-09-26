@@ -6,19 +6,20 @@ import type { JSX } from "@solidjs/web";
 import Link from "../components/Link";
 import { components } from "../content/components";
 import { primitives } from "../content/primitives";
-import { tokens } from "../styles/tokens.stylex";
+import { colors } from "../components/ui/tokens.stylex";
+import { siteColors, siteLayout } from "../styles/site.stylex";
 import "../styles/docs.css";
 
 const styles = stylex.create({
   root: {
-    "--docs-muted": tokens.textMuted,
-    "--docs-border": tokens.border,
-    "--docs-wash": tokens.surfaceInteractive,
-    "--docs-code": tokens.codeBackground,
-    "--docs-code-text": tokens.codeText,
-    "--docs-focus": tokens.focus,
+    "--docs-muted": colors.mutedForeground,
+    "--docs-border": colors.border,
+    "--docs-wash": colors.interactive,
+    "--docs-code": siteColors.codeBackground,
+    "--docs-code-text": siteColors.codeText,
+    "--docs-focus": colors.focus,
     marginInline: "auto",
-    maxWidth: tokens.contentWidth,
+    maxWidth: siteLayout.contentWidth,
     width: "100%",
   },
 });
@@ -29,6 +30,12 @@ function Navigation() {
     <nav aria-label="Documentation" class="docs-navigation">
       <Link href="/docs" aria-current={location.pathname.endsWith("/docs") ? "page" : undefined}>
         Introduction
+      </Link>
+      <Link
+        href="/docs/theming"
+        aria-current={location.pathname.endsWith("/docs/theming") ? "page" : undefined}
+      >
+        Theming
       </Link>
       <For
         each={[

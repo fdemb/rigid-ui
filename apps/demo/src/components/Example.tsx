@@ -3,22 +3,23 @@ import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import { frame } from "./Frame";
-import { tokens } from "../styles/tokens.stylex";
+import { colors, motion, radii, typography } from "./ui/tokens.stylex";
+import { siteColors, siteLayout } from "../styles/site.stylex";
 
 const styles = stylex.create({
   root: {
-    borderColor: tokens.border,
+    borderColor: colors.border,
     borderStyle: "solid",
     borderWidth: 1,
-    borderRadius: tokens.radiusLg,
+    borderRadius: radii.lg,
     overflow: "hidden",
     marginBlock: "1.5rem",
   },
   note: {
-    borderBottomColor: tokens.border,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
-    color: tokens.textMuted,
+    color: colors.mutedForeground,
     fontSize: "0.8125rem",
     lineHeight: 1.55,
     margin: 0,
@@ -26,25 +27,25 @@ const styles = stylex.create({
   },
   preview: {
     alignItems: "center",
-    backgroundColor: tokens.canvas,
+    backgroundColor: colors.background,
     display: "flex",
     flexWrap: "wrap",
     gap: "0.75rem",
     justifyContent: "center",
     minHeight: "18rem",
     paddingBlock: "clamp(2rem, 6vw, 3.5rem)",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
   },
   summary: {
-    borderTopColor: tokens.border,
+    borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: { default: tokens.textMuted, ":hover": tokens.text },
+    color: { default: colors.mutedForeground, ":hover": colors.foreground },
     cursor: "pointer",
-    fontFamily: tokens.fontMono,
+    fontFamily: typography.mono,
     fontSize: "0.75rem",
     paddingBlock: "0.6rem",
-    transition: `color ${tokens.durationFast} ${tokens.easing}`,
+    transition: `color ${motion.fast} ${motion.easing}`,
     userSelect: "none",
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
@@ -52,17 +53,17 @@ const styles = stylex.create({
     },
   },
   source: {
-    backgroundColor: tokens.codeBackground,
-    borderTopColor: tokens.border,
+    backgroundColor: siteColors.codeBackground,
+    borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: tokens.codeText,
+    color: siteColors.codeText,
     fontSize: "0.75rem",
     lineHeight: 1.65,
     margin: 0,
     overflowX: "auto",
     paddingBlock: "1rem",
-    paddingInline: tokens.inset,
+    paddingInline: siteLayout.inset,
   },
 });
 

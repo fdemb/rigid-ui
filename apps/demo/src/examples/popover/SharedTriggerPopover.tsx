@@ -4,7 +4,7 @@ import { Popover } from "rigid-ui/primitives/popover";
 
 import { Button } from "../../components/ui/Button";
 import { popoverArrowStyle } from "../../components/ui/Popover";
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, shadows } from "../../components/ui/tokens.stylex";
 
 interface Member {
   name: string;
@@ -21,18 +21,18 @@ const members: Member[] = [
 const styles = stylex.create({
   triggers: { display: "flex", flexWrap: "wrap", gap: "0.75rem" },
   positioner: {
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "transform",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
   },
   popup: {
-    backgroundColor: tokens.surfaceRaised,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
+    backgroundColor: colors.overlay,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: tokens.shadowMd,
-    color: tokens.text,
+    boxShadow: shadows.md,
+    color: colors.foreground,
     display: "flex",
     flexDirection: "column",
     gap: "0.35rem",
@@ -46,16 +46,16 @@ const styles = stylex.create({
   // Its offset along the popup's edge arrives as an inline `left`, which would
   // otherwise snap to the new trigger while the popup was still moving.
   arrow: {
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "left",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
     },
   },
   title: { fontSize: "0.875rem", fontWeight: 700, margin: 0 },
-  copy: { color: tokens.textMuted, fontSize: "0.8rem", margin: 0 },
+  copy: { color: colors.mutedForeground, fontSize: "0.8rem", margin: 0 },
 });
 
 export default function SharedTriggerPopover() {

@@ -1,7 +1,7 @@
 import * as stylex from "@stylexjs/stylex";
 import { createSignal } from "solid-js";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "../components/ui/Card";
@@ -16,11 +16,11 @@ const styles = stylex.create({
   field: { display: "grid", gap: "0.35rem" },
   labelRow: { alignItems: "baseline", display: "flex", justifyContent: "space-between" },
   counter: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
   },
-  over: { color: tokens.danger },
+  over: { color: colors.danger },
   footer: { justifyContent: "space-between" },
 });
 

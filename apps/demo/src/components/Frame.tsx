@@ -3,7 +3,8 @@ import { Show, omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "./ui/tokens.stylex";
+import { siteColors, siteLayout } from "../styles/site.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./ui/styleProps";
 
 /**
@@ -27,22 +28,22 @@ import { reactiveStyleAttributes, type StyleProps } from "./ui/styleProps";
 export const frame = stylex.create({
   /** The content column. Its own two borders are the rails. */
   column: {
-    borderInlineColor: tokens.border,
+    borderInlineColor: colors.border,
     borderInlineStyle: "solid",
     borderInlineWidth: 1,
     marginInline: "auto",
-    maxWidth: tokens.contentWidth,
+    maxWidth: siteLayout.contentWidth,
     width: "100%",
   },
   /** Inline padding that clears the rails. Every cell that holds text uses it. */
-  inset: { paddingInline: tokens.inset },
+  inset: { paddingInline: siteLayout.inset },
   /** Holds the rails open to the bottom of the viewport on a short page. */
   runout: { flexGrow: 1 },
 });
 
 const styles = stylex.create({
   bleed: {
-    borderBottomColor: tokens.border,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
     width: "100%",
@@ -55,15 +56,15 @@ const styles = stylex.create({
    */
   bleedTop: {
     borderBottomWidth: 0,
-    borderTopColor: tokens.border,
+    borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
     marginBlockStart: -1,
   },
   header: {
     alignItems: "baseline",
-    backgroundColor: tokens.canvasMuted,
-    borderBottomColor: tokens.border,
+    backgroundColor: siteColors.canvasMuted,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
     display: "flex",
@@ -73,16 +74,20 @@ const styles = stylex.create({
     paddingBlock: "0.7rem",
   },
   headerTitle: {
-    color: tokens.text,
+    color: colors.foreground,
     fontSize: "0.75rem",
     fontWeight: 680,
     letterSpacing: "0.06em",
     margin: 0,
     textTransform: "uppercase",
   },
-  headerNote: { color: tokens.textSubtle, fontFamily: tokens.fontMono, fontSize: "0.6875rem" },
+  headerNote: {
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
+    fontSize: "0.6875rem",
+  },
   band: {
-    borderBottomColor: tokens.border,
+    borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
   },

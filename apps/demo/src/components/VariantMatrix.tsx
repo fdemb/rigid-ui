@@ -2,7 +2,7 @@ import * as stylex from "@stylexjs/stylex";
 import { For, Match, Show, Switch } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "./ui/tokens.stylex";
 import Band, { BandHeader, frame } from "./Frame";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -25,17 +25,17 @@ const styles = stylex.create({
     gridTemplateColumns: { default: "1fr", "@media (min-width: 44rem)": "8rem 1fr" },
     paddingBlock: { default: "0.8rem", "@media (min-width: 44rem)": 0 },
     ":not(:last-child)": {
-      borderBottomColor: tokens.border,
+      borderBottomColor: colors.border,
       borderBottomStyle: "solid",
       borderBottomWidth: 1,
     },
   },
   rowLabel: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
     "@media (min-width: 44rem)": {
-      borderInlineEndColor: tokens.border,
+      borderInlineEndColor: colors.border,
       borderInlineEndStyle: "solid",
       borderInlineEndWidth: 1,
       paddingBlock: "0.9rem",

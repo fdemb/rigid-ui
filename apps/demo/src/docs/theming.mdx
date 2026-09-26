@@ -1,0 +1,172 @@
+import DocPage from "../components/DocPage";
+import CodeBlock from "../components/CodeBlock";
+import Example from "../components/Example";
+import ThemePreview from "../examples/theming/ThemePreview";
+import previewSource from "../examples/theming/ThemePreview.tsx?raw";
+import tokenSource from "../components/ui/tokens.stylex.ts?raw";
+import themeSource from "../components/ui/themes.ts?raw";
+import baseSource from "../components/ui/base.ts?raw";
+import resetSource from "../components/ui/reset.css?raw";
+import stylePropsSource from "../components/ui/styleProps.ts?raw";
+
+export default function Document(props) {
+  return (
+    <DocPage
+      title="Theming"
+      sections={[
+        "Copy the foundation",
+        "Apply a theme",
+        "Customize colors",
+        "Change shape and density",
+        "Scope a theme",
+        "Override a component",
+        "Foundation source",
+      ]}
+    >
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Theming
+
+Customize the styled components through local StyleX tokens. Unstyled `rigid-ui` primitives do not depend on this theme.
+
+<Example title="Theme customization" src={previewSource}>
+  <ThemePreview />
+</Example>
+
+## Copy the foundation
+
+Copy `tokens.stylex.ts`, `themes.ts`, `base.ts`, `reset.css`, and `styleProps.ts` into your application's `components/ui` directory. Their source is included below. Copy the components you need beside them, including any local imports such as `Button` or `Input`.
+
+Install `rigid-ui`, `@stylexjs/stylex`, and `modern-normalize` alongside the matching Solid 2 packages. Add `@stylexjs/unplugin` to your build dependencies.
+
+Configure StyleX before the Solid plugin in Vite. Keep the reset layers before StyleX's generated layers so `xstyle` overrides take precedence over global styles.
+
+```ts
+import stylex from "@stylexjs/unplugin";
+import solid from "@solidjs/vite-plugin";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [
+    stylex.vite({
+      runtimeInjection: false,
+      sxPropName: false,
+      useCSSLayers: { before: ["reset", "base"] },
+    }),
+    solid(),
+  ],
+});
+```
+
+The site layout and code-block tokens in `styles/site.stylex.ts` belong to this documentation site. The reusable components have no dependency on them. Registry installation is not available yet.
+
+## Apply a theme
+
+Import the reset once. Apply `base.root` and the selected theme to `<html>` so document text, native controls, and body-mounted popups share the same theme.
+
+Inside your application's root component, use a Solid effect to update the theme classes. Its cleanup removes the previous classes before the next theme is applied.
+
+```tsx
+import * as stylex from "@stylexjs/stylex";
+import { createEffect, createSignal } from "solid-js";
+import { base } from "./components/ui/base";
+import { themes, type ThemeName } from "./components/ui/themes";
+import "./components/ui/reset.css";
+
+const [theme, setTheme] = createSignal<ThemeName>("light");
+
+createEffect(
+  () => stylex.attrs(base.root, themes[theme()]).class,
+  (className) => {
+    const classes = className?.split(" ") ?? [];
+    document.documentElement.classList.add(...classes);
+    return () => document.documentElement.classList.remove(...classes);
+  },
+);
+```
+
+Choose the initial mode from your application's preferences. This site uses a saved choice, then the system preference. Theme classes also set `color-scheme`, so native controls follow the selected mode.
+
+## Customize colors
+
+Edit the defaults in `colors` and the dark overrides in `themes.ts`. Pair each background with its foreground: `surface` with `surfaceForeground`, `overlay` with `overlayForeground`, and `primary` with `primaryForeground`. Tooltips use `inverse` and `inverseForeground`.
+
+For a blue primary action, set `primary`, `primaryHover`, and `primaryForeground` together. The `primaryMuted` and `primaryBorder` defaults derive from `primary`. Override them when you want a different treatment for accent badges.
+
+Status colors have separate background, foreground, and border values. `danger` styles a filled destructive action; `dangerMuted`, `dangerMutedForeground`, and `dangerBorder` style a subdued danger badge. You can change one treatment without changing the other.
+
+StyleX resets omitted values to the group's defaults when you apply `createTheme`. Define one complete color theme for each mode you need. Applying a second partial color theme on a dark section can restore light defaults. Prefer editing the existing mode, or defining all of its color overrides in one `createTheme` call.
+
+## Change shape and density
+
+Each exported variable group can be themed independently. `radii.base` controls small, medium, and large corners. `controls.height` controls Button and Input heights, with derived sizes for their smaller and larger variants. `controls.touchTarget` preserves a minimum size for coarse pointers.
+
+```tsx
+import * as stylex from "@stylexjs/stylex";
+import { controls, radii } from "./components/ui/tokens.stylex";
+
+const compact = stylex.createTheme(controls, { height: "2.25rem" });
+const rounded = stylex.createTheme(radii, { base: "0.875rem" });
+
+<div {...stylex.attrs(compact, rounded)}>
+  <Input aria-label="Project name" />
+  <Button>Save</Button>
+</div>;
+```
+
+These overrides preserve an inherited dark color theme because they affect different variable groups. Use `typography` for font families, shared text sizes, and weights. `motion` controls interaction timing; `shadows` controls elevation. Component-specific padding and layout stay in the component source.
+
+## Scope a theme
+
+Apply `base.root` and `themes.light` or `themes.dark` to a section to give it its own colors. For floating content, pass that section's container to `Popover.Content`, `Tooltip.Content`, `Dialog.Content`, or `AlertDialog.Content`.
+
+```tsx
+const container: { current: HTMLDivElement | null } = { current: null };
+
+<div
+  ref={(element) => {
+    container.current = element;
+  }}
+  {...stylex.attrs(base.root, themes.dark)}
+>
+  <Popover.Root>
+    <Popover.Trigger>Details</Popover.Trigger>
+    <Popover.Content container={container}>
+      <Popover.Title>Project details</Popover.Title>
+    </Popover.Content>
+  </Popover.Root>
+</div>;
+```
+
+Without `container`, floating content mounts under `document.body` and follows the document theme. The interactive example above keeps its popup inside the preview, including the nested shape and density overrides. Keep a scoped container free of clipping and transforms that would constrain its floating content.
+
+## Override a component
+
+Use `variant` and `size` for built-in choices. Use `xstyle` for an individual instance, or edit the copied source to change every instance. `xstyle` is composed last, so its properties override the component recipe.
+
+Content, title, description, and close parts of Dialog and Popover accept `xstyle`. A popover's arrow inherits its popup background and border. To customize an entire subtree, apply a theme to its container.
+
+## Foundation source
+
+### Tokens
+
+<CodeBlock path="components/ui/tokens.stylex.ts" code={tokenSource} />
+
+### Light and dark themes
+
+<CodeBlock path="components/ui/themes.ts" code={themeSource} />
+
+### Base styles
+
+<CodeBlock path="components/ui/base.ts" code={baseSource} />
+
+### Reset
+
+<CodeBlock path="components/ui/reset.css" code={resetSource} />
+
+### Style props
+
+<CodeBlock path="components/ui/styleProps.ts" code={stylePropsSource} />

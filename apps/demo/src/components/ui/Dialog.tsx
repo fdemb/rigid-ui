@@ -5,13 +5,13 @@ import { AlertDialog as AlertDialogPrimitive } from "rigid-ui/primitives/alert-d
 import { Dialog as DialogPrimitive } from "rigid-ui/primitives/dialog";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, shadows, typography } from "./tokens.stylex";
 import { Button, type ButtonAppearance } from "./Button";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   backdrop: {
-    backgroundColor: tokens.backdrop,
+    backgroundColor: colors.backdrop,
     inset: 0,
     opacity: {
       default: 1,
@@ -19,22 +19,22 @@ const styles = stylex.create({
       ":is([data-ending-style])": 0,
     },
     position: "fixed",
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "opacity",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
     },
   },
   popup: {
-    backgroundColor: tokens.surfaceRaised,
-    borderColor: tokens.border,
-    borderRadius: tokens.radiusLg,
+    backgroundColor: colors.overlay,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
     borderStyle: "solid",
     borderWidth: 1,
-    boxShadow: tokens.shadowLg,
-    color: tokens.text,
+    boxShadow: shadows.lg,
+    color: colors.overlayForeground,
     display: "flex",
     flexDirection: "column",
     gap: "0.7rem",
@@ -56,9 +56,9 @@ const styles = stylex.create({
       ":is([data-starting-style])": "translate(-50%, calc(-50% + 0.4rem)) scale(0.97)",
       ":is([data-ending-style])": "translate(-50%, calc(-50% + 0.4rem)) scale(0.97)",
     },
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "opacity, transform",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
@@ -68,17 +68,16 @@ const styles = stylex.create({
   md: { width: "31rem" },
   lg: { width: "42rem" },
   title: {
-    color: tokens.text,
-    fontSize: "1rem",
-    fontWeight: 700,
+    fontSize: typography.lg,
+    fontWeight: typography.bold,
     letterSpacing: "-0.012em",
-    lineHeight: 1.3,
+    lineHeight: typography.headingLineHeight,
     margin: 0,
   },
   description: {
-    color: tokens.textMuted,
-    fontSize: "0.875rem",
-    lineHeight: 1.55,
+    color: colors.mutedForeground,
+    fontSize: typography.md,
+    lineHeight: typography.bodyLineHeight,
     margin: 0,
   },
   footer: {
@@ -104,6 +103,7 @@ type AlertDialogTitleProps = Parameters<typeof AlertDialogPrimitive.Title>[0];
 type AlertDialogDescriptionProps = Parameters<typeof AlertDialogPrimitive.Description>[0];
 
 interface ContentOptions extends StyleProps {
+  container?: Parameters<typeof DialogPrimitive.Portal>[0]["container"];
   children?: JSX.Element;
   size?: "sm" | "md" | "lg";
 }
@@ -140,13 +140,18 @@ function DialogTrigger(
   );
 }
 
-function DialogClose(props: DialogCloseProps & ButtonAppearance) {
-  const primitiveProps = omit(props, "variant", "size");
+function DialogClose(props: DialogCloseProps & ButtonAppearance & StyleProps) {
+  const primitiveProps = omit(props, "variant", "size", "xstyle");
   return (
     <DialogPrimitive.Close
       {...primitiveProps}
       render={(closeProps) => (
-        <Button {...closeProps} size={props.size} variant={props.variant ?? "secondary"} />
+        <Button
+          {...closeProps}
+          size={props.size}
+          variant={props.variant ?? "secondary"}
+          xstyle={props.xstyle}
+        />
       )}
     />
   );
@@ -154,75 +159,88 @@ function DialogClose(props: DialogCloseProps & ButtonAppearance) {
 
 function DialogContent(props: DialogContentProps) {
   const modal = useContext(DialogModalContext);
-  const popupProps = omit(props, "size", "xstyle");
+  const popupProps = omit(props, "container", "size", "xstyle");
   const popupStyles = reactiveStyleAttributes(() =>
     stylex.attrs(styles.popup, sizes[props.size ?? "md"], props.xstyle),
   );
   return (
-    <DialogPrimitive.Portal>
+    <DialogPrimitive.Portal container={props.container}>
       {modal?.() !== false && <DialogPrimitive.Backdrop {...stylex.attrs(styles.backdrop)} />}
       <DialogPrimitive.Popup {...mergeProps(popupStyles, popupProps)} />
     </DialogPrimitive.Portal>
   );
 }
 
-function DialogTitle(props: DialogTitleProps) {
-  return <DialogPrimitive.Title {...mergeProps(stylex.attrs(styles.title), props)} />;
+function DialogTitle(props: DialogTitleProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.title, props.xstyle));
+  return <DialogPrimitive.Title {...mergeProps(attrs, primitiveProps)} />;
 }
 
-function DialogDescription(props: DialogDescriptionProps) {
-  return <DialogPrimitive.Description {...mergeProps(stylex.attrs(styles.description), props)} />;
+function DialogDescription(props: DialogDescriptionProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.description, props.xstyle));
+  return <DialogPrimitive.Description {...mergeProps(attrs, primitiveProps)} />;
 }
 
-function AlertTrigger(props: AlertDialogTriggerProps & ButtonAppearance) {
-  const primitiveProps = omit(props, "variant", "size");
+function AlertTrigger(props: AlertDialogTriggerProps & ButtonAppearance & StyleProps) {
+  const primitiveProps = omit(props, "variant", "size", "xstyle");
   return (
     <AlertDialogPrimitive.Trigger
       {...primitiveProps}
       render={(triggerProps) => (
-        <Button {...triggerProps} size={props.size} variant={props.variant} />
+        <Button {...triggerProps} size={props.size} variant={props.variant} xstyle={props.xstyle} />
       )}
     />
   );
 }
 
-function AlertClose(props: AlertDialogCloseProps & ButtonAppearance) {
-  const primitiveProps = omit(props, "variant", "size");
+function AlertClose(props: AlertDialogCloseProps & ButtonAppearance & StyleProps) {
+  const primitiveProps = omit(props, "variant", "size", "xstyle");
   return (
     <AlertDialogPrimitive.Close
       {...primitiveProps}
       render={(closeProps) => (
-        <Button {...closeProps} size={props.size} variant={props.variant ?? "secondary"} />
+        <Button
+          {...closeProps}
+          size={props.size}
+          variant={props.variant ?? "secondary"}
+          xstyle={props.xstyle}
+        />
       )}
     />
   );
 }
 
 function AlertContent(props: AlertDialogContentProps) {
-  const popupProps = omit(props, "size", "xstyle");
+  const popupProps = omit(props, "container", "size", "xstyle");
   const popupStyles = reactiveStyleAttributes(() =>
     stylex.attrs(styles.popup, sizes[props.size ?? "sm"], props.xstyle),
   );
   return (
-    <AlertDialogPrimitive.Portal>
+    <AlertDialogPrimitive.Portal container={props.container}>
       <AlertDialogPrimitive.Backdrop {...stylex.attrs(styles.backdrop)} />
       <AlertDialogPrimitive.Popup {...mergeProps(popupStyles, popupProps)} />
     </AlertDialogPrimitive.Portal>
   );
 }
 
-function AlertTitle(props: AlertDialogTitleProps) {
-  return <AlertDialogPrimitive.Title {...mergeProps(stylex.attrs(styles.title), props)} />;
+function AlertTitle(props: AlertDialogTitleProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.title, props.xstyle));
+  return <AlertDialogPrimitive.Title {...mergeProps(attrs, primitiveProps)} />;
 }
 
-function AlertDescription(props: AlertDialogDescriptionProps) {
-  return (
-    <AlertDialogPrimitive.Description {...mergeProps(stylex.attrs(styles.description), props)} />
-  );
+function AlertDescription(props: AlertDialogDescriptionProps & StyleProps) {
+  const primitiveProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.description, props.xstyle));
+  return <AlertDialogPrimitive.Description {...mergeProps(attrs, primitiveProps)} />;
 }
 
-export function DialogFooter(props: JSX.HTMLAttributes<HTMLDivElement>) {
-  return <div {...mergeProps(stylex.attrs(styles.footer), props)} />;
+export function DialogFooter(props: JSX.HTMLAttributes<HTMLDivElement> & StyleProps) {
+  const elementProps = omit(props, "xstyle");
+  const attrs = reactiveStyleAttributes(() => stylex.attrs(styles.footer, props.xstyle));
+  return <div {...mergeProps(attrs, elementProps)} />;
 }
 
 export const Dialog = {

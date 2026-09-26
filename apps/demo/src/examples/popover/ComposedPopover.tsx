@@ -1,16 +1,17 @@
 import * as stylex from "@stylexjs/stylex";
 
 import { Popover } from "../../components/ui/Popover";
-import { tokens } from "../../styles/tokens.stylex";
+import { colors } from "../../components/ui/tokens.stylex";
+import { siteColors } from "../../styles/site.stylex";
 
 const styles = stylex.create({
   trigger: {
-    borderColor: tokens.accent,
-    color: tokens.accent,
+    borderColor: colors.primary,
+    color: colors.primary,
   },
   content: {
-    backgroundColor: tokens.canvasMuted,
-    borderColor: tokens.borderStrong,
+    backgroundColor: siteColors.canvasMuted,
+    borderColor: colors.borderStrong,
   },
 });
 

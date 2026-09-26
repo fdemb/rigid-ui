@@ -3,12 +3,12 @@ import { omit } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { Meter as MeterPrimitive } from "rigid-ui/primitives/meter";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, typography } from "./tokens.stylex";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   root: {
-    color: tokens.text,
+    color: colors.foreground,
     display: "grid",
     gridTemplateColumns: "minmax(0, 1fr) auto",
     gap: "0.5rem 0.75rem",
@@ -16,33 +16,33 @@ const styles = stylex.create({
     width: "100%",
   },
   label: {
-    fontSize: "0.8125rem",
-    fontWeight: 600,
+    fontSize: typography.sm,
+    fontWeight: typography.semibold,
     gridColumn: "1",
-    lineHeight: 1.45,
+    lineHeight: typography.bodyLineHeight,
     overflowWrap: "anywhere",
   },
   value: {
-    color: tokens.textMuted,
-    fontSize: "0.8125rem",
+    color: colors.mutedForeground,
+    fontSize: typography.sm,
     fontVariantNumeric: "tabular-nums",
     gridColumn: "2",
-    lineHeight: 1.45,
+    lineHeight: typography.bodyLineHeight,
     textAlign: "end",
   },
   track: {
-    backgroundColor: tokens.surfaceInteractive,
-    borderRadius: tokens.radiusFull,
+    backgroundColor: colors.interactive,
+    borderRadius: radii.full,
     gridColumn: "1 / -1",
     height: "0.5rem",
     overflow: "hidden",
   },
   indicator: {
-    backgroundColor: tokens.accent,
+    backgroundColor: colors.primary,
     borderRadius: "inherit",
-    transitionDuration: tokens.durationNormal,
+    transitionDuration: motion.normal,
     transitionProperty: "width",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",

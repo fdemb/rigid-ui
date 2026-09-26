@@ -1,6 +1,6 @@
 import * as stylex from "@stylexjs/stylex";
 
-import { tokens } from "../styles/tokens.stylex";
+import { colors, typography } from "../components/ui/tokens.stylex";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from "../components/ui/Card";
@@ -13,14 +13,14 @@ const styles = stylex.create({
   field: { display: "grid", gap: "0.35rem" },
   divider: { alignItems: "center", display: "flex", gap: "0.6rem" },
   dividerLabel: {
-    color: tokens.textSubtle,
-    fontFamily: tokens.fontMono,
+    color: colors.subtleForeground,
+    fontFamily: typography.mono,
     fontSize: "0.6875rem",
     letterSpacing: "0.08em",
     textTransform: "uppercase",
   },
   footer: { justifyContent: "space-between" },
-  hint: { color: tokens.textMuted, fontSize: "0.75rem", margin: 0 },
+  hint: { color: colors.mutedForeground, fontSize: "0.75rem", margin: 0 },
 });
 
 export default function SignInBlock() {

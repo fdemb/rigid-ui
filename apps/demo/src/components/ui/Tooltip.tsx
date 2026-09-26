@@ -3,19 +3,19 @@ import { omit } from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 import { Tooltip as TooltipPrimitive } from "rigid-ui/primitives/tooltip";
 
-import { tokens } from "../../styles/tokens.stylex";
+import { colors, motion, radii, shadows, typography } from "./tokens.stylex";
 import { Button, type ButtonAppearance } from "./Button";
 import { reactiveStyleAttributes, type StyleProps } from "./styleProps";
 
 const styles = stylex.create({
   popup: {
-    backgroundColor: tokens.text,
-    borderRadius: tokens.radiusSm,
-    boxShadow: tokens.shadowMd,
-    color: tokens.surface,
-    fontSize: "0.75rem",
-    fontWeight: 650,
-    lineHeight: 1.3,
+    backgroundColor: colors.inverse,
+    borderRadius: radii.sm,
+    boxShadow: shadows.md,
+    color: colors.inverseForeground,
+    fontSize: typography.xs,
+    fontWeight: typography.bold,
+    lineHeight: typography.headingLineHeight,
     maxWidth: "16rem",
     opacity: {
       default: 1,
@@ -30,9 +30,9 @@ const styles = stylex.create({
       ":is([data-ending-style])": "scale(0.96)",
     },
     transformOrigin: "var(--transform-origin)",
-    transitionDuration: tokens.durationFast,
+    transitionDuration: motion.fast,
     transitionProperty: "opacity, transform",
-    transitionTimingFunction: tokens.easing,
+    transitionTimingFunction: motion.easing,
     "@media (prefers-reduced-motion: reduce)": {
       transitionDuration: 0,
       transitionProperty: "none",
@@ -42,8 +42,10 @@ const styles = stylex.create({
 
 type TriggerProps = Parameters<typeof TooltipPrimitive.Trigger>[0];
 type PopupProps = Parameters<typeof TooltipPrimitive.Popup>[0];
+type PortalProps = Parameters<typeof TooltipPrimitive.Portal>[0];
 
 interface TooltipContentProps extends Omit<PopupProps, "class" | "style">, StyleProps {
+  container?: PortalProps["container"];
   sideOffset?: number;
 }
 
@@ -60,10 +62,10 @@ function TooltipTrigger(props: TriggerProps & ButtonAppearance & { xstyle?: styl
 }
 
 function TooltipContent(props: TooltipContentProps) {
-  const popupProps = omit(props, "sideOffset", "xstyle");
+  const popupProps = omit(props, "container", "sideOffset", "xstyle");
   const popupStyles = reactiveStyleAttributes(() => stylex.attrs(styles.popup, props.xstyle));
   return (
-    <TooltipPrimitive.Portal>
+    <TooltipPrimitive.Portal container={props.container}>
       <TooltipPrimitive.Positioner sideOffset={props.sideOffset ?? 7}>
         <TooltipPrimitive.Popup {...mergeProps(popupStyles, popupProps)} />
       </TooltipPrimitive.Positioner>
