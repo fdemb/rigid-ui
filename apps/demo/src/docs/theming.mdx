@@ -108,7 +108,7 @@ Each exported variable group can be themed independently. `radii.base` controls 
 import * as stylex from "@stylexjs/stylex";
 import { controls, radii } from "./components/ui/tokens.stylex";
 
-const compact = stylex.createTheme(controls, { height: "2.25rem" });
+const compact = stylex.createTheme(controls, { height: "1.75rem" });
 const rounded = stylex.createTheme(radii, { base: "0.875rem" });
 
 <div {...stylex.attrs(compact, rounded)}>

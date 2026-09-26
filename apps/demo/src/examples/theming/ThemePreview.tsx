@@ -9,7 +9,7 @@ import { Input } from "../../components/ui/Input";
 import { Label } from "../../components/ui/Label";
 import { Popover } from "../../components/ui/Popover";
 
-const compact = stylex.createTheme(controls, { height: "2.25rem" });
+const compact = stylex.createTheme(controls, { height: "1.75rem" });
 const rounded = stylex.createTheme(radii, { base: "0.875rem" });
 
 const styles = stylex.create({

@@ -53,7 +53,7 @@ export const radii = stylex.defineVars({
 });
 
 export const controls = stylex.defineVars({
-  height: "2.75rem",
+  height: "2rem",
   heightXs: (): string => `calc(${controls.height} - 0.5rem)`,
   heightSm: (): string => `calc(${controls.height} - 0.25rem)`,
   heightLg: (): string => `calc(${controls.height} + 0.25rem)`,

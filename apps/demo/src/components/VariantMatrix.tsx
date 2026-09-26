@@ -88,6 +88,7 @@ export function Row(props: { label: string; children: JSX.Element }) {
 
 const buttonVariants = ["primary", "secondary", "outline", "ghost", "danger"] as const;
 const buttonSizes = ["xs", "sm", "md", "lg"] as const;
+const iconSizes = ["icon-xs", "icon-sm", "icon", "icon-lg"] as const;
 const badgeTones = ["neutral", "accent", "success", "warning", "danger"] as const;
 
 /**
@@ -124,9 +125,13 @@ export function VariantMatrix(props: { slug: string }) {
         </Row>
         <Row label="size">
           <For each={buttonSizes}>{(size) => <Button size={size}>{size}</Button>}</For>
-          <Button size="icon" aria-label="Add">
-            +
-          </Button>
+          <For each={iconSizes}>
+            {(size) => (
+              <Button size={size} aria-label="Add">
+                +
+              </Button>
+            )}
+          </For>
         </Row>
         <Row label="disabled">
           <For each={buttonVariants}>

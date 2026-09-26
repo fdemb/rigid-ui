@@ -16,7 +16,6 @@ const styles = stylex.create({
     cursor: "pointer",
     display: "inline-flex",
     fontWeight: typography.semibold,
-    gap: "0.45rem",
     justifyContent: "center",
     letterSpacing: "-0.005em",
     lineHeight: 1,
@@ -99,6 +98,7 @@ const sizeStyles = stylex.create({
   xs: {
     borderRadius: radii.sm,
     fontSize: typography.xs,
+    gap: "0.25rem",
     minHeight: {
       default: controls.heightXs,
       "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
@@ -108,29 +108,56 @@ const sizeStyles = stylex.create({
   sm: {
     borderRadius: radii.sm,
     fontSize: typography.sm,
+    gap: "0.25rem",
     minHeight: {
       default: controls.heightSm,
       "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
     },
-    paddingInline: "0.7rem",
+    paddingInline: "0.625rem",
   },
   md: {
     borderRadius: radii.md,
     fontSize: typography.md,
+    gap: "0.375rem",
     minHeight: {
       default: controls.height,
       "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
     },
-    paddingInline: "1rem",
+    paddingInline: "0.625rem",
   },
   lg: {
     borderRadius: radii.md,
-    fontSize: typography.lg,
+    fontSize: typography.md,
+    gap: "0.375rem",
     minHeight: {
       default: controls.heightLg,
       "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
     },
-    paddingInline: "1.2rem",
+    paddingInline: "0.625rem",
+  },
+  "icon-xs": {
+    borderRadius: radii.sm,
+    height: {
+      default: controls.heightXs,
+      "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightXs,
+      "@media (pointer: coarse)": `max(${controls.heightXs}, ${controls.touchTarget})`,
+    },
+  },
+  "icon-sm": {
+    borderRadius: radii.sm,
+    height: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightSm,
+      "@media (pointer: coarse)": `max(${controls.heightSm}, ${controls.touchTarget})`,
+    },
   },
   icon: {
     borderRadius: radii.md,
@@ -142,6 +169,18 @@ const sizeStyles = stylex.create({
     width: {
       default: controls.height,
       "@media (pointer: coarse)": `max(${controls.height}, ${controls.touchTarget})`,
+    },
+  },
+  "icon-lg": {
+    borderRadius: radii.md,
+    height: {
+      default: controls.heightLg,
+      "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
+    },
+    padding: 0,
+    width: {
+      default: controls.heightLg,
+      "@media (pointer: coarse)": `max(${controls.heightLg}, ${controls.touchTarget})`,
     },
   },
 });
