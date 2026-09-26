@@ -1,5 +1,4 @@
 import * as stylex from "@stylexjs/stylex";
-import { Badge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import {
   Card,
@@ -10,30 +9,66 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/Card";
+import { Input } from "../../components/ui/Input";
+import { Label } from "../../components/ui/Label";
+import { colors, typography } from "../../components/ui/tokens.stylex";
 
 const styles = stylex.create({
-  root: { display: "grid", gap: "0.5rem", width: "100%", maxWidth: "24rem" },
+  card: { maxWidth: "24rem", width: "100%" },
+  form: { display: "flex", flexDirection: "column", gap: "1.25rem" },
+  field: { display: "grid", gap: "0.4rem" },
+  labelRow: { alignItems: "center", display: "flex" },
+  link: {
+    color: colors.foreground,
+    fontSize: typography.sm,
+    marginInlineStart: "auto",
+    textDecoration: { default: "none", ":hover": "underline" },
+    textUnderlineOffset: "4px",
+  },
+  footer: { alignItems: "stretch", flexDirection: "column" },
 });
 
 export default function BasicCard() {
   return (
-    <div {...stylex.attrs(styles.root)}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Project settings</CardTitle>
-          <CardDescription>Manage your project.</CardDescription>
-          <CardAction>
-            <Badge>Draft</Badge>
-          </CardAction>
-        </CardHeader>
-        <CardContent>Project details</CardContent>
-        <CardFooter>
-          <Button size="sm" variant="outline">
-            Cancel
+    <Card xstyle={styles.card}>
+      <CardHeader>
+        <CardTitle>Login to your account</CardTitle>
+        <CardDescription>Enter your email below to login to your account</CardDescription>
+        <CardAction>
+          <Button size="sm" variant="ghost">
+            Sign up
           </Button>
-          <Button size="sm">Save</Button>
-        </CardFooter>
-      </Card>
-    </div>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <form
+          id="login-form"
+          onSubmit={(event) => event.preventDefault()}
+          {...stylex.attrs(styles.form)}
+        >
+          <div {...stylex.attrs(styles.field)}>
+            <Label for="login-email">Email</Label>
+            <Input id="login-email" type="email" placeholder="m@example.com" required />
+          </div>
+          <div {...stylex.attrs(styles.field)}>
+            <div {...stylex.attrs(styles.labelRow)}>
+              <Label for="login-password">Password</Label>
+              <a href="#" {...stylex.attrs(styles.link)}>
+                Forgot your password?
+              </a>
+            </div>
+            <Input id="login-password" type="password" required />
+          </div>
+        </form>
+      </CardContent>
+      <CardFooter xstyle={styles.footer}>
+        <Button type="submit" form="login-form" block>
+          Login
+        </Button>
+        <Button variant="outline" block>
+          Login with Google
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }

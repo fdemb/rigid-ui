@@ -28,16 +28,24 @@ Compose `CardHeader`, `CardContent`, and `CardFooter` inside `Card`. Put `CardTi
 ```tsx
 <Card>
   <CardHeader>
-    <CardTitle>Project settings</CardTitle>
-    <CardDescription>Manage your project.</CardDescription>
+    <CardTitle>Login to your account</CardTitle>
+    <CardDescription>Enter your email below to login to your account</CardDescription>
     <CardAction>
-      <Badge>Draft</Badge>
+      <Button size="sm" variant="ghost">
+        Sign up
+      </Button>
     </CardAction>
   </CardHeader>
-  <CardContent>Project details</CardContent>
+  <CardContent>
+    <form id="login-form">
+      <Label for="login-email">Email</Label>
+      <Input id="login-email" type="email" required />
+    </form>
+  </CardContent>
   <CardFooter>
-    <Button variant="outline">Cancel</Button>
-    <Button>Save</Button>
+    <Button type="submit" form="login-form" block>
+      Login
+    </Button>
   </CardFooter>
 </Card>
 ```

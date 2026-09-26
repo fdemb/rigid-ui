@@ -23,7 +23,7 @@ const styles = stylex.create({
     gap: "0.75rem",
     justifyContent: "space-between",
     paddingBlock: "0.7rem",
-    paddingInline: "1.25rem",
+    paddingInline: "1rem",
   },
   label: { color: colors.mutedForeground, fontSize: "0.8125rem" },
   figures: { alignItems: "center", display: "flex", gap: "0.6rem" },

@@ -35,8 +35,7 @@ const styles = stylex.create({
     "@media (prefers-reduced-motion: reduce)": { transitionProperty: "none" },
   },
   section: {
-    paddingBlock: "1rem",
-    paddingInline: "1.25rem",
+    padding: "1rem",
   },
   header: {
     columnGap: "0.75rem",

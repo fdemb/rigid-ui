@@ -168,7 +168,7 @@ export function buttonStyle(appearance: ButtonAppearance = {}): stylex.StyleXSty
   return [
     styles.root,
     base.focusRing,
-    variantStyles[appearance.variant ?? "secondary"],
+    variantStyles[appearance.variant ?? "primary"],
     sizeStyles[appearance.size ?? "md"],
   ] as unknown as stylex.StyleXStyles;
 }
@@ -179,7 +179,7 @@ export function Button(props: ButtonProps) {
     stylex.attrs(
       styles.root,
       base.focusRing,
-      variantStyles[props.variant ?? "secondary"],
+      variantStyles[props.variant ?? "primary"],
       sizeStyles[props.size ?? "md"],
       props.block && styles.block,
       props.xstyle,

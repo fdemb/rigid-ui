@@ -39,6 +39,7 @@ export default function ThemePreview() {
       <div {...stylex.attrs(styles.options)}>
         <Button
           size="sm"
+          variant="secondary"
           aria-pressed={isCompact() ? "true" : "false"}
           onClick={() => setCompact(!isCompact())}
         >
@@ -46,6 +47,7 @@ export default function ThemePreview() {
         </Button>
         <Button
           size="sm"
+          variant="secondary"
           aria-pressed={isRounded() ? "true" : "false"}
           onClick={() => setRounded(!isRounded())}
         >
@@ -53,6 +55,7 @@ export default function ThemePreview() {
         </Button>
         <Button
           size="sm"
+          variant="secondary"
           aria-pressed={isDark() ? "true" : "false"}
           onClick={() => setDark(!isDark())}
         >
