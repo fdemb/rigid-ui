@@ -1,5 +1,34 @@
 import type { JSX } from "@solidjs/web";
 
+import { CodePanel } from "./CodeBlock";
+
+function MdxPre(props: JSX.IntrinsicElements["pre"]) {
+  const fence = findFencedCode(props.children);
+  if (fence) {
+    return <CodePanel code={fence.text} collapsible={false} lang={fence.lang} />;
+  }
+  return <pre {...props} />;
+}
+
+/*
+ * MDX renders the `code` mapping before `pre` sees it, so by the time this
+ * runs the child is a real `<code>` element carrying the `language-*` class
+ * and the raw source as its text. Anything else falls back to a plain `pre`.
+ */
+function findFencedCode(children: unknown): { lang: string; text: string } | undefined {
+  const items = Array.isArray(children) ? children : [children];
+  for (const item of items) {
+    if (typeof Element !== "undefined" && item instanceof Element) {
+      const code = item.tagName === "CODE" ? item : item.querySelector(":scope > code");
+      if (code) {
+        const lang = (code.getAttribute("class") ?? "").match(/language-([\w+-]+)/)?.[1];
+        return { lang: lang ?? "tsx", text: code.textContent ?? "" };
+      }
+    }
+  }
+  return undefined;
+}
+
 // MDX emits string defaults for Markdown tags. Solid 2's createComponent
 // requires functions, so these mappings compile each tag as a native element.
 const components = {
@@ -12,7 +41,7 @@ const components = {
   section: (props: JSX.IntrinsicElements["section"]) => <section {...props} />,
   sup: (props: JSX.IntrinsicElements["sup"]) => <sup {...props} />,
   p: (props: JSX.IntrinsicElements["p"]) => <p {...props} />,
-  pre: (props: JSX.IntrinsicElements["pre"]) => <pre {...props} />,
+  pre: (props: JSX.IntrinsicElements["pre"]) => <MdxPre {...props} />,
   code: (props: JSX.IntrinsicElements["code"] & { className?: string }) => (
     <code {...props} class={props.class ?? props.className} />
   ),

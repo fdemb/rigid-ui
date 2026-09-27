@@ -1,203 +1,52 @@
 import * as stylex from "@stylexjs/stylex";
-import { For, Show, createMemo, createSignal } from "solid-js";
+import {
+  createContext,
+  createMemo,
+  createSignal,
+  onCleanup,
+  Show,
+  useContext,
+  type ParentProps,
+} from "solid-js";
 import { mergeProps } from "rigid-ui/primitives/merge-props";
 
-import { TypeScriptIcon } from "./icons";
+import {
+  highlightCodeBlock,
+  highlightInlineSpans,
+  type CodeHighlightResult,
+  type HighlightDecoration,
+} from "../code/code-fence";
+import { displayNameForLanguage, resolveCodeLanguage } from "../code/highlighter";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  CopyIcon,
+  FileCodeIcon,
+  JavaScriptIcon,
+  TypeScriptIcon,
+} from "./icons";
+import { Button } from "./ui/Button";
+import { ScrollArea } from "./ui/ScrollArea";
+import { Tooltip } from "./ui/Tooltip";
 import { colors, motion, radii, shadows, typography } from "./ui/tokens.stylex";
-import { siteColors } from "../styles/site.stylex";
-export interface CodeBlockProps {
-  code: string;
-  path?: string;
-  language?: string;
-  collapsible?: boolean;
-  defaultExpanded?: boolean;
-  xstyle?: stylex.StyleXStyles;
-}
+import type { StyleProps } from "./ui/styleProps";
 
-type TokenType = "keyword" | "type" | "string" | "number" | "comment" | "punct" | "ident" | "plain";
+/*
+ * Code views, all running on the one shared TanStack Highlight registry.
+ *
+ * `Code` is inline snippets. `CodeBlock` is a small headerless block.
+ * Larger presentations compose the `CodePanel*` pieces: a root holding the
+ * highlighted HTML and expand state, a header with a bare file icon plus one
+ * label, primitive-backed actions, and a body whose only expand control is
+ * the floating pill. `CodePanel` wires the common arrangement.
+ */
 
-interface Token {
-  type: TokenType;
-  text: string;
-}
-
-const keywords: Record<string, true> = {
-  import: true,
-  export: true,
-  from: true,
-  as: true,
-  default: true,
-  type: true,
-  interface: true,
-  const: true,
-  let: true,
-  var: true,
-  function: true,
-  return: true,
-  if: true,
-  else: true,
-  switch: true,
-  case: true,
-  break: true,
-  continue: true,
-  for: true,
-  while: true,
-  do: true,
-  try: true,
-  catch: true,
-  finally: true,
-  throw: true,
-  void: true,
-  null: true,
-  undefined: true,
-  true: true,
-  false: true,
-  async: true,
-  await: true,
-  yield: true,
-  class: true,
-  extends: true,
-  implements: true,
-  new: true,
-  this: true,
-  typeof: true,
-  keyof: true,
-  instanceof: true,
-  in: true,
-  is: true,
-  satisfies: true,
-  readonly: true,
-  declare: true,
-  enum: true,
-  number: true,
-  string: true,
-  boolean: true,
-  symbol: true,
-  any: true,
-  unknown: true,
-  never: true,
-};
-
-function tokenizeCode(code: string): Token[][] {
-  const lines = code.replace(/\r\n/g, "\n").split("\n");
-  const result: Token[][] = [];
-  let inBlockComment = false;
-
-  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-    const line = lines[lineIndex] ?? "";
-    const lineTokens: Token[] = [];
-    let i = 0;
-
-    if (inBlockComment) {
-      const endIdx = line.indexOf("*/");
-      if (endIdx !== -1) {
-        lineTokens.push({ type: "comment", text: line.slice(0, endIdx + 2) });
-        i = endIdx + 2;
-        inBlockComment = false;
-      } else {
-        lineTokens.push({ type: "comment", text: line });
-        result.push(lineTokens);
-        continue;
-      }
-    }
-
-    while (i < line.length) {
-      if (line.slice(i, i + 2) === "/*") {
-        const endIdx = line.indexOf("*/", i + 2);
-        if (endIdx !== -1) {
-          lineTokens.push({ type: "comment", text: line.slice(i, endIdx + 2) });
-          i = endIdx + 2;
-        } else {
-          lineTokens.push({ type: "comment", text: line.slice(i) });
-          inBlockComment = true;
-          break;
-        }
-        continue;
-      }
-
-      if (line.slice(i, i + 2) === "//") {
-        lineTokens.push({ type: "comment", text: line.slice(i) });
-        break;
-      }
-
-      if (line[i] === '"' || line[i] === "'" || line[i] === "`") {
-        const quote = line[i];
-        let end = i + 1;
-        while (end < line.length) {
-          if (line[end] === "\\") {
-            end += 2;
-          } else if (line[end] === quote) {
-            end++;
-            break;
-          } else {
-            end++;
-          }
-        }
-        lineTokens.push({ type: "string", text: line.slice(i, end) });
-        i = end;
-        continue;
-      }
-
-      if (/[a-zA-Z_$]/.test(line[i] ?? "")) {
-        let end = i + 1;
-        while (end < line.length && /[a-zA-Z0-9_$]/.test(line[end] ?? "")) {
-          end++;
-        }
-        const word = line.slice(i, end);
-        if (keywords[word]) {
-          lineTokens.push({ type: "keyword", text: word });
-        } else if (/^[A-Z][a-zA-Z0-9_$]*$/.test(word)) {
-          lineTokens.push({ type: "type", text: word });
-        } else {
-          lineTokens.push({ type: "ident", text: word });
-        }
-        i = end;
-        continue;
-      }
-
-      if (/[0-9]/.test(line[i] ?? "")) {
-        let end = i + 1;
-        while (end < line.length && /[0-9.xXbBoOa-fA-F_]/.test(line[end] ?? "")) {
-          end++;
-        }
-        lineTokens.push({ type: "number", text: line.slice(i, end) });
-        i = end;
-        continue;
-      }
-
-      if (/[{}()[\].,:;=><!~?&|*+\-/%^]/.test(line[i] ?? "")) {
-        lineTokens.push({ type: "punct", text: line[i] ?? "" });
-        i++;
-        continue;
-      }
-
-      let end = i + 1;
-      while (
-        end < line.length &&
-        !/[a-zA-Z0-9_$"'`{}()[\].,:;=><!~?&|*+\-/%^]/.test(line[end] ?? "") &&
-        line.slice(end, end + 2) !== "//" &&
-        line.slice(end, end + 2) !== "/*"
-      ) {
-        end++;
-      }
-      lineTokens.push({ type: "plain", text: line.slice(i, end) });
-      i = end;
-    }
-
-    result.push(lineTokens);
-  }
-
-  // Remove trailing single empty line if present
-  if (result.length > 1 && result[result.length - 1]?.length === 0) {
-    result.pop();
-  }
-
-  return result;
-}
+const COLLAPSE_AT_LINES = 10;
+const COLLAPSED_HEIGHT = "16rem";
 
 const styles = stylex.create({
   root: {
-    backgroundColor: siteColors.codeBackground,
+    backgroundColor: colors.background,
     borderColor: colors.border,
     borderRadius: radii.md,
     borderStyle: "solid",
@@ -208,9 +57,17 @@ const styles = stylex.create({
     position: "relative",
     width: "100%",
   },
+  blockRoot: {
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    borderStyle: "solid",
+    borderWidth: 1,
+    overflow: "hidden",
+    width: "100%",
+  },
   header: {
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.025)",
     borderBottomColor: colors.border,
     borderBottomStyle: "solid",
     borderBottomWidth: 1,
@@ -218,348 +75,471 @@ const styles = stylex.create({
     gap: "0.5rem",
     justifyContent: "space-between",
     minHeight: "2.5rem",
-    paddingBlock: "0.4rem",
-    paddingInline: "0.85rem",
+    paddingBlock: "0.3rem",
+    paddingInline: "0.75rem",
   },
-  headerLeft: {
+  titleGroup: {
     alignItems: "center",
     display: "flex",
-    gap: "0.55rem",
+    gap: "0.5rem",
     minWidth: 0,
   },
-  badge: {
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.08)",
-    borderColor: "rgba(255, 255, 255, 0.12)",
-    borderRadius: radii.sm,
-    borderStyle: "solid",
-    borderWidth: 1,
-    color: siteColors.codeText,
-    display: "inline-flex",
-    fontFamily: typography.mono,
-    fontSize: "0.6875rem",
-    fontWeight: 700,
-    justifyContent: "center",
-    lineHeight: 1,
-    paddingBlock: "0.15rem",
-    paddingInline: "0.35rem",
-    userSelect: "none",
+  languageIcon: {
+    flexShrink: 0,
+    height: "0.9rem",
+    width: "0.9rem",
   },
-  languageIcon: { height: "0.8rem", width: "0.8rem" },
-  path: {
-    color: siteColors.codeTextMuted,
+  fileIcon: {
+    color: colors.mutedForeground,
+    flexShrink: 0,
+    height: "0.9rem",
+    width: "0.9rem",
+  },
+  title: {
+    color: colors.foreground,
     fontFamily: typography.mono,
     fontSize: "0.8125rem",
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
-  headerRight: {
+  actions: {
     alignItems: "center",
     display: "flex",
     flexShrink: 0,
-    gap: "0.5rem",
+    gap: "0.25rem",
   },
-  headerToggle: {
-    alignItems: "center",
-    appearance: "none",
-    backgroundColor: "transparent",
-    borderStyle: "none",
-    borderWidth: 0,
-    color: {
-      default: siteColors.codeTextMuted,
-      ":hover": siteColors.codeText,
-    },
-    cursor: "pointer",
-    display: "inline-flex",
-    fontFamily: typography.mono,
-    fontSize: "0.75rem",
-    lineHeight: 1,
-    paddingBlock: "0.3rem",
-    paddingInline: "0.4rem",
-    transition: `color ${motion.fast} ${motion.easing}`,
-  },
-  divider: {
-    backgroundColor: colors.border,
-    height: "0.85rem",
-    width: 1,
-  },
-  copyButton: {
-    alignItems: "center",
-    appearance: "none",
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderRadius: radii.sm,
-    borderStyle: "solid",
-    borderWidth: 1,
-    color: {
-      default: siteColors.codeTextMuted,
-      ":hover": siteColors.codeText,
-    },
-    cursor: "pointer",
-    display: "inline-flex",
-    height: "1.75rem",
-    justifyContent: "center",
-    padding: 0,
-    transition: `color ${motion.fast} ${motion.easing}, background-color ${motion.fast} ${motion.easing}`,
-    width: "1.75rem",
-    ":hover": {
-      backgroundColor: "rgba(255, 255, 255, 0.08)",
-    },
-  },
-  copyIcon: {
+  actionIcon: {
     display: "block",
     height: "0.875rem",
     width: "0.875rem",
   },
-  codeArea: {
-    backgroundColor: siteColors.codeBackground,
-    display: "flex",
-    fontFamily: typography.mono,
-    fontSize: "0.8125rem",
-    lineHeight: 1.65,
-    margin: 0,
-    overflowX: "auto",
-    paddingBlock: "0.85rem",
-    paddingInline: "0.85rem",
+  body: {
     position: "relative",
   },
-  codeAreaCollapsed: {
-    maxHeight: "16rem",
+  bodyCollapsed: {
+    maxHeight: COLLAPSED_HEIGHT,
     overflow: "hidden",
   },
-  gutter: {
-    color: siteColors.codeTextMuted,
-    display: "flex",
-    flexDirection: "column",
-    flexShrink: 0,
-    opacity: 0.45,
-    paddingInlineEnd: "1.25rem",
-    textAlign: "right",
-    userSelect: "none",
+  scrollViewport: {
+    borderRadius: 0,
+    borderWidth: 0,
   },
-  codeContent: {
-    display: "flex",
-    flexDirection: "column",
-    flexGrow: 1,
-    minWidth: 0,
-    whiteSpace: "pre",
+  scrollContent: {
+    padding: 0,
   },
-  line: {
-    display: "block",
-    minHeight: "1.35rem",
+  scrollContentPadded: {
+    paddingBlockEnd: "2.75rem",
+  },
+  scrollTrack: {
+    backgroundColor: "transparent",
+  },
+  scrollThumb: {
+    backgroundColor: colors.scrollbar,
   },
   fadeOverlay: {
     alignItems: "flex-end",
-    backgroundImage: `linear-gradient(to bottom, transparent 0%, ${siteColors.codeBackground} 85%)`,
+    backgroundImage: `linear-gradient(to bottom, transparent 0%, ${colors.background} 82%)`,
     bottom: 0,
     display: "flex",
     insetInline: 0,
     justifyContent: "center",
-    paddingBlockEnd: "1.1rem",
+    paddingBlockEnd: "0.9rem",
     position: "absolute",
-    top: "6rem",
+    top: "7rem",
+  },
+  expandFloat: {
+    bottom: "0.9rem",
+    display: "flex",
+    insetInline: 0,
+    justifyContent: "center",
+    pointerEvents: "none",
+    position: "absolute",
   },
   expandButton: {
     alignItems: "center",
-    appearance: "none",
     backgroundColor: colors.interactive,
     borderColor: colors.borderStrong,
     borderRadius: radii.full,
-    borderStyle: "solid",
-    borderWidth: 1,
     boxShadow: shadows.md,
     color: colors.foreground,
-    cursor: "pointer",
     display: "inline-flex",
     fontFamily: typography.mono,
     fontSize: "0.75rem",
     fontWeight: 600,
     gap: "0.35rem",
     lineHeight: 1,
+    minHeight: "1.9rem",
     paddingBlock: "0.4rem",
     paddingInline: "0.95rem",
-    transition: `transform ${motion.fast} ${motion.easing}, background-color ${motion.fast} ${motion.easing}`,
-    ":hover": {
-      backgroundColor: colors.overlay,
-      transform: "translateY(-1px)",
-    },
+    pointerEvents: "auto",
   },
-  tokKeyword: { color: "#f43f5e" },
-  tokType: { color: "#38bdf8" },
-  tokString: { color: "#7dd3fc" },
-  tokNumber: { color: "#fbbf24" },
-  tokComment: { color: siteColors.codeTextMuted, fontStyle: "italic", opacity: 0.8 },
-  tokPunct: { color: "#94a3b8" },
-  tokIdent: { color: siteColors.codeText },
-  tokPlain: { color: siteColors.codeText },
+  expandIcon: {
+    display: "block",
+    height: "0.8rem",
+    transition: `transform ${motion.fast} ${motion.easing}`,
+    width: "0.8rem",
+  },
+  expandIconOpen: {
+    transform: "rotate(180deg)",
+  },
 });
 
-const tokenStyleMap = {
-  keyword: styles.tokKeyword,
-  type: styles.tokType,
-  string: styles.tokString,
-  number: styles.tokNumber,
-  comment: styles.tokComment,
-  punct: styles.tokPunct,
-  ident: styles.tokIdent,
-  plain: styles.tokPlain,
-} as const;
+/*
+ * Solid 2 types no longer include `classList`, so the scope classes the theme
+ * CSS keys off (`rui-code`, `rui-code-inline`) merge with StyleX by hand.
+ */
+function scopedRoot(xstyle?: stylex.StyleXStyles, base: stylex.StyleXStyles = styles.root) {
+  const attrs = stylex.attrs(base, xstyle);
+  return { ...attrs, class: attrs.class ? `${attrs.class} rui-code` : "rui-code" };
+}
 
-export default function CodeBlock(props: CodeBlockProps) {
-  const merged = mergeProps(
-    {
-      collapsible: true,
-      defaultExpanded: false,
-    },
-    props,
+function scopedInline(xstyle?: stylex.StyleXStyles) {
+  const attrs = stylex.attrs(xstyle);
+  return { ...attrs, class: attrs.class ? `${attrs.class} rui-code-inline` : "rui-code-inline" };
+}
+
+function LanguageIcon(props: { lang: string }) {
+  const canonical = createMemo(() => resolveCodeLanguage(props.lang));
+  return (
+    <Show
+      when={canonical() === "ts" || canonical() === "tsx"}
+      fallback={
+        <Show
+          when={canonical() === "js" || canonical() === "jsx"}
+          fallback={<FileCodeIcon aria-hidden="true" {...stylex.attrs(styles.fileIcon)} />}
+        >
+          <JavaScriptIcon aria-hidden="true" {...stylex.attrs(styles.languageIcon)} />
+        </Show>
+      }
+    >
+      <TypeScriptIcon aria-hidden="true" {...stylex.attrs(styles.languageIcon)} />
+    </Show>
   );
+}
 
-  const [expanded, setExpanded] = createSignal(merged.defaultExpanded);
+function useCopyText(source: () => string) {
   const [copied, setCopied] = createSignal(false);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(timer));
 
-  const lines = createMemo(() => tokenizeCode(merged.code));
-  const isCollapsible = createMemo(() => merged.collapsible && lines().length > 10);
-
-  const languageLabel = createMemo(() => {
-    if (merged.language) return merged.language;
-    if (merged.path) {
-      if (merged.path.endsWith(".tsx") || merged.path.endsWith(".ts")) return "TS";
-      if (merged.path.endsWith(".jsx") || merged.path.endsWith(".js")) return "JS";
-      if (merged.path.endsWith(".css")) return "CSS";
-      if (merged.path.endsWith(".html")) return "HTML";
-      if (merged.path.endsWith(".json")) return "JSON";
-    }
-    return "TS";
-  });
-
-  async function handleCopy() {
+  async function copy() {
+    const text = source();
     try {
-      await navigator.clipboard.writeText(merged.code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
     } catch {
-      const textArea = document.createElement("textarea");
-      textArea.value = merged.code;
-      textArea.style.position = "fixed";
-      textArea.style.opacity = "0";
-      document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+      document.body.appendChild(area);
+      area.focus();
+      area.select();
       try {
         document.execCommand("copy");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
       } finally {
-        document.body.removeChild(textArea);
+        document.body.removeChild(area);
       }
     }
+    setCopied(true);
+    clearTimeout(timer);
+    timer = setTimeout(() => setCopied(false), 2000);
   }
 
-  return (
-    <div {...stylex.attrs(styles.root, merged.xstyle)}>
-      <div {...stylex.attrs(styles.header)}>
-        <div {...stylex.attrs(styles.headerLeft)}>
-          <span {...stylex.attrs(styles.badge)}>
-            <Show when={languageLabel() === "TS"}>
-              <TypeScriptIcon aria-hidden="true" {...stylex.attrs(styles.languageIcon)} />
-            </Show>
-            {languageLabel()}
-          </span>
-          <Show when={merged.path}>
-            <span {...stylex.attrs(styles.path)}>{merged.path}</span>
-          </Show>
-        </div>
-        <div {...stylex.attrs(styles.headerRight)}>
-          <Show when={isCollapsible()}>
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded())}
-              {...stylex.attrs(styles.headerToggle)}
-            >
-              {expanded() ? "Collapse" : "Expand"}
-            </button>
-            <div aria-hidden="true" {...stylex.attrs(styles.divider)} />
-          </Show>
-          <button
-            type="button"
-            onClick={handleCopy}
-            aria-label={copied() ? "Copied to clipboard" : "Copy code"}
-            title={copied() ? "Copied!" : "Copy code"}
-            {...stylex.attrs(styles.copyButton)}
-          >
-            <Show
-              when={copied()}
-              fallback={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  {...stylex.attrs(styles.copyIcon)}
-                >
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                </svg>
-              }
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                {...stylex.attrs(styles.copyIcon)}
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </Show>
-          </button>
-        </div>
-      </div>
+  return { copied, copy };
+}
 
-      <div
-        {...stylex.attrs(
-          styles.codeArea,
-          isCollapsible() && !expanded() && styles.codeAreaCollapsed,
-        )}
-      >
-        <div aria-hidden="true" {...stylex.attrs(styles.gutter)}>
-          <For each={lines()}>
-            {(_, index) => <span {...stylex.attrs(styles.line)}>{index() + 1}</span>}
-          </For>
-        </div>
-        <pre {...stylex.attrs(styles.codeContent)}>
-          <code>
-            <For each={lines()}>
-              {(lineTokens) => (
-                <span {...stylex.attrs(styles.line)}>
-                  <For each={lineTokens}>
-                    {(tok) => <span {...stylex.attrs(tokenStyleMap[tok.type])}>{tok.text}</span>}
-                  </For>
-                  {"\n"}
-                </span>
-              )}
-            </For>
-          </code>
-        </pre>
-        <Show when={isCollapsible() && !expanded()}>
-          <div {...stylex.attrs(styles.fadeOverlay)}>
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              {...stylex.attrs(styles.expandButton)}
-            >
-              Expand
-            </button>
-          </div>
-        </Show>
+/** Inline snippet sharing the block highlighter. */
+export function Code(
+  props: { code?: string; lang?: string; path?: string; children?: string } & StyleProps,
+) {
+  const source = createMemo(() => props.code ?? props.children ?? "");
+  const spans = createMemo(() => highlightInlineSpans(source(), props.lang, props.path));
+  return <code {...scopedInline(props.xstyle)} innerHTML={spans()} />;
+}
+
+export interface SimpleCodeBlockProps extends StyleProps {
+  code: string;
+  lang?: string;
+  path?: string;
+  meta?: string;
+  title?: string;
+  lineNumbers?: boolean;
+  decorations?: ReadonlyArray<HighlightDecoration>;
+}
+
+/** Small headerless block. For headers and collapsing, compose the panel. */
+export function CodeBlock(props: SimpleCodeBlockProps) {
+  const highlighted = createMemo(() =>
+    highlightCodeBlock({
+      code: props.code,
+      decorations: props.decorations,
+      lang: props.lang,
+      lineNumbers: props.lineNumbers,
+      meta: props.meta,
+      path: props.path,
+      title: props.title,
+    }),
+  );
+  return (
+    <div
+      {...scopedRoot(props.xstyle, styles.blockRoot)}
+      data-language={highlighted().lang}
+      innerHTML={highlighted().preHtml}
+    />
+  );
+}
+
+export interface CodePanelOptions extends SimpleCodeBlockProps {
+  collapsible?: boolean;
+  defaultExpanded?: boolean;
+  /** Lines above which a collapsible panel starts collapsed. */
+  collapseAtLines?: number;
+}
+
+interface CodePanelState {
+  highlighted: () => CodeHighlightResult;
+  expanded: () => boolean;
+  setExpanded: (next: boolean) => void;
+  collapsible: () => boolean;
+  copy: () => void;
+  copied: () => boolean;
+  path?: string;
+  title?: string;
+  lang?: string;
+}
+
+const CodePanelContext = createContext<CodePanelState | undefined>(undefined);
+
+function usePanelState(): CodePanelState {
+  const state = useContext(CodePanelContext);
+  if (!state) throw new Error("CodePanel pieces must be used inside CodePanelRoot.");
+  return state;
+}
+
+function useOptionalPanelState(): CodePanelState | undefined {
+  return useContext(CodePanelContext);
+}
+
+/** Holds the highlighted HTML, copy state, and expand state for the pieces. */
+export function CodePanelRoot(props: ParentProps<CodePanelOptions>) {
+  const merged = mergeProps(
+    { collapsible: true, collapseAtLines: COLLAPSE_AT_LINES, defaultExpanded: false },
+    props,
+  );
+  const highlighted = createMemo(() =>
+    highlightCodeBlock({
+      code: merged.code,
+      decorations: merged.decorations,
+      lang: merged.lang,
+      lineNumbers: merged.lineNumbers,
+      meta: merged.meta,
+      path: merged.path,
+      title: merged.title,
+    }),
+  );
+  const [expanded, setExpanded] = createSignal(merged.defaultExpanded);
+  const collapseAtLines = createMemo(() => merged.collapseAtLines ?? COLLAPSE_AT_LINES);
+  const collapsible = createMemo(
+    () => merged.collapsible && highlighted().lineCount > collapseAtLines(),
+  );
+  const { copied, copy } = useCopyText(() => highlighted().copyText);
+
+  const state: CodePanelState = {
+    highlighted,
+    expanded,
+    setExpanded,
+    collapsible,
+    copy,
+    copied,
+    get path() {
+      return merged.path;
+    },
+    get title() {
+      return merged.title;
+    },
+    get lang() {
+      return merged.lang;
+    },
+  };
+
+  return (
+    <CodePanelContext value={state}>
+      <div {...scopedRoot(merged.xstyle)} data-language={highlighted().lang}>
+        {merged.children}
       </div>
+    </CodePanelContext>
+  );
+}
+
+/** Bar with the file label on the left and actions on the right. */
+export function CodePanelHeader(props: ParentProps<StyleProps>) {
+  return <div {...stylex.attrs(styles.header, props.xstyle)}>{props.children}</div>;
+}
+
+export function CodePanelTitle(
+  props: { path?: string; title?: string; lang?: string } & StyleProps,
+) {
+  const panel = useOptionalPanelState();
+  const highlighted = createMemo(
+    () =>
+      panel?.highlighted() ??
+      highlightCodeBlock({
+        code: "",
+        lang: props.lang,
+        path: props.path,
+        title: props.title,
+      }),
+  );
+  const path = createMemo(() => props.path ?? panel?.path);
+  const label = createMemo(() => {
+    if (path()) return path();
+    const metaTitle = props.title ?? panel?.title ?? highlighted().title;
+    if (metaTitle) return metaTitle;
+    return displayNameForLanguage(props.lang ?? panel?.lang ?? highlighted().lang);
+  });
+  const lang = createMemo(() => props.lang ?? panel?.lang ?? path() ?? highlighted().lang);
+  return (
+    <div {...stylex.attrs(styles.titleGroup, props.xstyle)}>
+      <LanguageIcon lang={lang() ?? "tsx"} />
+      <span {...stylex.attrs(styles.title)} title={label()}>
+        {label()}
+      </span>
     </div>
   );
 }
+
+/** Right side of the header. Provides tooltip timing for action buttons. */
+export function CodePanelActions(props: ParentProps<StyleProps>) {
+  return (
+    <div {...stylex.attrs(styles.actions, props.xstyle)}>
+      <Tooltip.Provider delay={400}>{props.children}</Tooltip.Provider>
+    </div>
+  );
+}
+
+export function CodePanelCopyButton() {
+  const panel = usePanelState();
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        aria-label={panel.copied() ? "Copied to clipboard" : "Copy code"}
+        onClick={panel.copy}
+        size="icon-sm"
+        variant="ghost"
+      >
+        <Show when={panel.copied()} fallback={<CopyIcon {...stylex.attrs(styles.actionIcon)} />}>
+          <CheckIcon {...stylex.attrs(styles.actionIcon)} />
+        </Show>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{panel.copied() ? "Copied" : "Copy code"}</Tooltip.Content>
+    </Tooltip.Root>
+  );
+}
+
+export function CodePanelCode(props: StyleProps) {
+  const panel = usePanelState();
+  return (
+    <div
+      {...stylex.attrs(styles.scrollContent, props.xstyle)}
+      innerHTML={panel.highlighted().preHtml}
+    />
+  );
+}
+
+/** The one expand control. Floating pill, toggling both directions. */
+export function CodePanelExpandButton() {
+  const panel = usePanelState();
+  return (
+    <Show when={panel.collapsible()}>
+      <Button
+        onClick={() => panel.setExpanded(!panel.expanded())}
+        aria-expanded={panel.expanded() ? "true" : "false"}
+        size="sm"
+        variant="secondary"
+        xstyle={styles.expandButton}
+      >
+        {panel.expanded() ? "Collapse" : "Expand"}
+        <ChevronDownIcon
+          {...stylex.attrs(styles.expandIcon, panel.expanded() && styles.expandIconOpen)}
+        />
+      </Button>
+    </Show>
+  );
+}
+
+export function CodePanelBody(props: ParentProps<StyleProps>) {
+  const panel = usePanelState();
+  const collapsed = createMemo(() => panel.collapsible() && !panel.expanded());
+  return (
+    <div {...stylex.attrs(styles.body, collapsed() && styles.bodyCollapsed, props.xstyle)}>
+      <ScrollArea.Root>
+        <ScrollArea.Viewport xstyle={styles.scrollViewport}>
+          <ScrollArea.Content
+            xstyle={[
+              styles.scrollContent,
+              panel.expanded() && panel.collapsible() && styles.scrollContentPadded,
+            ]}
+          >
+            {props.children ?? <CodePanelCode />}
+          </ScrollArea.Content>
+        </ScrollArea.Viewport>
+        <ScrollArea.Scrollbar orientation="horizontal" xstyle={styles.scrollTrack}>
+          <ScrollArea.Thumb xstyle={styles.scrollThumb} />
+        </ScrollArea.Scrollbar>
+      </ScrollArea.Root>
+      <Show when={collapsed()}>
+        <div aria-hidden="true" {...stylex.attrs(styles.fadeOverlay)} />
+      </Show>
+      <Show when={panel.collapsible()}>
+        <div {...stylex.attrs(styles.expandFloat)}>
+          <CodePanelExpandButton />
+        </div>
+      </Show>
+    </div>
+  );
+}
+
+export interface CodePanelProps extends ParentProps<CodePanelOptions> {
+  /**
+   * Backwards-compatible alias for `lang`. Old call sites passed display
+   * labels like "TS"; they resolve through the highlighter either way.
+   */
+  language?: string;
+}
+
+/** Header plus collapsible body, the arrangement most docs pages want. */
+export function CodePanel(props: CodePanelProps) {
+  const merged = mergeProps(
+    { collapsible: true, collapseAtLines: COLLAPSE_AT_LINES, defaultExpanded: false },
+    props,
+  );
+  return (
+    <CodePanelRoot
+      code={merged.code}
+      collapsible={merged.collapsible}
+      collapseAtLines={merged.collapseAtLines}
+      decorations={merged.decorations}
+      defaultExpanded={merged.defaultExpanded}
+      lang={merged.lang ?? merged.language}
+      lineNumbers={merged.lineNumbers}
+      meta={merged.meta}
+      path={merged.path}
+      title={merged.title}
+      xstyle={merged.xstyle}
+    >
+      <CodePanelHeader>
+        <CodePanelTitle />
+        <CodePanelActions>
+          <CodePanelCopyButton />
+        </CodePanelActions>
+      </CodePanelHeader>
+      <CodePanelBody>{merged.children}</CodePanelBody>
+    </CodePanelRoot>
+  );
+}
+
+/** Backwards-compatible props for the previous default export. */
+export type CodeBlockProps = CodePanelProps;
+
+export default CodePanel;

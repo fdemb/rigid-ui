@@ -3,8 +3,9 @@ import { Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 
 import { frame } from "./Frame";
+import { CodeBlock } from "./CodeBlock";
 import { colors, motion, radii, typography } from "./ui/tokens.stylex";
-import { siteColors, siteLayout } from "../styles/site.stylex";
+import { siteLayout } from "../styles/site.stylex";
 
 const styles = stylex.create({
   root: {
@@ -53,17 +54,13 @@ const styles = stylex.create({
     },
   },
   source: {
-    backgroundColor: siteColors.codeBackground,
     borderTopColor: colors.border,
     borderTopStyle: "solid",
     borderTopWidth: 1,
-    color: siteColors.codeText,
-    fontSize: "0.75rem",
-    lineHeight: 1.65,
-    margin: 0,
-    overflowX: "auto",
-    paddingBlock: "1rem",
-    paddingInline: siteLayout.inset,
+  },
+  sourceBlock: {
+    borderRadius: 0,
+    borderWidth: 0,
   },
 });
 
@@ -83,9 +80,9 @@ export default function Example(props: ExampleProps) {
       <div {...stylex.attrs(styles.preview)}>{props.children}</div>
       <details>
         <summary {...stylex.attrs(frame.inset, styles.summary)}>View code</summary>
-        <pre {...stylex.attrs(styles.source)}>
-          <code>{props.src}</code>
-        </pre>
+        <div {...stylex.attrs(styles.source)}>
+          <CodeBlock code={props.src} lang="tsx" xstyle={styles.sourceBlock} />
+        </div>
       </details>
     </section>
   );

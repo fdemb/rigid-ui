@@ -51,3 +51,96 @@ export function TypeScriptIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function JavaScriptIcon(props: IconProps) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32" {...props}>
+      <rect width="32" height="32" rx="6" fill="#f7df1e" />
+      <path
+        fill="#000"
+        d="M20.6 24.4c.8 1.3 1.8 2.2 3.6 2.2 1.5 0 2.5-.8 2.5-1.8 0-1.3-.9-1.7-2.5-2.2l-.9-.4c-2.5-1.1-4.2-2.4-4.2-5.2 0-2.6 2-4.6 5.1-4.6 2.2 0 3.8.8 4.9 2.7l-2.7 1.7c-.6-1-1.2-1.5-2.2-1.5-1 0-1.6.6-1.6 1.5 0 1 1.1 1.4 2.2 1.9l.9.4c3 1.3 4.7 2.6 4.7 5.5 0 3.1-2.5 4.9-5.9 4.9-2.8 0-4.8-1.1-5.9-3.2l2-1.9Zm-10.3.9 2-1.2c.4.7.8 1.3 1.7 1.3.9 0 1.4-.3 1.4-1.6V12.6h2.5v11.3c0 2.3-1.3 3.4-3.4 3.4-1.6 0-2.7-.7-3.5-1.7l1.3-1.3Z"
+        transform="scale(0.86) translate(2.6 2.6)"
+      />
+    </svg>
+  );
+}
+
+export function FileCodeIcon(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      {...props}
+    >
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="m10 13-2 2 2 2" />
+      <path d="m14 17 2-2-2-2" />
+    </svg>
+  );
+}
+
+export function CopyIcon(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      {...props}
+    >
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    </svg>
+  );
+}
+
+export function CheckIcon(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      {...props}
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="1em"
+      height="1em"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      {...props}
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}

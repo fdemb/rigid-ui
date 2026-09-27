@@ -1,4 +1,5 @@
 @import "./components/ui/reset.css";
+@import "./code/code-themes.css";
 
 @layer base {
   body {

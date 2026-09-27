@@ -1,0 +1,236 @@
+/*
+ * Code themes for TanStack Highlight: GitHub Light on light pages, Oscura
+ * Dusk on dark pages, one shared `th-*` markup tree.
+ *
+ * The variable blocks are the `createThemeCss` output for
+ * `@tanstack/highlight/themes/github-light` (light) and the `oscuraDuskTheme`
+ * object in ./oscura-dusk.ts (dark), generated with:
+ *
+ *   lightSelector: ':root',
+ *   darkSelector: 'html[data-site-theme="dark"]',
+ *   codeBlockSelector: '.rui-code pre.th-code',
+ *   lineNumbersSelector: '.rui-code .th-code--line-numbers'
+ *
+ * `:root` carries the light set because that is the site default; the dark
+ * set overrides it whenever Layout reports the dark theme through the
+ * `data-site-theme` attribute. If either theme object changes, regenerate
+ * the variable blocks. The structural rules mirror `createThemeBaseCss`,
+ * except the `pre` background: the canvas is the page background owned by
+ * the component, so the `pre` stays transparent.
+ *
+ * This file ships with the entry stylesheet (see globals.css), never through
+ * a component import: a route-level CSS asset would land in that route's
+ * preload list, and environments without stylesheet load events would stall
+ * the route on preload instead of rendering it.
+ */
+:root {
+  --th-background: #ffffff;
+  --th-token: #24292f;
+  --th-attr: #0550ae;
+  --th-code-inline: #953800;
+  --th-command: #8250df;
+  --th-comment: #6e7781;
+  --th-deleted: #cf222e;
+  --th-function: #8250df;
+  --th-heading: #0550ae;
+  --th-inserted: #1a7f37;
+  --th-keyword: #cf222e;
+  --th-link: #0969da;
+  --th-literal: #0550ae;
+  --th-meta: #57606a;
+  --th-number: #0550ae;
+  --th-operator: #8250df;
+  --th-property: #0550ae;
+  --th-selector: #116329;
+  --th-string: #0a7f64;
+  --th-tag: #116329;
+  --th-type: #953800;
+  --th-variable: #953800;
+}
+
+html[data-site-theme="dark"] {
+  --th-background: #131419;
+  --th-token: #e6e6e6;
+  --th-attr: #e6e7a3;
+  --th-code-inline: #e6e6e6;
+  --th-command: #e6e6e6;
+  --th-comment: #46474f;
+  --th-deleted: #d84f68;
+  --th-function: #e6e7a3;
+  --th-heading: #e6e7a3;
+  --th-inserted: #4ebe96;
+  --th-keyword: #9099a1;
+  --th-link: #479ffa;
+  --th-literal: #f9b98c;
+  --th-meta: #868f97;
+  --th-number: #f9b98c;
+  --th-operator: #9099a1;
+  --th-property: #e6e7a3;
+  --th-selector: #54c0a3;
+  --th-string: #4ebe96;
+  --th-tag: #e6e7a3;
+  --th-type: #e6e7a3;
+  --th-variable: #e6e6e6;
+}
+
+.rui-code pre.th-code {
+  overflow-x: auto;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  color: var(--th-token);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+.th-token {
+  color: var(--th-token);
+}
+.th-attr {
+  color: var(--th-attr);
+}
+.th-code-inline {
+  color: var(--th-code-inline);
+}
+.th-command {
+  color: var(--th-command);
+}
+.th-comment {
+  color: var(--th-comment);
+}
+.th-deleted {
+  color: var(--th-deleted);
+}
+.th-function {
+  color: var(--th-function);
+}
+.th-heading {
+  color: var(--th-heading);
+}
+.th-inserted {
+  color: var(--th-inserted);
+}
+.th-keyword {
+  color: var(--th-keyword);
+}
+.th-link {
+  color: var(--th-link);
+}
+.th-literal {
+  color: var(--th-literal);
+}
+.th-meta {
+  color: var(--th-meta);
+}
+.th-number {
+  color: var(--th-number);
+}
+.th-operator {
+  color: var(--th-operator);
+}
+.th-property {
+  color: var(--th-property);
+}
+.th-selector {
+  color: var(--th-selector);
+}
+.th-string {
+  color: var(--th-string);
+}
+.th-tag {
+  color: var(--th-tag);
+}
+.th-type {
+  color: var(--th-type);
+}
+.th-variable {
+  color: var(--th-variable);
+}
+.th-line {
+  display: inline-block;
+  min-width: 100%;
+  width: max-content;
+}
+.rui-code .th-code--line-numbers code {
+  counter-reset: th-line;
+}
+.rui-code .th-code--line-numbers .th-line::before {
+  display: inline-block;
+  width: 2.5em;
+  padding-right: 1em;
+  color: var(--th-comment);
+  content: attr(data-line);
+  text-align: right;
+  user-select: none;
+}
+
+/* Line lessons. Light backgrounds follow GitHub's diff palette. */
+.rui-code .th-line--highlighted {
+  background: #fff8c5;
+}
+.rui-code .th-line--inserted {
+  background: #dafbe1;
+}
+.rui-code .th-line--deleted {
+  background: #ffebe9;
+}
+.rui-code .th-line--focused {
+  background: #eaeef2;
+}
+.rui-code .th-line--error {
+  background: #ffebe9;
+}
+.rui-code .th-line--warning {
+  background: #fff8c5;
+}
+
+/* Dark line lessons reuse Oscura's diff and selection colors. */
+html[data-site-theme="dark"] .rui-code .th-line--highlighted {
+  background: color-mix(in srgb, #e6e7a3 12%, transparent);
+}
+html[data-site-theme="dark"] .rui-code .th-line--inserted {
+  background: #4ebe9625;
+}
+html[data-site-theme="dark"] .rui-code .th-line--deleted {
+  background: #ff5c5c26;
+}
+html[data-site-theme="dark"] .rui-code .th-line--focused {
+  background: #ffffff0f;
+}
+html[data-site-theme="dark"] .rui-code .th-line--error {
+  background: #ff5c5c26;
+}
+html[data-site-theme="dark"] .rui-code .th-line--warning {
+  background: #d2d7141f;
+}
+
+/* Exact character ranges land as nested spans inside the token spans. */
+.rui-code .th-decoration {
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  border-radius: 0.25rem;
+}
+.rui-code .th-line--error .th-decoration,
+.rui-code .th-decoration.is-error {
+  background: transparent;
+  text-decoration: underline wavy #cf222e 1px;
+  text-underline-offset: 3px;
+}
+.rui-code .th-decoration.is-warning {
+  background: transparent;
+  text-decoration: underline wavy #9a6700 1px;
+  text-underline-offset: 3px;
+}
+html[data-site-theme="dark"] .rui-code .th-line--error .th-decoration,
+html[data-site-theme="dark"] .rui-code .th-decoration.is-error {
+  text-decoration-color: #ff5c5c;
+}
+html[data-site-theme="dark"] .rui-code .th-decoration.is-warning {
+  text-decoration-color: #d2d714;
+}
+
+/* Inline code shares the token colors through the global rules above. */
+.rui-code-inline {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.85em;
+}
