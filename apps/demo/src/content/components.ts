@@ -77,6 +77,13 @@ export const components = [
     group: "Layout",
   },
   {
+    slug: "tabs",
+    name: "Tabs",
+    description: "Panels switched by a tab list, in bar and pill variants.",
+    sourcePath: "components/ui/Tabs.tsx",
+    group: "Navigation",
+  },
+  {
     slug: "meter",
     name: "Meter",
     description: "A styled measurement with a label, value, and theme-aware fill.",

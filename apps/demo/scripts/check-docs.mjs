@@ -144,6 +144,20 @@ if (!route) {
       route === "/elements" ? 0 : 1,
     );
   }
+  if (route === "/components/tabs") {
+    const lists = Array.from(document.querySelectorAll('[role="tablist"]'));
+    assert.equal(lists.length, 3);
+    for (const list of lists) {
+      assert.ok(list.className, "Styled tabs must receive compiled StyleX classes");
+      const selected = list.querySelectorAll('[role="tab"][aria-selected="true"]');
+      assert.equal(selected.length, 1);
+      const panel = document.getElementById(selected[0].getAttribute("aria-controls"));
+      assert.equal(panel.getAttribute("aria-labelledby"), selected[0].id);
+    }
+    const tabs = lists[0].querySelectorAll('[role="tab"]');
+    tabs[1].click();
+    await waitFor(() => tabs[1].getAttribute("aria-selected") === "true");
+  }
   if (route === "/components/meter") {
     const meters = Array.from(document.querySelectorAll('[role="meter"]'));
     assert.equal(meters.length, 2);

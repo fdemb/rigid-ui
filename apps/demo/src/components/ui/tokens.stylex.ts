@@ -14,6 +14,7 @@ export const colors = stylex.defineVars({
   inverseForeground: "#ffffff",
   interactive: "#f0f0ed",
   interactiveForeground: "#171717",
+  selectedSurface: "#ffffff",
   border: "#e2e2de",
   borderStrong: "#b8b8b1",
   primary: "#171717",

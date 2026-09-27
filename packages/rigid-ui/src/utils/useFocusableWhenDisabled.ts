@@ -9,7 +9,7 @@
 
 // The index signature keeps the bag assignable to `MergeableProps` at merge sites.
 export interface FocusableWhenDisabledProps extends Record<string, any> {
-  "aria-disabled"?: boolean | undefined;
+  "aria-disabled"?: "true" | "false" | undefined;
   disabled?: boolean | undefined;
   onKeyDown(event: KeyboardEvent): void;
   tabIndex?: number | undefined;
@@ -72,7 +72,9 @@ export function useFocusableWhenDisabled(
     (isNativeButton && (focusableWhenDisabled || isFocusableComposite)) ||
     (!isNativeButton && disabled)
   ) {
-    additionalProps["aria-disabled"] = disabled;
+    // A string, because Solid renders a boolean `true` as an empty attribute, which ARIA reads as
+    // not disabled. React stringifies it.
+    additionalProps["aria-disabled"] = disabled ? "true" : "false";
   }
 
   if (isNativeButton && (!focusableWhenDisabled || isNonFocusableComposite)) {

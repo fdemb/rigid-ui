@@ -45,6 +45,7 @@ export default defineConfig({
     entry: {
       "progress/index": "src/progress/index.ts",
       "meter/index": "src/meter/index.ts",
+      "tabs/index": "src/tabs/index.ts",
       "separator/index": "src/separator/index.ts",
       "scroll-area/index": "src/scroll-area/index.ts",
       "dialog/index": "src/dialog/index.ts",

@@ -23,6 +23,7 @@ const darkColors = stylex.createTheme(colors, {
   inverseForeground: "#191918",
   interactive: "#252523",
   interactiveForeground: "#f5f5f0",
+  selectedSurface: "#666660",
   border: "#30302d",
   borderStrong: "#55554f",
   primary: "#f2f2ed",
