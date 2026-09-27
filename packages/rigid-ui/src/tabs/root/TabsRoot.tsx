@@ -2,9 +2,9 @@ import { createEffect, createMemo, createSignal, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import {
   createCompositeList,
-  CompositeListContext,
   type CompositeListMap,
-} from "../../internals/composite/list/CompositeListContext";
+} from "../../internals/composite/list/CompositeList";
+import { CompositeListContext } from "../../internals/composite/list/CompositeListContext";
 import {
   createChangeEventDetails,
   type BaseUIChangeEventDetails,

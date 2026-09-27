@@ -23,7 +23,7 @@ import {
   scrollIntoViewIfNeeded,
   type DisabledIndices,
 } from "../composite";
-import type { CompositeListMap } from "../list/CompositeListContext";
+import type { CompositeListMap } from "../list/CompositeList";
 
 /**
  * Solid port of Base UI's `internals/composite/root/useCompositeRoot.ts`, without grid

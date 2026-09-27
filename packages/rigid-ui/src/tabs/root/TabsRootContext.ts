@@ -1,5 +1,5 @@
 import { createContext, useContext, type Accessor } from "solid-js";
-import type { CompositeList } from "../../internals/composite/list/CompositeListContext";
+import type { CompositeList } from "../../internals/composite/list/CompositeList";
 import type { TabsRootChangeEventDetails, TabsRootOrientation } from "./TabsRoot";
 import type { TabsTabActivationDirection, TabsTabMetadata, TabsTabValue } from "../tab/TabsTab";
 
