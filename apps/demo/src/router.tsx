@@ -39,6 +39,7 @@ export const Router = createRouter({
         { path: "/badge", component: lazy(() => import("./docs/components/badge.mdx")) },
         { path: "/card", component: lazy(() => import("./docs/components/card.mdx")) },
         { path: "/meter", component: lazy(() => import("./docs/components/meter.mdx")) },
+        { path: "/tabs", component: lazy(() => import("./docs/components/tabs.mdx")) },
         { path: "/separator", component: lazy(() => import("./docs/components/separator.mdx")) },
         { path: "/skeleton", component: lazy(() => import("./docs/components/skeleton.mdx")) },
         { path: "/dialog", component: lazy(() => import("./docs/components/dialog.mdx")) },
@@ -61,6 +62,7 @@ export const Router = createRouter({
         { path: "/", component: lazy(() => import("./docs/primitives.mdx")) },
         { path: "/meter", component: lazy(() => import("./docs/primitives/meter.mdx")) },
         { path: "/progress", component: lazy(() => import("./docs/primitives/progress.mdx")) },
+        { path: "/tabs", component: lazy(() => import("./docs/primitives/tabs.mdx")) },
         { path: "/separator", component: lazy(() => import("./docs/primitives/separator.mdx")) },
         { path: "/dialog", component: lazy(() => import("./docs/primitives/dialog.mdx")) },
         {

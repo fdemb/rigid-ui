@@ -7,6 +7,13 @@ export const primitives = [
     description: "Task completion with determinate and indeterminate states.",
   },
   {
+    slug: "tabs",
+    name: "Tabs",
+    importPath: "rigid-ui/primitives/tabs",
+    anatomy: ["Root", "List", "Tab", "Indicator", "Panel"],
+    description: "Tab lists with roving focus, linked panels, and an animatable indicator.",
+  },
+  {
     slug: "meter",
     name: "Meter",
     importPath: "rigid-ui/primitives/meter",

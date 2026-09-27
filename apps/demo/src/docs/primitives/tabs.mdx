@@ -1,0 +1,84 @@
+import DocPage from "../../components/DocPage";
+import { Tabs } from "rigid-ui/primitives/tabs";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Tabs" sections={["Import", "Usage", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Tabs
+
+Switches between related panels of content, one visible at a time.
+
+## Import
+
+```tsx
+import { Tabs } from "rigid-ui/primitives/tabs";
+```
+
+## Usage
+
+<Tabs.Root defaultValue="one">
+  <Tabs.List aria-label="Example" style={{ display: "flex", gap: "8px", position: "relative" }}>
+    <Tabs.Tab value="one">One</Tabs.Tab>
+    <Tabs.Tab value="two">Two</Tabs.Tab>
+    <Tabs.Indicator
+      style={{
+        position: "absolute",
+        left: "var(--active-tab-left)",
+        top: "var(--active-tab-bottom)",
+        width: "var(--active-tab-width)",
+        height: "2px",
+        background: "currentColor",
+      }}
+    />
+  </Tabs.List>
+  <Tabs.Panel value="one" style={{ "padding-top": "12px" }}>
+    Panel one
+  </Tabs.Panel>
+  <Tabs.Panel value="two" style={{ "padding-top": "12px" }}>
+    Panel two
+  </Tabs.Panel>
+</Tabs.Root>
+
+```tsx
+<Tabs.Root defaultValue="one">
+  <Tabs.List aria-label="Example">
+    <Tabs.Tab value="one">One</Tabs.Tab>
+    <Tabs.Tab value="two">Two</Tabs.Tab>
+    <Tabs.Indicator />
+  </Tabs.List>
+  <Tabs.Panel value="one">Panel one</Tabs.Panel>
+  <Tabs.Panel value="two">Panel two</Tabs.Panel>
+</Tabs.Root>
+```
+
+## Behavior
+
+`Root` holds the selected value. Pass `defaultValue` for an uncontrolled root, or `value` with `onValueChange` to control it.
+Values can be any type and are compared with `===`. `null` selects nothing.
+
+Without a `defaultValue`, the root selects the first enabled tab and reports it through `onValueChange` with reason `"initial"`.
+An uncontrolled root also moves off a selected tab that becomes disabled (`"disabled"`) or is removed (`"missing"`).
+These automatic changes cannot be canceled. A controlled root keeps whatever `value` you pass.
+
+`List` provides roving focus: the arrow keys move between tabs, Home and End jump to the ends, and focus wraps unless `loopFocus={false}`.
+Arrow keys follow `orientation` and the text direction. By default a focused tab is activated with Enter or Space. Set `activateOnFocus` to select on focus instead.
+Disabled tabs stay focusable so screen reader users can find them, but they never activate.
+
+`Panel` renders only while its tab is active. `keepMounted` keeps it in the DOM, hidden and inert.
+Tabs and panels link each other through `aria-controls` and `aria-labelledby`.
+
+## Styling
+
+`Root`, `List`, and `Panel` render `div` elements. `Tab` renders a `button`, and `Indicator` renders a `span`.
+Every part carries `data-orientation` and `data-activation-direction` (`left`, `right`, `up`, `down`, or `none`), for animating panels in the direction of travel.
+`Tab` adds `data-active` and `data-disabled`. `Panel` adds `data-hidden`, `data-index`, `data-starting-style`, and `data-ending-style`.
+
+`Indicator` sets `--active-tab-left`, `--active-tab-right`, `--active-tab-top`, `--active-tab-bottom`, `--active-tab-width`, and `--active-tab-height`, relative to the list.
+Give the list `position: relative` and position the indicator absolutely with those variables. It stays hidden until the first measurement.
+
+Each part accepts `class`, `style`, `ref`, and `render`. `class` and `style` also accept a function of the part's state.
