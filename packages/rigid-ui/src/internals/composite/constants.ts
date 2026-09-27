@@ -16,3 +16,6 @@ export const COMPOSITE_KEYS = new Set([ARROW_UP, ARROW_DOWN, ARROW_LEFT, ARROW_R
 export const SHIFT = "Shift" as const;
 export const MODIFIER_KEYS = [SHIFT, "Control", "Alt", "Meta"] as const;
 export type ModifierKey = (typeof MODIFIER_KEYS)[number];
+
+/** Marks the composite item that should take the initial tab stop. */
+export const ACTIVE_COMPOSITE_ITEM = "data-composite-item-active";

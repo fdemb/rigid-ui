@@ -11,6 +11,7 @@
     "solid",
     "solid-components",
     "solidjs",
+    "tabs",
     "ui",
     "unstyled"
   ],
@@ -69,6 +70,10 @@
     "./primitives/progress": {
       "types": "./dist/progress/index.d.ts",
       "import": "./dist/progress/index.js"
+    },
+    "./primitives/tabs": {
+      "types": "./dist/tabs/index.d.ts",
+      "import": "./dist/tabs/index.js"
     }
   },
   "scripts": {
