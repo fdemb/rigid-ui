@@ -163,7 +163,7 @@ const pillStyles = stylex.create({
     "@media (pointer: coarse)": { minHeight: "2.75rem" },
   },
   indicator: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.selectedSurface,
     borderRadius: radii.sm,
     boxShadow: shadows.sm,
     height: "var(--active-tab-height)",
