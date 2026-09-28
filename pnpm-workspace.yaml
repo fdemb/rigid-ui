@@ -31,6 +31,7 @@ catalog:
   rehype-slug: ^6.0.0
   remark-gfm: ^4.0.1
   github-slugger: ^2.0.0
+  "@tanstack/highlight": 0.1.0
 
 overrides:
   vite: "catalog:"

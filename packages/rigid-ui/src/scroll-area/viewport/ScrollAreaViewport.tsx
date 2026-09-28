@@ -335,9 +335,10 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps) {
       });
       ro.observe(viewportEl);
 
-      // Wait for animations to finish
+      // Wait for animations to finish. JSDOM has no Web Animations API,
+      // so without optical animations there is nothing to wait for.
       waitForAnimationsTimeout.start(0, () => {
-        const animations = viewportEl.getAnimations({ subtree: true });
+        const animations = viewportEl.getAnimations?.({ subtree: true }) ?? [];
         if (animations.length === 0) return;
         // `allSettled` so a cancelled animation still triggers the recompute.
         Promise.allSettled(animations.map((a) => a.finished))

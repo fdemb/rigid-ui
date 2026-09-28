@@ -183,6 +183,9 @@ export default function Layout(props: { children?: JSX.Element }) {
     (className) => {
       const classes = className?.split(" ") ?? [];
       document.documentElement.classList.add(...classes);
+      // Stable hook for theme-keyed static CSS (code themes). StyleX class
+      // names are hashed, so stylesheets outside StyleX read this instead.
+      document.documentElement.dataset.siteTheme = theme();
       return () => document.documentElement.classList.remove(...classes);
     },
   );
