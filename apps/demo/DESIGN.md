@@ -207,6 +207,17 @@ The palette is almost monochrome. Semantic green, amber, red, and teal appear on
 
 **Label/Mono Font:** The platform monospace stack
 
+Load Inter from rsms.me in `index.html` so the stack above resolves to the real
+font instead of the system fallback:
+
+```html
+<link rel="preconnect" href="https://rsms.me/" />
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+```
+
+`globals.css` puts `InterVariable` first in the `font-family` stack and enables
+`liga` and `calt`, per the usage notes on the Inter page.
+
 **Character:** One sans-serif family carries the interface, with tight tracking and carefully stepped weights doing most of the hierarchy work. Monospace marks imports, paths, versions, source controls, and primitive anatomy.
 
 ### Hierarchy
