@@ -1,0 +1,107 @@
+import DocPage from "../../components/DocPage";
+import { Accordion } from "rigid-ui/primitives/accordion";
+
+export default function Document(props) {
+  return (
+    <DocPage title="Accordion" sections={["Import", "Usage", "Behavior", "Styling"]}>
+      {props.children}
+    </DocPage>
+  );
+}
+
+# Accordion
+
+Groups headers with their collapsible panels, opening one item at a time by default.
+
+## Import
+
+```tsx
+import { Accordion } from "rigid-ui/primitives/accordion";
+```
+
+## Usage
+
+<Accordion.Root defaultValue={["setup"]}>
+  <Accordion.Item value="setup">
+    <Accordion.Header>
+      <Accordion.Trigger>Setup</Accordion.Trigger>
+    </Accordion.Header>
+    <Accordion.Panel>Install the package and render the root in your app.</Accordion.Panel>
+  </Accordion.Item>
+  <Accordion.Item value="usage">
+    <Accordion.Header>
+      <Accordion.Trigger>Usage</Accordion.Trigger>
+    </Accordion.Header>
+    <Accordion.Panel>Compose headers, triggers, and panels for each section.</Accordion.Panel>
+  </Accordion.Item>
+</Accordion.Root>
+
+```tsx
+<Accordion.Root defaultValue={["setup"]}>
+  <Accordion.Item value="setup">
+    <Accordion.Header>
+      <Accordion.Trigger>Setup</Accordion.Trigger>
+    </Accordion.Header>
+    <Accordion.Panel>Install the package and render the root in your app.</Accordion.Panel>
+  </Accordion.Item>
+  <Accordion.Item value="usage">
+    <Accordion.Header>
+      <Accordion.Trigger>Usage</Accordion.Trigger>
+    </Accordion.Header>
+    <Accordion.Panel>Compose headers, triggers, and panels for each section.</Accordion.Panel>
+  </Accordion.Item>
+</Accordion.Root>
+```
+
+## Behavior
+
+`Root` holds the open values. Pass `value` with `onValueChange` for a controlled accordion,
+or `defaultValue` for an uncontrolled one. With `multiple`, several items stay open at once;
+otherwise opening one item closes the rest. Either callback can call `eventDetails.cancel()`
+to veto the change.
+
+`Item` needs a `value` when you control the accordion or set an initial value; otherwise a
+unique ID is generated. `disabled` on `Root` or `Item` blocks interaction for everything
+underneath. `Item` also accepts `onOpenChange`, which runs before the root callback and can
+cancel the toggle independently.
+
+`Trigger` toggles its item and links to the panel through `aria-controls` and
+`aria-expanded`. It renders a native `button` unless `nativeButton={false}` with a custom
+`render`. `Panel` renders a `region` labelled by the trigger. Both IDs fall back to generated
+values, track manual `id` props, and clear when their part unmounts.
+
+Closed panels unmount by default. `keepMounted` keeps them in the DOM with the `hidden`
+attribute, and `hiddenUntilFound` uses `hidden="until-found"` instead so browser find-in-page
+can reveal matches. Both props exist on `Root` and `Panel`, with the panel winning on conflict.
+Setting `keepMounted={false}` alongside `hiddenUntilFound` logs a warning and keeps the panel
+mounted.
+
+## Styling
+
+`Root` and `Item` render `div` elements, `Header` renders an `h3`, `Trigger` renders a
+`button`, and `Panel` renders a `div`.
+
+Items report `data-open` or `data-closed`, their position with `data-index`, and
+`data-disabled` when disabled. Triggers report `data-panel-open` instead of `data-open`.
+Panels add `data-starting-style` and `data-ending-style` around transitions.
+
+While a panel animates, `--accordion-panel-height` and `--accordion-panel-width` hold its
+measured pixel size; once open they resolve to `auto`. Drive height animations from the
+variable, collapsing to zero on the transition attributes:
+
+```css
+.panel {
+  overflow: hidden;
+  height: var(--accordion-panel-height);
+  transition: height 300ms ease;
+}
+
+.panel[data-starting-style],
+.panel[data-ending-style] {
+  height: 0;
+}
+```
+
+Each part accepts `class`, `style`, `ref`, and `render`. Render callbacks receive the element
+props and a reactive state object. Read state fields like `state.open` inside JSX to follow
+changes.

@@ -60,6 +60,7 @@ export const Router = createRouter({
       component: DocsLayout,
       children: [
         { path: "/", component: lazy(() => import("./docs/primitives.mdx")) },
+        { path: "/accordion", component: lazy(() => import("./docs/primitives/accordion.mdx")) },
         { path: "/meter", component: lazy(() => import("./docs/primitives/meter.mdx")) },
         { path: "/progress", component: lazy(() => import("./docs/primitives/progress.mdx")) },
         { path: "/tabs", component: lazy(() => import("./docs/primitives/tabs.mdx")) },
