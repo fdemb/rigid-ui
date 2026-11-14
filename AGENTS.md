@@ -105,6 +105,15 @@ Check these before concluding a ported test has found a bug.
 | -------------------------------------- | ------------------------------------------------ |
 | Cursor tracking with `trackCursorAxis` | Cursor-relative positioning is tracked by RUI-48 |
 
+### Accordion
+
+| Base UI case                                                             | Why it does not apply                                                                                                        |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| `preserves generated part associations during hydration`                 | No SSR harness in the Solid suites; trigger/panel id registration is covered client-side instead                             |
+| `React.Activity` panel animation tests                                   | React-only; Solid has no activity semantics                                                                                  |
+| Native-button keyboard activation (`Enter`/`Space` synthesizing a click) | Synthetic test events cannot reproduce browser activation; the toggle path is covered by click and non-native keyboard tests |
+| `loopFocus` and `orientation` behavior                                   | Deprecated no-ops in Base UI too; the props are accepted for parity and `data-orientation` still renders                     |
+
 ### Scroll Area
 
 | Base UI case                                                                                 | Why it does not apply                                                                                                                                                    |
@@ -125,8 +134,8 @@ Every part that has state passes it to `renderPart` and threads its `State` type
 props, so the callback's second argument is typed and live. Parts whose Base UI counterpart has
 no state (`Title`, `Description`, `Portal`, `ScrollArea.Corner`) receive `{}`.
 
-`nativeButton` is wired into `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`, and
-`Dialog.Close` through `useButton` — the same four parts Base UI wires. It defaults to `true`;
+`nativeButton` is wired into `Popover.Trigger`, `Popover.Close`, `Dialog.Trigger`,
+`Dialog.Close`, and `Accordion.Trigger` through `useButton` — the same parts Base UI wires. It defaults to `true`;
 set it to `false` when `render` produces something other than a `<button>`, and the part applies
 `role="button"`, a tab index, and Enter/Space activation instead of assuming native semantics.
 Leaving it `true` on a non-button logs a dev warning. `Tooltip.Trigger` does not use `useButton`,
